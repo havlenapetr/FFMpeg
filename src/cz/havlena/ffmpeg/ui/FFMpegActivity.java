@@ -137,8 +137,7 @@ public class FFMpegActivity extends Activity {
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);
-    	String after = filePath.substring(index);
-    	String outputFile = before + ".android" + after;
+    	String outputFile = before + ".android.mp4";
     	
     	mFFMpegController.convertAsync(inputFile, outputFile);
     }
