@@ -149,6 +149,8 @@ public class FFMpegActivity extends Activity {
     	private static final int MSG_SHOW_CONTROLS = 3;
     	private static final int MSG_HIDE_CONTROLS = 4;
     	
+    	private int mLineCounter = 0;
+    	
     	private Handler mHanlder = new Handler() {
     		@Override
     		public void handleMessage(Message msg) {
@@ -166,12 +168,17 @@ public class FFMpegActivity extends Activity {
 	    			break;
     			
     			case MSG_REPORT:
+    				if(mLineCounter > 50) {
+    					mOutput.setText("");
+    					mLineCounter = 0;
+    				}
     				FFMpegReport report = (FFMpegReport) msg.obj;
     				mOutput.setText(mOutput.getText() + 
     						"bitrate: " + Math.round(report.bitrate) + 
     						", time: " + Math.round(report.time) + 
     						", total size: " + Math.round(report.total_size) + 
     						"\n");
+    				mLineCounter++;
     				break;
     			}
     		}
@@ -185,6 +192,7 @@ public class FFMpegActivity extends Activity {
 		}
 
 		public void onConversionStarted() {
+			mLineCounter = 0;
 			Message m = mHanlder.obtainMessage(MSG_STRING);
 			m.arg1 = MSG_HIDE_CONTROLS;
 			m.obj = "Conversion started";
