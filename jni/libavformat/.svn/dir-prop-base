@@ -1,0 +1,11 @@
+K 10
+svn:ignore
+V 45
+*.d
+*.exe
+*.ho
+*-example
+*-test
+libavformat*
+
+END

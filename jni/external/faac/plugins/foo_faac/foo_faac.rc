@@ -1,0 +1,121 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 293
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 183
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG DIALOG DISCARDABLE  0, 0, 300, 190
+STYLE WS_CHILD
+FONT 8, "Tahoma"
+BEGIN
+    LTEXT           "Output format:",IDC_STATIC,13,16,54,8
+    COMBOBOX        IDC_FORMAT,68,14,53,50,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "AAC profile:",IDC_STATIC,21,76,42,8
+    COMBOBOX        IDC_PROFILE,81,74,60,64,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_QUANTQUAL_EDIT,233,41,32,12,ES_CENTER | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Bandwidth (Hz):",IDC_STATIC,21,92,56,8
+    CONTROL         "Use mid/side coding",IDC_MIDSIDE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,107,79,10
+    CONTROL         "Use TNS",IDC_TNS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    21,120,43,10
+    COMBOBOX        IDC_CUTOFF,81,90,60,160,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Slider2",IDC_QUANTQUAL_SLIDER,"msctls_trackbar32",
+                    WS_TABSTOP,97,41,132,11
+    GROUPBOX        "Encoder settings",IDC_STATIC,14,31,258,107
+    PUSHBUTTON      "Defaults",IDC_DEFAULTS,225,116,40,14
+    CONTROL         "Quantizer quality:",IDC_USE_QQ,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,21,43,73,10
+    CONTROL         "Bitrate/ch (kbps):",IDC_USE_AB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,21,58,72,10
+    CONTROL         "Slider2",IDC_AVGBRATE_SLIDER,"msctls_trackbar32",
+                    WS_TABSTOP,97,57,132,11
+    EDITTEXT        IDC_AVGBRATE_EDIT,233,57,32,12,ES_CENTER | 
+                    ES_AUTOHSCROLL | ES_NUMBER
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

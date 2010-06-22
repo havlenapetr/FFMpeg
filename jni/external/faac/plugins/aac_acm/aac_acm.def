@@ -1,0 +1,5 @@
+LIBRARY      "aac_acm"
+DESCRIPTION  'Windows Dynamic Link Library'
+
+EXPORTS
+	DriverProc PRIVATE

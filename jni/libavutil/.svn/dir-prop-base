@@ -1,0 +1,12 @@
+K 10
+svn:ignore
+V 54
+*.d
+*.exe
+*.ho
+*-example
+*-test
+libavutil*
+avconfig.h
+
+END

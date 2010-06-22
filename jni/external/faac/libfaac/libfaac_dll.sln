@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfaac_dll", "libfaac_dll.vcproj", "{856BB8CF-B944-4D7A-9D59-4945316229AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{856BB8CF-B944-4D7A-9D59-4945316229AA}.Debug.ActiveCfg = Debug|Win32
+		{856BB8CF-B944-4D7A-9D59-4945316229AA}.Debug.Build.0 = Debug|Win32
+		{856BB8CF-B944-4D7A-9D59-4945316229AA}.Release.ActiveCfg = Release|Win32
+		{856BB8CF-B944-4D7A-9D59-4945316229AA}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

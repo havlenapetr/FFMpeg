@@ -1,0 +1,13 @@
+K 10
+svn:ignore
+V 22
+*.d
+*.exe
+*.ho
+*-test
+
+K 13
+svn:mergeinfo
+V 0
+
+END

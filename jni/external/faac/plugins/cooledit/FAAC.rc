@@ -1,0 +1,239 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ENCODER DIALOG DISCARDABLE  0, 0, 197, 147
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "MPEG4-AAC options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,85,128,36,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,121,128,36,14
+    PUSHBUTTON      "&About",IDC_BTN_ABOUT,157,128,36,14
+    CONTROL         "Automatic configuration",IDC_CHK_AUTOCFG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,4,90,10
+    CONTROL         "MPEG4",IDC_RADIO_MPEG4,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,9,29,40,10
+    CONTROL         "MPEG2",IDC_RADIO_MPEG2,"Button",BS_AUTORADIOBUTTON,9,42,
+                    40,9
+    CONTROL         "Main",IDC_RADIO_MAIN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,9,73,31,10
+    CONTROL         "LC",IDC_RADIO_LOW,"Button",BS_AUTORADIOBUTTON,9,85,25,
+                    10
+    CONTROL         "SSR",IDC_RADIO_SSR,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,9,97,31,10
+    CONTROL         "LTP",IDC_RADIO_LTP,"Button",BS_AUTORADIOBUTTON,9,109,29,
+                    10
+    CONTROL         "Raw",IDC_RADIO_RAW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,59,29,42,10
+    CONTROL         "ADTS",IDC_RADIO_ADTS,"Button",BS_AUTORADIOBUTTON,59,42,
+                    41,9
+    CONTROL         "Allow Mid/Side",IDC_CHK_ALLOWMIDSIDE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,109,29,63,10
+    CONTROL         "Use TNS",IDC_CHK_USETNS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,109,41,45,10
+    CONTROL         "Use LFE channel",IDC_CHK_USELFE,"Button",
+                    BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | 
+                    WS_TABSTOP,4,122,67,10
+    CONTROL         "Quality",IDC_RADIO_QUALITY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,61,73,37,10
+    COMBOBOX        IDC_CB_QUALITY,138,71,48,97,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Bitrate per channel",IDC_RADIO_BITRATE,"Button",
+                    BS_AUTORADIOBUTTON,61,89,75,10
+    COMBOBOX        IDC_CB_BITRATE,138,87,48,86,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_CB_BANDWIDTH,138,108,48,81,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    GROUPBOX        "AAC type",IDC_STATIC,4,18,48,38
+    GROUPBOX        "Profile",IDC_STATIC,4,62,48,59
+    LTEXT           "Bandwidth",IDC_STATIC,73,111,34,8
+    GROUPBOX        "Header",IDC_STATIC,55,18,48,38
+    GROUPBOX        "Encoding mode",IDC_STATIC,56,62,137,42
+    CONTROL         "Write .mp4",IDC_CHK_WRITEMP4,"Button",BS_AUTOCHECKBOX | 
+                    NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,4,132,50,10
+END
+
+IDD_DECODER DIALOG DISCARDABLE  0, 0, 141, 105
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Raw .AAC options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,24,84,36,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,61,84,36,14
+    PUSHBUTTON      "&About",IDC_BTN_ABOUT,97,84,36,14
+    CONTROL         "Main",IDC_RADIO_MAIN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,93,17,31,10
+    CONTROL         "Low",IDC_RADIO_LOW,"Button",BS_AUTORADIOBUTTON,93,28,29,
+                    10
+    CONTROL         "SSR",IDC_RADIO_SSR,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,93,40,31,10
+    CONTROL         "LTP",IDC_RADIO_LTP,"Button",BS_AUTORADIOBUTTON,93,52,29,
+                    10
+    GROUPBOX        "Profile",IDC_STATIC,85,7,48,70
+    COMBOBOX        IDC_CB_SAMPLERATE,13,57,62,87,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Default settings",IDC_CHK_DEFAULTCFG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,11,64,10
+    GROUPBOX        "Sample rate",IDC_STATIC,7,46,73,31
+    CONTROL         "HE",IDC_RADIO_HE,"Button",BS_AUTORADIOBUTTON,93,64,26,
+                    10
+    CONTROL         "Downmatrix",IDC_CHK_DOWNMATRIX,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,24,53,10
+    CONTROL         "Old ADTS",IDC_CHK_OLDADTS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,36,48,10
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ENCODER, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 193
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 142
+    END
+
+    IDD_DECODER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 133
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 98
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Italian (Italy) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)
+#ifdef _WIN32
+LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 191, 230
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "About"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,134,208,50,14
+    CONTROL         104,IDC_AUDIOCODING,"Static",SS_BITMAP | SS_NOTIFY | 
+                    SS_SUNKEN,7,7,178,69
+    CONTROL         107,IDC_MPEG4IP,"Static",SS_BITMAP | SS_NOTIFY | 
+                    SS_SUNKEN,7,203,59,19
+    CONTROL         106,IDC_EMAIL,"Static",SS_BITMAP | SS_NOTIFY,77,204,43,
+                    18
+    LTEXT           "Text",IDC_L_ABOUT,7,55,177,142
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 184
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 222
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_AUDIOCODING         BITMAP  DISCARDABLE     "AudioCoding.bmp"
+IDB_EMAIL               BITMAP  DISCARDABLE     "Email.bmp"
+IDB_MPEG4IP             BITMAP  DISCARDABLE     "mpeg4ip-v.bmp"
+#endif    // Italian (Italy) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

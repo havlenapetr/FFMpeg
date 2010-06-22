@@ -1,0 +1,61 @@
+AC_PREREQ(2.50)
+AC_INIT()
+AM_INIT_AUTOMAKE(faac,1.0beta)
+
+AM_CONFIG_HEADER(config.h)
+
+AC_DEFUN(MY_DEFINE, [ AC_DEFINE($1, 1, [define if needed]) ])
+
+CFLAGS=${CFLAGS:-"-O2 -Wall"}
+
+AC_PROG_CC
+AM_PROG_LIBTOOL
+
+AC_CHECK_HEADERS(getopt.h)
+
+AC_CHECK_TYPES(u_int32_t)
+AC_CHECK_TYPES(u_int16_t)
+AC_CHECK_TYPES(int32_t)
+AC_CHECK_TYPES(int16_t)
+
+AC_CHECK_DECL(strcasecmp, MY_DEFINE(HAVE_STRCASECMP))
+
+AC_CHECK_LIB(gnugetopt, getopt_long)
+AC_CHECK_LIB(mp4v2, MP4MetadataDelete,
+		    [AC_MSG_NOTICE([*** Building with MP4 support ***])
+		     MY_DEFINE([HAVE_LIBMP4V2])
+		     LIBS="$LIBS -lstdc++ -lmp4v2"],
+		     [AC_MSG_NOTICE([*** Building without MP4 support ***])],
+		     -lstdc++)
+AC_C_BIGENDIAN
+
+dnl Checks for header files required for mp4.h
+AC_HEADER_STDC
+AC_SYS_LARGEFILE
+AC_CHECK_HEADERS(stdint.h inttypes.h)
+AC_CHECK_HEADERS(mathf.h)
+AC_CHECK_HEADERS(float.h)
+AC_CHECK_DECL(strchr, MY_DEFINE(HAVE_STRCHR))
+AC_CHECK_DECL(memcpy, MY_DEFINE(HAVE_MEMCPY))
+AC_CHECK_DECL(strsep, MY_DEFINE(HAVE_STRSEP))
+AC_CHECK_HEADERS(sys/time.h)
+AC_HEADER_TIME
+AC_TYPE_OFF_T
+AC_CHECK_TYPE(in_port_t,
+	[MY_DEFINE(HAVE_IN_PORT_T)],,
+	 [#include <sys/types.h>
+	  #include <netinet/in.h> ])
+AC_CHECK_TYPE(socklen_t,
+	[MY_DEFINE(HAVE_SOCKLEN_T)],,
+	 [#include <sys/types.h>
+	  #include <sys/socket.h>
+	  #include <unistd.h> ])
+AC_CHECK_TYPE(float32_t,
+	[MY_DEFINE(HAVE_FLOAT32_T)],,
+	 [#include <sys/types.h>
+	  #include <sys/float.h> ])
+AC_CHECK_MEMBER(struct fpos_t.__pos,
+	[MY_DEFINE(HAVE_FPOS_T_POS)],,
+	 [#include <stdio.h>])
+
+AC_OUTPUT(libfaac/Makefile frontend/Makefile include/Makefile Makefile)

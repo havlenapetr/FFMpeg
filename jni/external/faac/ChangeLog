@@ -1,0 +1,2543 @@
+2003-11-24  knik
+	* frontend/main.c:
+		using new version info interface
+
+	* libfaac/frame.h, include/faac.h:
+		A safe version of faacEncGetVersion() without string length problem.
+
+	* libfaac/frame.c:
+		A safe version of faacEncGetVersion() without string length problem.
+		Removed Stux from copyright notice. I don't think he contributed something very
+		substantial to faac and this is not the right place to list all contributors.
+
+	* libfaac/: filtbank.c, filtbank.h, tns.c, tns.h:
+		static prototypes removed from header
+
+	* README, docs/faac.html:
+		Added a few names to contributor list, but still it doesn't seem to be very complete.
+
+2003-11-16  stux
+	* README:
+		added a new Contributor ;)
+
+	* libfaac/: fft.c, fft.h, filtbank.c, filtbank.h, frame.c, frame.h,
+	psych.h, psychkni.c, version.h:
+		moved global tables from fft.c into hEncoder FFT_Tables. Add fft_init and fft_terminate, flowed through all necessary changes. This should remove at least one instance of a memory leak, and fix some thread-safety problems. Version update to 1.23.3
+
+2003-11-15  stux
+	* include/faac.h, libfaac/frame.c, libfaac/frame.h,
+	libfaac/libfaac.def, libfaac/version.h:
+		added FaacEncGetVersion(), version 1.23.2, added myself to faacCopyright :-P, does vanity know no bound ;)
+
+2003-11-13  knik
+	* frontend/main.c:
+		raw input bugfix
+
+2003-11-10  knik
+	* libfaac/version.h:
+		1.23.1
+
+	* libfaac/frame.c:
+		Allowed independent bitRate and bandWidth setting.
+		Small fixes.
+
+2003-11-03  knik
+	* configure.in:
+		added AC_PREREQ(2.50)
+
+2003-10-30  knik
+	* libfaac/version.h:
+		1.23.0
+
+	* libfaac/aacquant.c:
+		improved psymodel/quantizer
+
+2003-10-29  stux
+	* include/faaccfg.h, libfaac/frame.c, libfaac/version.h:
+		Added channel_map to FaacEncHandle, facilitates free generalised channel remapping in the faac core. Default is straight-through, should be *zero* performance hit... and even probably an immeasurable performance gain, updated FAAC_CFG_VERSION to 104 and FAAC_VERSION to 1.22.0
+
+2003-10-17  knik
+	* configure.in:
+		fixed CFLAGS setting
+
+	* frontend/: input.c, main.c:
+		fixed raw input
+
+2003-10-17  ca5e
+	* plugins/foo_faac/foo_faac.cpp, frontend/faac.dsp:
+		Gapless mode change
+
+2003-10-17  knik
+	* configure.in, libfaac/Makefile.am, frontend/Makefile.am:
+		CFLAGS setting moved to configure
+
+2003-10-14  ca5e
+	* plugins/foo_faac/: foo_faac.cpp, foo_faac.rc, resource.h:
+		Fixed AAC object type selection, some minor cleanups
+
+2003-10-14  menno
+	* libfaac/bitstream.c:
+		bugfix LTP
+
+2003-10-12  knik
+	* libfaac/version.h:
+		1.21.2
+
+	* libfaac/: aacquant.h, frame.c:
+		average bitrate control made more stable
+
+	* libfaac/frame.c, libfaac/frame.h, frontend/main.c:
+		more accurate average bitrate control
+
+2003-10-04  knik
+	* Makefile.am, configure.in, include/Makefile.am:
+		library headers included in automake stuff
+
+2003-10-02  ca5e
+	* plugins/foo_faac/foo_faac.cpp:
+		Removed writing of gapless info for raw AAC files
+		Added few more pre set samplerates to drop-down list
+
+2003-09-24  knik
+	* frontend/main.c:
+		Added option to enforce block type.
+
+	* include/: faac.h, faaccfg.h:
+		config struct definition moved to faaccfg.h
+
+	* libfaac/frame.h:
+		config struct definition moved to faaccfg.h.
+
+	* libfaac/frame.c:
+		faacEncStruct: quantizer specific data enclosed in AACQuantCfg structure.
+		Added config option to enforce block type.
+
+	* libfaac/aacquant.h:
+		faacEncStruct: quantizer specific data enclosed in AACQuantCfg structure.
+
+	* libfaac/aacquant.c:
+		faacEncStruct: quantizer specific data enclosed in AACQuantCfg structure.
+		Fixed normal/takehiro_hack conditional compilation.
+
+2003-09-17  ca5e
+	* plugins/foo_faac/foo_faac.cpp:
+		Fix for last fix...
+
+2003-09-14  ca5e
+	* plugins/foo_faac/: foo_faac.cpp, foo_faac.dsp:
+		version 0.3.1, fixed potential memory access violation
+
+2003-09-08  knik
+	* frontend/Makefile.am:
+		faac.c replaced by main.c
+
+	* frontend/main.c:
+		conditional libmp4v2 compilation
+
+	* libfaac/version.h:
+		1.21.1 beta
+
+	* libfaac/aacquant.c:
+		fixed noise allocation
+
+2003-09-07  ca5e
+	* frontend/main.c:
+		length calculations/silence padding changed to match current libfaac behavior
+		changed tabs to spaces, fixes to indentation
+
+2003-09-07  knik
+	* libfaac/version.h:
+		1.21 beta
+
+	* libfaac/frame.c:
+		Updated psymodel call. Updated bitrate/cutoff mapping table.
+
+	* libfaac/fft.c:
+		reduced arrays size
+
+	* libfaac/aacquant.c:
+		modified distortion allocation
+
+	* libfaac/: psych.h, psychkni.c:
+		Better block switch. Removed long fft code.
+
+2003-09-05  knik
+	* ChangeLog:
+		updated
+
+2003-08-23  knik
+	* libfaac/frame.c, frontend/faac.c:
+		last frame moved back to the library
+
+2003-08-18  knik
+	* libfaac/version.h:
+		1.20.1 beta
+
+	* libfaac/aacquant.c:
+		gave less distortion to short blocks
+
+	* libfaac/psychkni.c:
+		fixed a nasty sample shift causing the block switch to fail in some cases
+
+	* frontend/: Makefile.am, faac.c:
+		second CLI frontend cloned from main.c
+
+2003-08-17  menno
+	* plugins/foo_faac/: foo_faac.cpp, foo_faac.dsp, foo_faac.dsw,
+	foo_faac.rc, resource.h:
+		foo_faac plugin
+
+	* frontend/: input.c, input.h, main.c:
+		fixes to MP4 files by Case
+
+2003-08-17  knik
+	* libfaac/version.h:
+		1.20 beta
+
+	* libfaac/aacquant.c:
+		improved noise allocation
+
+2003-08-16  menno
+	* frontend/: faac.dsp, faac.dsw, input.c, input.h, main.c:
+		Case:
+		- More input options
+		- MP4 output
+
+2003-08-15  knik
+	* frontend/main.c:
+		Option to add a number of silent frames at the end of output.
+		Small TNS option fix.
+
+	* libfaac/frame.c:
+		removed single silent flush frame
+
+2003-08-11  menno
+	* libfaac/aacquant.c:
+		correct aacquant.c
+
+	* libfaac/: aacquant.c, aacquant.h, frame.c, frame.h:
+		thread safety, some tables added to the encoder context
+
+2003-08-09  knik
+	* libfaac/frame.c:
+		LFE support enabled by default
+
+2003-08-08  menno
+	* libfaac/frame.c:
+		Small fix
+
+2003-08-07  knik
+	* docs/libfaac.html:
+		libfaac.pdf replacement
+
+	* frontend/main.c:
+		fixed win32 crash with long filenames
+
+	* libfaac/: frame.c, psychkni.c:
+		Better LFE support (reduced bandwidth)
+
+2003-08-03  knik
+	* libfaac/version.h:
+		1.19 beta
+
+	* plugins/winamp/Out_faac.cpp:
+		corrected faac library version print
+
+2003-08-02  stux
+	* include/faac.h, libfaac/frame.c, libfaac/frame.h,
+	libfaac/libfaac.def, libfaac/libfaac_dll.dsp:
+		added config.inputFormat, and associated defines and code, faac now handles native endian 16bit, 24bit and float input. Added faacEncGetDecoderSpecificInfo to the dll exports, needed for MP4. Updated DLL .dsp to compile without error. Updated CFG_VERSION to 102. Version number might need to be updated as the API has technically changed. Did not update libfaac.pdf
+
+2003-07-29  menno
+	* plugins/: cooledit/CRegistry.cpp, cooledit/FAAC.def,
+	cooledit/FAAC.dsp, cooledit/FAAC.rc, cooledit/Faac.cpp,
+	cooledit/Faad.cpp, cooledit/Main.cpp, cooledit/Structs.h,
+	cooledit/TypeDef.h, cooledit/aacInfoLib.dsp, cooledit/defines.h,
+	cooledit/resource.h, winamp/CRegistry.cpp, winamp/FAAC.rc,
+	winamp/Out_faac.cpp, winamp/RESOURCE.H, winamp/defines.h,
+	winamp/out_FAAC.dsp:
+		updated plugins to work with new faac
+
+2003-07-28  menno
+	* frontend/input.c, libfaac/libfaac.dsp:
+		compile fix for win32
+
+2003-07-21  knik
+	* frontend/main.c:
+		Fixed LFE channel mapping.
+
+2003-07-16  knik
+	* libfaac/bitstream.c:
+		Used ID_FIL element to write libfaac info.
+
+2003-07-13  knik
+	* frontend/main.c:
+		Fixed -o, -m and -I option.
+		Print object type setting.
+
+2003-07-10  knik
+	* configure.in:
+		more types check
+
+	* frontend/main.c:
+		Input channel remapping and 24-bit support.
+
+	* frontend/input.h:
+		Updated to match input.c.
+		Better integer types support.
+
+	* frontend/input.c:
+		24-bit input support.
+		Multichannel input remapping.
+		WAVEFORMATEXTENSIBLE support.
+
+	* include/faac.h, libfaac/frame.c, libfaac/frame.h:
+		24-bit input
+
+2003-07-07  knik
+	* docs/faac.html:
+		more links
+
+	* libfaac/psychkni.c:
+		division by zero fixed
+
+2003-06-26  knik
+	* docs/faac.html:
+		new faac readme
+
+	* frontend/main.c:
+		TNS disabled by default.
+		Copyright info moved to library.
+		Print help to standard output.
+
+	* libfaac/midside.h:
+		midside.c header
+
+	* libfaac/midside.c:
+		new Mid/Side control
+
+	* libfaac/: joint.c, joint.h, psychiso.c:
+		removed unused files
+
+	* libfaac/Makefile.am:
+		joint.c renamed to midside.c
+
+	* libfaac/version.h:
+		1.18 beta
+
+	* libfaac/psychkni.c:
+		New block type switch.
+		Removed M/S threshold support.
+
+	* libfaac/psych.h:
+		PsyInfo: removed unused fields.
+
+	* libfaac/ltp.c:
+		Fixed memory leak.
+
+	* libfaac/frame.h:
+		faacEncConfiguration: added new field.
+
+	* libfaac/frame.c:
+		Mid/Side support.
+		Copyright info moved from frontend.
+		Fixed memory leak.
+
+	* libfaac/coder.h:
+		CoderInfo: added new fields.
+
+	* libfaac/channels.h:
+		MSInfo: removed unused field.
+
+	* libfaac/aacquant.h:
+		Added new functions.
+
+	* libfaac/aacquant.c:
+		New mid/side support.
+		Short block sorting reorganized.
+
+	* include/faac.h:
+		Copyright info moved from frontend.
+
+2003-06-21  knik
+	* frontend/main.c:
+		raw input support moved to input.c
+
+	* frontend/: input.c, input.h:
+		improved raw input support with bigendian byteorder
+
+2003-05-26  knik
+	* ChangeLog:
+		More complete ChangeLog regenerated from CVS
+
+2003-05-12  knik
+	* libfaac/version.h:
+		1.17 beta
+
+	* libfaac/frame.c:
+		updated ABR table
+
+	* libfaac/aacquant.c:
+		CalcAllowedDist: modified noise allocation
+		FixNoise: max-quant-value exit condition
+
+2003-05-10  knik
+	* bootstrap:
+		removed ./configure and make
+
+	* README:
+		removed compilation instructions
+
+	* INSTALL:
+		compilation instructions
+
+	* frontend/main.c:
+		added approximate ABR option
+
+	* libfaac/frame.c:
+		added approximate ABR setting
+		modified default cutoff
+
+2003-05-03  knik
+	* frontend/usage.txt:
+		removed obsolete file
+
+2003-05-01  knik
+	* TODO:
+		[no log message]
+
+	* libfaac/version.h:
+		[no log message]
+
+	* libfaac/coder.h:
+		CoderInfo: removed unused fields
+
+	* libfaac/aacquant.c:
+		saved some bits by reducing max_sfb
+		removed unused funcs and vars
+
+	* plugins/cooledit/Faac.cpp:
+		libfaac version number compatibility
+
+	* libfaac/Makefile.am:
+		removed ISO psymodel
+
+	* libfaac/frame.c:
+		removed ISO psyodel
+		disabled m/s coding
+		fixed default bandwidth
+		reduced max_sfb check
+
+2003-04-29  menno
+	* include/faac.h, plugins/cooledit/Faac.cpp,
+	plugins/cooledit/Structs.h:
+		made cooledit plugin compile again
+		C++ did not accept const in structs
+
+2003-04-13  knik
+	* frontend/main.c:
+		removed psymodel setting
+
+	* libfaac/psychkni.c:
+		noise threshold changed to match new quantizer
+		block type switch fix
+
+	* libfaac/aacquant.c:
+		improved quantizer (true VBR)
+		new noise allocation scheme (better psymodel)
+
+	* libfaac/frame.c:
+		version number moved to version.h
+
+	* libfaac/version.h:
+		version number file
+
+2003-03-27  knik
+	* include/faac.h:
+		updated interface
+
+	* frontend/resource.h:
+		new symbols
+
+	* frontend/maingui.c:
+		updated library interface
+		bitrate control replaced by quality control
+		improved status box
+
+	* frontend/main.c:
+		updated library interface
+		-b bitrate option replaced with -q quality option
+		TNS enabled by default
+
+	* frontend/faacgui.rc:
+		updated controls
+
+	* libfaac/psychkni.c:
+		updated noise level
+
+	* libfaac/frame.h:
+		updated library interface
+
+	* libfaac/frame.c:
+		added quantizer quality and bandwidth setting
+
+	* libfaac/aacquant.c:
+		improved quantizer params
+
+2003-03-26  knik
+	* frontend/input.c:
+		added typedef
+
+	* configure.in:
+		replaced obsolete macro
+
+2003-03-24  menno
+	* libfaac/bitstream.c:
+		Fixed MPEG-4 ADTS headers to comply with latest spec change
+
+2003-02-25  menno
+	* frontend/: faacgui.dsp, faacgui.dsw, maingui.c:
+		Frontend now doesn't use libsndfile anymore
+
+2003-02-23  menno
+	* frontend/: faac.dsp, input.c:
+		fixes win32 compilation
+
+2003-02-09  menno
+	* libfaac/libfaac.dsp, libfaac/psychkni.c,
+	plugins/cooledit/FAAC.dsp, plugins/cooledit/Faad.cpp,
+	plugins/cooledit/aacInfoLib.dsp:
+		Updated interface function for mp4 AudioSpecificConfig
+		now is a lot cleaner to use
+
+2002-12-28  knik
+	* include/faac.h:
+		new version number
+
+	* libfaac/psychkni.c:
+		The distortion limit calculation moved to quantizer.
+		Modified block type switch to produce more short blocks.
+
+	* libfaac/aacquant.c:
+		The distortion limit calculation moved from psychkni to quantizer to be more
+		ISO model compatible.
+
+2002-12-23  knik
+	* frontend/main.c:
+		added some headers
+
+	* frontend/input.c:
+		type size and endian conversion fix
+
+	* configure.in:
+		check endianness and data types
+
+2002-12-15  menno
+	* frontend/: faac.dsp, faac.dsw, input.c, main.c:
+		Some portability changes
+
+2002-11-27  knik
+	* include/faac.h:
+		new version number
+
+	* libfaac/psychkni.c:
+		updated noise threshold
+
+	* libfaac/aacquant.c:
+		Noise calculation was definitely to quick. Now it should be more reasonable.
+
+2002-11-23  knik
+	* common/: getopt/COPYING, getopt/getopt.c, getopt/getopt.h,
+	libsndfile/AUTHORS, libsndfile/COPYING, libsndfile/ChangeLog,
+	libsndfile/INSTALL, libsndfile/Makefile.am, libsndfile/Makefile.in,
+	libsndfile/NEWS, libsndfile/README, libsndfile/TODO,
+	libsndfile/acconfig.h, libsndfile/aclocal.m4,
+	libsndfile/check_libsndfile.py, libsndfile/config.guess,
+	libsndfile/config.sub, libsndfile/configure,
+	libsndfile/configure.in, libsndfile/install-sh,
+	libsndfile/libsndfile.spec, libsndfile/libsndfile.spec.in,
+	libsndfile/ltconfig, libsndfile/ltmain.sh, libsndfile/missing,
+	libsndfile/mkinstalldirs, libsndfile/reconf,
+	libsndfile/MacOS/MacOS-readme.txt, libsndfile/MacOS/Makefile.am,
+	libsndfile/MacOS/Makefile.in, libsndfile/MacOS/config.h,
+	libsndfile/Win32/Makefile.am, libsndfile/Win32/Makefile.in,
+	libsndfile/Win32/README-Win32.txt,
+	libsndfile/Win32/README-Win32.txt.old, libsndfile/Win32/config.h,
+	libsndfile/Win32/libsndfile.dsp, libsndfile/Win32/libsndfile.dsw,
+	libsndfile/Win32/libsndfile.sln,
+	libsndfile/Win32/libsndfile.vcproj, libsndfile/Win32/unistd.h,
+	libsndfile/src/Makefile.am, libsndfile/src/Makefile.in,
+	libsndfile/src/aiff.c, libsndfile/src/alaw.c, libsndfile/src/au.c,
+	libsndfile/src/au.h, libsndfile/src/au_g72x.c,
+	libsndfile/src/common.c, libsndfile/src/common.h,
+	libsndfile/src/config.h.in, libsndfile/src/float32.c,
+	libsndfile/src/floatcast.h, libsndfile/src/ircam.c,
+	libsndfile/src/nist.c, libsndfile/src/paf.c, libsndfile/src/pcm.c,
+	libsndfile/src/raw.c, libsndfile/src/samplitude.c,
+	libsndfile/src/sfendian.h, libsndfile/src/sndfile.c,
+	libsndfile/src/sndfile.h, libsndfile/src/stamp-h.in,
+	libsndfile/src/svx.c, libsndfile/src/ulaw.c, libsndfile/src/voc.c,
+	libsndfile/src/wav.c, libsndfile/src/wav.h,
+	libsndfile/src/wav_gsm610.c, libsndfile/src/wav_ima_adpcm.c,
+	libsndfile/src/wav_ms_adpcm.c, libsndfile/src/G72x/ChangeLog,
+	libsndfile/src/G72x/Makefile.am, libsndfile/src/G72x/Makefile.in,
+	libsndfile/src/G72x/README, libsndfile/src/G72x/README.original,
+	libsndfile/src/G72x/g721.c, libsndfile/src/G72x/g723_16.c,
+	libsndfile/src/G72x/g723_24.c, libsndfile/src/G72x/g723_40.c,
+	libsndfile/src/G72x/g72x.c, libsndfile/src/G72x/g72x.h,
+	libsndfile/src/G72x/private.h, libsndfile/src/GSM610/COPYRIGHT,
+	libsndfile/src/GSM610/ChangeLog, libsndfile/src/GSM610/Makefile.am,
+	libsndfile/src/GSM610/Makefile.in, libsndfile/src/GSM610/README,
+	libsndfile/src/GSM610/add.c, libsndfile/src/GSM610/code.c,
+	libsndfile/src/GSM610/config.h, libsndfile/src/GSM610/decode.c,
+	libsndfile/src/GSM610/gsm.h, libsndfile/src/GSM610/gsm_create.c,
+	libsndfile/src/GSM610/gsm_decode.c,
+	libsndfile/src/GSM610/gsm_destroy.c,
+	libsndfile/src/GSM610/gsm_encode.c,
+	libsndfile/src/GSM610/gsm_option.c,
+	libsndfile/src/GSM610/long_term.c, libsndfile/src/GSM610/lpc.c,
+	libsndfile/src/GSM610/preprocess.c,
+	libsndfile/src/GSM610/private.h, libsndfile/src/GSM610/proto.h,
+	libsndfile/src/GSM610/rpe.c, libsndfile/src/GSM610/short_term.c,
+	libsndfile/src/GSM610/table.c, libsndfile/src/GSM610/unproto.h:
+		removed unused files
+
+	* frontend/: getopt.c, getopt.h:
+		moved from common
+
+	* frontend/: input.c, input.h:
+		libsndfile replacement
+
+	* include/faac.h:
+		updated version number
+
+	* frontend/main.c:
+		replaced libsndfile with input.c
+		improved bandwidth/bitrate calculation formula
+
+	* frontend/Makefile.am:
+		replaced libsndfile by input.c
+
+	* libfaac/psychkni.c:
+		noise threshold updated to fit new quantizer
+		improved block type switch
+
+	* libfaac/fft.c:
+		rfft: made xi a local variable
+
+	* libfaac/aacquant.h:
+		removed static declarations and unused structs
+
+	* libfaac/aacquant.c:
+		OuterLoop replaced by FixNoise/BalanceEnergy routines
+		AACQuantize:
+		 local variables instead of allocated and freed memory
+		SearchStepSize:
+		 long/short block adjustment to run faster
+
+	* configure.in:
+		removed libsndfile
+		added getopt.h check
+
+2002-11-01  menno
+	* libfaac/libfaac.vcproj, plugins/cooledit/FAAC.vcproj,
+	plugins/cooledit/Faad.cpp, plugins/cooledit/aacInfoLib.vcproj:
+		Small changes to the decoder interface:
+		every function that has a buffer as input now also has a parameter to give the size of that buffer.
+
+2002-10-11  menno
+	* common/libsndfile/Win32/libsndfile.sln,
+	common/libsndfile/Win32/libsndfile.vcproj, frontend/faac.sln,
+	frontend/faac.vcproj, frontend/faacgui.sln,
+	frontend/faacgui.vcproj, libfaac/libfaac.vcproj,
+	libfaac/libfaac_dll.sln, libfaac/libfaac_dll.vcproj,
+	plugins/aac_acm/aac_acm.sln, plugins/aac_acm/aac_acm.vcproj,
+	plugins/winamp/out_FAAC.sln, plugins/winamp/out_FAAC.vcproj:
+		Added VC7 project files
+
+	* plugins/cooledit/: AudioCoding.bmp, CRegistry.cpp, CRegistry.h,
+	Email.bmp, FAAC.def, FAAC.dsp, FAAC.rc, FAAC.sln, FAAC.vcproj,
+	Faac.cpp, Faad.cpp, Main.cpp, Readme.txt, Structs.h,
+	aacInfoLib.vcproj, defines.h, mpeg4ip-v.bmp, resource.h:
+		Updated cooledit filter
+
+	* libfaac/frame.c:
+		small bugfix
+
+2002-10-08  menno
+	* libfaac/: frame.c, psychiso.c:
+		Fixed some memory leakage
+
+2002-09-30  menno
+	* plugins/: cooledit/Aacinfo.cpp, cooledit/Config.cpp,
+	cooledit/Copying, cooledit/FAAC.def, cooledit/FAAC.dsp,
+	cooledit/FAAC.dsw, cooledit/FAAC.rc, cooledit/FAAD.DSP,
+	cooledit/FAAD.rc, cooledit/Faac.cpp, cooledit/Faad.cpp,
+	cooledit/Main.cpp, cooledit/aacInfoLib.dsp,
+	cooledit/aacInfoLib.dsw, cooledit/aacinfo.h, cooledit/defines.h,
+	cooledit/faad.def, cooledit/faad.dsw, winamp/AACINFO.Cpp,
+	winamp/AACINFO.H, winamp/CRegistry.cpp, winamp/CRegistry.h,
+	winamp/Config.cpp, winamp/Copying, winamp/OUT_FAAC.DEF,
+	winamp/Open.bmp, winamp/Out_faac.cpp, winamp/ReadMe.txt,
+	winamp/defines.h, winamp/out_FAAC.dsp, winamp/out_FAAC.dsw:
+		Latest changes to plugins by 4N
+
+2002-08-30  knik
+	* libfaac/huffman.c:
+		speed improvement
+
+	* libfaac/aacquant.c:
+		extended outer loop exit condition to be faster
+
+	* frontend/main.c:
+		misplaced #endif
+
+2002-08-23  menno
+	* plugins/cooledit/: Aacinfo.cpp, CRegistry.cpp, CRegistry.h,
+	FAAD.DSP, FAAD.rc, Faac.cpp, Faad.cpp, Logo.bmp, Main.cpp,
+	Readme.txt, Registry.cpp, Registry.h, aacinfo.h, bitmap1.bmp,
+	defines.h, faad.def:
+		Bugfixed Cooledit filter
+
+2002-08-21  knik
+	* libfaac/psychkni.c:
+		disabled long fft calculation as it is not used at the moment
+		long/short switch threshold fix and some memory improvements
+
+	* libfaac/psychiso.c:
+		new fft function name
+
+	* libfaac/filtbank.c:
+		new fft function names
+
+	* libfaac/fft.h:
+		new function names
+
+	* libfaac/fft.c:
+		new simplier and faster fft routine and correct real fft
+		new real fft is just a complex fft wrapper so it is slower than optimal but
+		by surprise it seems to be at least as fast as the old buggy function
+
+2002-08-21  menno
+	* libfaac/: libfaac.dsp, libfaac_dll.dsp:
+		Updated project files
+
+2002-08-19  knik
+	* libfaac/bitstream.h:
+		removed static declarations
+
+	* libfaac/bitstream.c:
+		added static declarations
+
+	* libfaac/frame.c:
+		added one additional flush frame
+		fixed sample buffer memory allocation
+
+	* frontend/main.c:
+		automatic bitrate setting
+		more advanced status line
+
+2002-08-10  knik
+	* plugins/: cooledit/Faac.cpp, winamp/Out_faac.cpp:
+		version update
+
+	* frontend/main.c, include/faac.h:
+		version update
+
+2002-08-09  knik
+	* libfaac/frame.c, libfaac/frame.h, include/faac.h,
+	frontend/main.c:
+		improved psychoacoustic model selection
+
+2002-08-07  knik
+	* frontend/main.c:
+		added psymodel selection and default bandwidth
+
+	* include/faac.h:
+		added interface to psychoacoustic model
+
+	* libfaac/psych.c:
+		renamed to psychiso
+
+	* libfaac/psychkni.c:
+		new psychoacoustic model
+
+	* libfaac/psychiso.c:
+		ISO psychoacoustic model renamed and added new interface to frame
+
+	* libfaac/psych.h:
+		new interface to frame
+
+	* libfaac/Makefile.am:
+		Introduced multiple psychoacoustic models
+
+	* libfaac/frame.h:
+		removed static declaration
+
+	* libfaac/frame.c:
+		new interface to psychoacoustic
+
+	* libfaac/fft.c:
+		rsfft output was reversed i.e. high frequencies first
+
+2002-08-07  menno
+	* plugins/cooledit/Faad.cpp:
+		Cooledit filter compiles again
+		not sure if it works
+
+2002-05-26  menno
+	* plugins/winamp/: AACINFO.C, AACINFO.Cpp, Config.c, Config.cpp,
+	FAAC.rc, Logo.bmp, OUT.H, OUT_FAAC.DEF, Out_faac.c, Out_faac.cpp,
+	RESOURCE.H, out_FAAC.dsp, out_FAAC.dsw:
+		Fixes in faac winamp plugin
+
+	* plugins/cooledit/: Aacinfo.cpp, Faac.cpp, Faad.cpp, Main.cpp,
+	aacinfo.h, resource.h:
+		Fixes in cooledit plugin
+
+2002-04-20  menno
+	* plugins/cooledit/: FAAD.DSP, FAAD.rc, Readme.txt, aacinfo.h,
+	faad.dsw, resource.h, Aacinfo.cpp, Config.cpp, Faac.cpp, Faad.cpp,
+	Main.cpp, Registry.cpp, Registry.h, aacinfo.c, faac.c, faad.c,
+	main.c, Config.c:
+		Updated cooledit code
+		plugin now supports MP4 files
+
+2002-04-17  menno
+	* plugins/cooledit/: FAAD.DSP, FAAD.rc, aacinfo.c, aacinfo.h,
+	faac.c, faad.c, faad.def, faad.dsw, resource.h:
+		Updated cooledit plugin to use the FAAD2 decoder
+		Thanks to Antonio
+
+2002-02-13  menno
+	* common/libsndfile/: AUTHORS, ChangeLog, Makefile.am, Makefile.in,
+	NEWS, README, TODO, acconfig.h, aclocal.m4, check_libsndfile.py,
+	config.guess, config.sub, configure, configure.in, libsndfile.spec,
+	ltconfig, ltmain.sh, mkinstalldirs, MacOS/MacOS-readme.txt,
+	MacOS/Makefile.in, MacOS/config.h, Win32/Makefile.in,
+	Win32/config.h, Win32/libsndfile.dsp, Win32/libsndfile.dsw,
+	doc/ChangeLog, doc/Makefile.am, doc/Makefile.in, doc/NEWS,
+	doc/api.html, doc/bugs.html, doc/index.html, doc/libsndfile.jpg,
+	doc/sfinfo.html, examples/Makefile.am, examples/Makefile.in,
+	examples/make_sine.c, examples/sfconvert.c, examples/sfhexdump.c,
+	examples/sfinfo.c, examples/sndfile2oct.c, examples/wav32_aiff24.c,
+	m4/Makefile.am, m4/Makefile.in, src/Makefile.am, src/Makefile.in,
+	src/aiff.c, src/alaw.c, src/alaw.h, src/au.c, src/au.h,
+	src/au_g72x.c, src/common.c, src/common.h, src/config.h.in,
+	src/float32.c, src/floatcast.h, src/ircam.c, src/newpcm.c,
+	src/nist.c, src/paf.c, src/pcm.c, src/pcm.h, src/raw.c,
+	src/samplitude.c, src/sfendian.h, src/sndfile.c, src/sndfile.h,
+	src/svx.c, src/ulaw.c, src/ulaw.h, src/voc.c, src/wav.c, src/wav.h,
+	src/wav_float.c, src/wav_gsm610.c, src/wav_ima_adpcm.c,
+	src/wav_ms_adpcm.c, src/G72x/ChangeLog, src/G72x/Makefile.in,
+	src/G72x/g72x.c, src/G72x/g72x.h, src/GSM610/ChangeLog,
+	src/GSM610/Makefile.in, src/GSM610/add.c, src/GSM610/code.c,
+	src/GSM610/config.h, src/GSM610/decode.c, src/GSM610/gsm.h,
+	src/GSM610/gsm_create.c, src/GSM610/gsm_decode.c,
+	src/GSM610/gsm_destroy.c, src/GSM610/gsm_encode.c,
+	src/GSM610/gsm_option.c, src/GSM610/long_term.c, src/GSM610/lpc.c,
+	src/GSM610/preprocess.c, src/GSM610/private.h, src/GSM610/proto.h,
+	src/GSM610/rpe.c, src/GSM610/short_term.c, src/GSM610/table.c,
+	src/GSM610/unproto.h, tests/Makefile.am, tests/Makefile.in,
+	tests/alaw_test.c, tests/double_test.c, tests/error_test.c,
+	tests/lossy_comp_test.c, tests/read_seek_test.c, tests/sftest.c,
+	tests/sfversion.c, tests/ulaw_test.c, tests/write_read_test.c:
+		Use latest version of libsndfile
+
+2002-01-18  menno
+	* plugins/aac_acm/codec.cpp:
+		bugfixes?
+
+2002-01-17  menno
+	* plugins/aac_acm/codec.cpp:
+		bugfix
+
+	* plugins/aac_acm/: StdAfx.cpp, StdAfx.h, aac_acm.cpp, aac_acm.def,
+	aac_acm.dsp, aac_acm.dsw, aac_acm.inf, codec.cpp, codec.h,
+	msacmdrv.h:
+		AAC ACM codec
+
+2002-01-14  menno
+	* plugins/: cooledit/FAAD.rc, cooledit/faac.c, winamp/FAAC.rc,
+	winamp/Out_faac.c:
+		Changes in bitrate field
+
+2001-12-07  menno
+	* libfaac/: bitstream.c, bitstream.h:
+		Fixed LTP encoder
+
+2001-12-06  menno
+	* libfaac/: aacquant.c, ltp.c:
+		Fixed LTP encoder
+
+2001-11-29  menno
+	* libfaac/bitstream.c:
+		fix in bitstream writing
+
+2001-11-08  menno
+	* project/mingw32/: Makefile, faac.dev:
+		Updated makefiles for MingW32 and Dev-C++ as well as DJGPP
+
+2001-11-06  menno
+	* plugins/cooledit/faad.c:
+		bugfix by 4N
+
+2001-10-29  menno
+	* plugins/cooledit/: FAAD.DSP, aacinfo.c, aacinfo.h, faad.c,
+	faad.def, faad.dsw:
+		Updated cooledit plugin, now working correctly with new library interface
+
+2001-10-27  menno
+	* lcc/Makefile:
+		Updated project files for free compilers
+
+2001-10-26  menno
+	* ChangeLog, mingw32/Makefile, project/lcc/Makefile,
+	project/mingw32/Makefile:
+		Updated project files for free compilers
+
+	* mingw32/Makefile:
+		Added makefile for MingW32
+
+	* plugins/cooledit/faad.c:
+		Fixed FAAD decoding first 2 silent frames
+
+	* frontend/: faac.dsp, faacgui.dsp, faacgui.rc, main.c, maingui.c,
+	resource.h:
+		Enable RAW aac output in the frontends
+
+2001-10-22  menno
+	* .cvsignore, faac.dsw, plugins/cooledit/FAAD.DSP,
+	plugins/winamp/out_FAAC.dsp:
+		Added system wide workspace file
+
+2001-10-16  menno
+	* faac_wingui.nsi:
+		Removed wingui
+
+	* ChangeLog:
+		Updated ChangeLog
+
+	* wingui/: .cvsignore, AbstractJob.cpp, AbstractJob.h,
+	AbstractPageCtrlContent.cpp, AbstractPageCtrlContent.h,
+	AbstractPropertyPageContents.cpp, AbstractPropertyPageContents.h,
+	AskCreateDirectoryDialog.cpp, AskCreateDirectoryDialog.h,
+	ConcreteJobBase.cpp, ConcreteJobBase.h,
+	EncoderGeneralPageDialog.cpp, EncoderGeneralPageDialog.h,
+	EncoderGeneralPropertyPageContents.cpp,
+	EncoderGeneralPropertyPageContents.h, EncoderId3PageDialog.cpp,
+	EncoderId3PageDialog.h, EncoderId3PropertyPageContents.cpp,
+	EncoderId3PropertyPageContents.h, EncoderJob.cpp, EncoderJob.h,
+	EncoderJobProcessingManager.cpp, EncoderJobProcessingManager.h,
+	EncoderQualityPageDialog.cpp, EncoderQualityPageDialog.h,
+	EncoderQualityPropertyPageContents.cpp,
+	EncoderQualityPropertyPageContents.h,
+	FaacWinguiProgramSettings.cpp, FaacWinguiProgramSettings.h,
+	FileListQueryManager.cpp, FileListQueryManager.h,
+	FileMaskAssembler.cpp, FileMaskAssembler.h, FilePathCalc.cpp,
+	FilePathCalc.h, FileSerializable.cpp, FileSerializable.h,
+	FileSerializableJobList.cpp, FileSerializableJobList.h,
+	FloatingPropertyDialog.cpp, FloatingPropertyDialog.h,
+	FolderDialog.cpp, FolderDialog.h, Id3TagInfo.cpp, Id3TagInfo.h,
+	Job.cpp, Job.h, JobList.cpp, JobList.h, JobListCtrlDescribable.cpp,
+	JobListCtrlDescribable.h, JobListUpdatable.cpp, JobListUpdatable.h,
+	JobListsToConfigureSaver.cpp, JobListsToConfigureSaver.h,
+	JobProcessingDynamicUserInputInfo.cpp,
+	JobProcessingDynamicUserInputInfo.h, ListCtrlStateSaver.cpp,
+	ListCtrlStateSaver.h, Listobj.cpp, PageCheckboxCtrlContent.cpp,
+	PageCheckboxCtrlContent.h, PageComboBoxCtrlContent.cpp,
+	PageComboBoxCtrlContent.h, PageEditCtrlContent.cpp,
+	PageEditCtrlContent.h, PageRadioGroupCtrlContent.cpp,
+	PageRadioGroupCtrlContent.h, ProcessJobStatusDialog.cpp,
+	ProcessJobStatusDialog.h, ProcessingStartStopPauseInteractable.cpp,
+	ProcessingStartStopPauseInteractable.h,
+	ProcessingStatusDialogInfoFeedbackCallbackInterface.cpp,
+	ProcessingStatusDialogInfoFeedbackCallbackInterface.h,
+	PropertiesDummyParentDialog.cpp, PropertiesDummyParentDialog.h,
+	PropertiesTabParentDialog.cpp, PropertiesTabParentDialog.h,
+	ReadMe.txt, RecursiveDirectoryTraverser.cpp,
+	RecursiveDirectoryTraverser.h, SourceTargetFilePair.cpp,
+	SourceTargetFilePair.h, StdAfx.cpp, StdAfx.h,
+	SupportedPropertyPagesData.cpp, SupportedPropertyPagesData.h,
+	TItemList.cpp, TItemList.h, WindowUtil.cpp, WindowUtil.h,
+	faac_wingui.cpp, faac_wingui.dsp, faac_wingui.dsw, faac_wingui.h,
+	faac_wingui.rc, faac_winguiDlg.cpp, faac_winguiDlg.h, listobj.h,
+	resource.h, res/faac_wingui.ico, res/faac_wingui.rc2,
+	res/toolbarm.bmp:
+		Removed wingui
+
+	* plugins/: cooledit/aacinfo.c, cooledit/aacinfo.h,
+	cooledit/faac.c, cooledit/resource.h, winamp/AACINFO.C,
+	winamp/AACINFO.H, winamp/FAAC.rc, winamp/Out_faac.c,
+	winamp/RESOURCE.H:
+		Bugfixes by 4N
+
+2001-10-11  menno
+	* ChangeLog, cooledit/.cvsignore, cooledit/Config.c,
+	cooledit/FAAD.DSP, cooledit/FAAD.rc, cooledit/Logo.bmp,
+	cooledit/Readme.txt, cooledit/aacinfo.c, cooledit/aacinfo.h,
+	cooledit/bitmap1.bmp, cooledit/faac.c, cooledit/faad.c,
+	cooledit/faad.def, cooledit/faad.dsw, cooledit/filters.h,
+	cooledit/main.c, cooledit/resource.h, plugins/cooledit/.cvsignore,
+	plugins/cooledit/Config.c, plugins/cooledit/FAAD.DSP,
+	plugins/cooledit/FAAD.rc, plugins/cooledit/Logo.bmp,
+	plugins/cooledit/Readme.txt, plugins/cooledit/aacinfo.c,
+	plugins/cooledit/aacinfo.h, plugins/cooledit/bitmap1.bmp,
+	plugins/cooledit/faac.c, plugins/cooledit/faad.c,
+	plugins/cooledit/faad.def, plugins/cooledit/faad.dsw,
+	plugins/cooledit/filters.h, plugins/cooledit/main.c,
+	plugins/cooledit/resource.h, plugins/winamp/.cvsignore,
+	plugins/winamp/AACINFO.C, plugins/winamp/AACINFO.H,
+	plugins/winamp/Config.c, plugins/winamp/FAAC.rc,
+	plugins/winamp/FILTERS.H, plugins/winamp/Logo.bmp,
+	plugins/winamp/OUT.H, plugins/winamp/Open.bmp,
+	plugins/winamp/Out_faac.c, plugins/winamp/RESOURCE.H,
+	plugins/winamp/ReadMe.txt, plugins/winamp/out_FAAC.dsp,
+	plugins/winamp/out_FAAC.dsw, winamp/.cvsignore, winamp/AACINFO.C,
+	winamp/AACINFO.H, winamp/Config.c, winamp/FAAC.H, winamp/FAAC.rc,
+	winamp/FILTERS.H, winamp/Logo.bmp, winamp/OUT.H, winamp/Open.bmp,
+	winamp/Out_faac.c, winamp/RESOURCE.H, winamp/ReadMe.txt,
+	winamp/out_FAAC.dsp, winamp/out_FAAC.dsw:
+		Structure changes to the CVS tree
+
+2001-10-07  menno
+	* common/libsndfile/src/common.h, common/libsndfile/src/sndfile.h,
+	common/libsndfile/src/wav.h, lcc/Makefile:
+		Made faac build on free LCC compiler
+
+2001-09-28  menno
+	* libfaac/: aacquant.c, psych.c:
+		Small bugfixes
+
+2001-09-21  eraser
+	* include/faac.h:
+		in previous header version was set to 1.5, fixed, now version 1.9 as before.
+
+	* include/faac.h, libfaac/bitstream.c, libfaac/frame.c,
+	libfaac/frame.h:
+		added raw output format support
+
+	* libfaac/psych.c:
+		added stdio.h in debug configuration, i dont like compiliers warning
+
+2001-09-09  menno
+	* libfaac/: frame.c, frame.h, psych.c, psych.h:
+		Stepped back to a MPEG type psychoacoustic model
+
+2001-09-07  menno
+	* include/faac.h, libfaac/frame.c, libfaac/frame.h:
+		Added creating of DecoderSpecificInfo
+
+2001-09-04  menno
+	* README, libfaac/backpred.c, libfaac/bitstream.c,
+	libfaac/bitstream.h, libfaac/channels.c, libfaac/filtbank.c,
+	libfaac/huffman.c, libfaac/huffman.h, libfaac/joint.c,
+	libfaac/ltp.c, libfaac/tns.c, libfaac/tns.h:
+		Made FAAC legal :-)
+
+2001-08-31  menno
+	* ChangeLog:
+		Updated ChangeLog
+
+2001-08-03  menno
+	* cooledit/Config.c, cooledit/FAAD.DSP, cooledit/FAAD.rc,
+	cooledit/Readme.txt, cooledit/aacinfo.c, cooledit/aacinfo.h,
+	cooledit/bitmap1.bmp, cooledit/faac.c, cooledit/faad.c,
+	cooledit/main.c, cooledit/resource.h, winamp/.cvsignore,
+	winamp/AACINFO.C, winamp/AACINFO.H, winamp/Config.c, winamp/FAAC.H,
+	winamp/FAAC.rc, winamp/FILTERS.H, winamp/Logo.bmp, winamp/OUT.H,
+	winamp/Open.bmp, winamp/Out_faac.c, winamp/RESOURCE.H,
+	winamp/ReadMe.txt, winamp/out_FAAC.dsp, winamp/out_FAAC.dsw:
+		Updated cooledit plugin
+		New winamp output plugin
+
+2001-07-12  menno
+	* cooledit/: FAAD.rc, Readme.txt, aacinfo.c, aacinfo.h, faac.c,
+	faad.c, faad.def, main.c, resource.h:
+		Major bugfixes to Cooledit filter
+		encoding now works
+
+	* libfaac/: .cvsignore, libfaac.def, libfaac_dll.dsp,
+	libfaac_dll.dsw:
+		Added DLL project file for FAAC
+
+2001-07-08  menno
+	* cooledit/FAAD.DSP:
+		Correct processor used
+
+	* cooledit/: FAAD.DSP, faacflt.dsp, faacflt.dsw, faad.def,
+	faad.dsw:
+		Fixed CoolEdit filter
+
+	* libfaac/frame.c:
+		Small config bugfix
+
+2001-07-02  menno
+	* cooledit/: faac.c, faac.h, faacflt.dsp, faad.c, faad.h:
+		Fixes for compiling CoolEdit filter
+
+	* ChangeLog:
+		ChangeLog update
+
+	* cooledit/: .cvsignore, FAAD.rc, Logo.bmp, aacinfo.c, aacinfo.h,
+	faac.c, faac.h, faacflt.dsp, faacflt.dsw, faad.c, faad.h,
+	filters.h, main.c, resource.h:
+		Added CoolEdit filter
+
+2001-06-27  menno
+	* bootstrap:
+		Unix compile fix
+
+	* bootstrap:
+		Unix compile fix
+
+2001-06-25  menno
+	* README:
+		Compilation help
+
+	* frontend/main.c:
+		Fixed compilation problem
+
+2001-06-09  menno
+	* ChangeLog:
+		Updated ChangeLog
+
+	* common/getopt/: COPYING, getopt.c, getopt.h:
+		Added getopt
+
+	* TODO:
+		Another todo done ;-)
+
+	* include/faac.h:
+		version number changed
+
+	* frontend/: usage.txt, faac.dsp, main.c:
+		Big changes to command line encoder, now using getopt
+		NOTE: Options have changed, read usage.txt
+
+2001-06-08  menno
+	* TODO, todo.txt, frontend/main.c, frontend/maingui.c,
+	frontend/resource.h, include/faac.h, libfaac/aacquant.c,
+	libfaac/aacquant.h, libfaac/backpred.c, libfaac/backpred.h,
+	libfaac/bitstream.c, libfaac/bitstream.h, libfaac/channels.c,
+	libfaac/channels.h, libfaac/coder.h, libfaac/fft.c,
+	libfaac/filtbank.c, libfaac/filtbank.h, libfaac/frame.c,
+	libfaac/frame.h, libfaac/huffman.c, libfaac/huffman.h,
+	libfaac/hufftab.h, libfaac/joint.c, libfaac/joint.h, libfaac/ltp.c,
+	libfaac/ltp.h, libfaac/psych.c, libfaac/psych.h, libfaac/tns.c,
+	libfaac/tns.h, libfaac/util.c:
+		File renamed
+
+	* bootstrap:
+		Fixed linux compilation
+
+	* README:
+		Added README
+
+2001-06-06  menno
+	* include/faac.h:
+		version number upgraded
+
+	* ChangeLog:
+		Updated ChangeLog
+
+	* include/faac.h, libfaac/bitstream.c, libfaac/bitstream.h:
+		(I hope I have) fixed MPEG4 compatibility once and for all ;-)
+
+2001-05-31  menno
+	* ChangeLog:
+		Updated ChangeLog
+
+	* frontend/main.c:
+		Bugfix for linux
+
+2001-05-30  menno
+	* COPYING, frontend/faacgui.dsp, frontend/main.c,
+	frontend/maingui.c, include/faac.h, libfaac/aacquant.c,
+	libfaac/aacquant.h, libfaac/backpred.c, libfaac/backpred.h,
+	libfaac/bitstream.c, libfaac/bitstream.h, libfaac/channels.c,
+	libfaac/channels.h, libfaac/coder.h, libfaac/fft.c, libfaac/fft.h,
+	libfaac/filtbank.c, libfaac/filtbank.h, libfaac/frame.c,
+	libfaac/frame.h, libfaac/huffman.c, libfaac/huffman.h,
+	libfaac/hufftab.h, libfaac/joint.c, libfaac/joint.h, libfaac/ltp.c,
+	libfaac/ltp.h, libfaac/psych.h, libfaac/tns.c, libfaac/tns.h,
+	libfaac/util.c, libfaac/util.h:
+		Changed license from GPL to LPGL
+
+	* ChangeLog:
+		Added ChangeLog
+
+	* include/faac.h:
+		Higher release version
+
+	* bootstrap:
+		Fixed linux compilation
+
+	* AUTHORS, NEWS, configure.in:
+		Fixed linux compilation
+
+2001-05-29  menno
+	* libfaac/bitstream.c:
+		Fixed bit counting, file length calculation works again
+
+2001-05-28  menno
+	* frontend/main.c, include/faac.h, libfaac/backpred.h,
+	libfaac/frame.c:
+		Small bugfix in backward predictor
+
+	* libfaac/: bitstream.c, bitstream.h:
+		Changes for ISO MPEG4 compatibility (sorry :(( )
+		Old MPEG4 files with ADTS header will not be playable anymore
+
+2001-05-18  menno
+	* docs/libfaac.pdf, include/faac.h:
+		Added encoder library interface documentation
+
+	* todo.txt, libfaac/backpred.c, libfaac/backpred.h,
+	libfaac/coder.h, libfaac/util.c, libfaac/util.h:
+		Cleaned up backward prediction code
+
+2001-05-12  oxygene2000
+	* Makefile, Makefile.am, bootstrap, configure.in,
+	frontend/Makefile, frontend/Makefile.am, libfaac/Makefile,
+	libfaac/Makefile.am:
+		- new makefile for unix-like systems (should also work with cygwin)
+		  based on autoconf/-make and libtool
+
+2001-05-09  menno
+	* common/libsndfile/AUTHORS, common/libsndfile/COPYING,
+	common/libsndfile/ChangeLog, common/libsndfile/INSTALL,
+	common/libsndfile/Makefile.am, common/libsndfile/Makefile.in,
+	common/libsndfile/NEWS, common/libsndfile/README,
+	common/libsndfile/TODO, common/libsndfile/acconfig.h,
+	common/libsndfile/aclocal.m4, common/libsndfile/config.guess,
+	common/libsndfile/config.sub, common/libsndfile/configure,
+	common/libsndfile/configure.in, common/libsndfile/install-sh,
+	common/libsndfile/libsndfile.spec,
+	common/libsndfile/libsndfile.spec.in, common/libsndfile/ltconfig,
+	common/libsndfile/ltmain.sh, common/libsndfile/missing,
+	common/libsndfile/mkinstalldirs, common/libsndfile/reconf,
+	common/libsndfile/MacOS/MacOS-readme.txt,
+	common/libsndfile/MacOS/Makefile.am,
+	common/libsndfile/MacOS/Makefile.in,
+	common/libsndfile/MacOS/config.h,
+	common/libsndfile/Win32/Makefile.am,
+	common/libsndfile/Win32/Makefile.in,
+	common/libsndfile/Win32/README-Win32.txt,
+	common/libsndfile/Win32/README-Win32.txt.old,
+	common/libsndfile/Win32/config.h,
+	common/libsndfile/Win32/libsndfile.dsp,
+	common/libsndfile/Win32/libsndfile.dsw,
+	common/libsndfile/Win32/unistd.h, common/libsndfile/doc/ChangeLog,
+	common/libsndfile/doc/Makefile.am,
+	common/libsndfile/doc/Makefile.in, common/libsndfile/doc/NEWS,
+	common/libsndfile/doc/api.html, common/libsndfile/doc/bugs.html,
+	common/libsndfile/doc/index.html,
+	common/libsndfile/doc/libsndfile.jpg,
+	common/libsndfile/doc/sfinfo.html,
+	common/libsndfile/examples/Makefile.am,
+	common/libsndfile/examples/Makefile.in,
+	common/libsndfile/examples/make_sine.c,
+	common/libsndfile/examples/sfconvert.c,
+	common/libsndfile/examples/sfhexdump.c,
+	common/libsndfile/examples/sfinfo.c,
+	common/libsndfile/examples/sndfile2oct.c,
+	common/libsndfile/examples/wav32_aiff24.c,
+	common/libsndfile/m4/Makefile.am, common/libsndfile/m4/Makefile.in,
+	common/libsndfile/src/Makefile.am,
+	common/libsndfile/src/Makefile.in, common/libsndfile/src/aiff.c,
+	common/libsndfile/src/alaw.c, common/libsndfile/src/alaw.h,
+	common/libsndfile/src/au.c, common/libsndfile/src/au.h,
+	common/libsndfile/src/au_g72x.c, common/libsndfile/src/common.c,
+	common/libsndfile/src/common.h, common/libsndfile/src/config.h.in,
+	common/libsndfile/src/newpcm.c, common/libsndfile/src/paf.c,
+	common/libsndfile/src/pcm.c, common/libsndfile/src/pcm.h,
+	common/libsndfile/src/raw.c, common/libsndfile/src/sfendian.h,
+	common/libsndfile/src/sndfile.c, common/libsndfile/src/sndfile.h,
+	common/libsndfile/src/stamp-h.in, common/libsndfile/src/svx.c,
+	common/libsndfile/src/ulaw.c, common/libsndfile/src/ulaw.h,
+	common/libsndfile/src/wav.c, common/libsndfile/src/wav.h,
+	common/libsndfile/src/wav_float.c,
+	common/libsndfile/src/wav_gsm610.c,
+	common/libsndfile/src/wav_ima_adpcm.c,
+	common/libsndfile/src/wav_ms_adpcm.c,
+	common/libsndfile/src/G72x/ChangeLog,
+	common/libsndfile/src/G72x/Makefile.am,
+	common/libsndfile/src/G72x/Makefile.in,
+	common/libsndfile/src/G72x/README,
+	common/libsndfile/src/G72x/README.original,
+	common/libsndfile/src/G72x/g721.c,
+	common/libsndfile/src/G72x/g723_16.c,
+	common/libsndfile/src/G72x/g723_24.c,
+	common/libsndfile/src/G72x/g723_40.c,
+	common/libsndfile/src/G72x/g72x.c,
+	common/libsndfile/src/G72x/g72x.h,
+	common/libsndfile/src/G72x/private.h,
+	common/libsndfile/src/GSM610/COPYRIGHT,
+	common/libsndfile/src/GSM610/ChangeLog,
+	common/libsndfile/src/GSM610/Makefile.am,
+	common/libsndfile/src/GSM610/Makefile.in,
+	common/libsndfile/src/GSM610/README,
+	common/libsndfile/src/GSM610/add.c,
+	common/libsndfile/src/GSM610/code.c,
+	common/libsndfile/src/GSM610/config.h,
+	common/libsndfile/src/GSM610/decode.c,
+	common/libsndfile/src/GSM610/gsm.h,
+	common/libsndfile/src/GSM610/gsm_create.c,
+	common/libsndfile/src/GSM610/gsm_decode.c,
+	common/libsndfile/src/GSM610/gsm_destroy.c,
+	common/libsndfile/src/GSM610/gsm_encode.c,
+	common/libsndfile/src/GSM610/gsm_option.c,
+	common/libsndfile/src/GSM610/long_term.c,
+	common/libsndfile/src/GSM610/lpc.c,
+	common/libsndfile/src/GSM610/preprocess.c,
+	common/libsndfile/src/GSM610/private.h,
+	common/libsndfile/src/GSM610/proto.h,
+	common/libsndfile/src/GSM610/rpe.c,
+	common/libsndfile/src/GSM610/short_term.c,
+	common/libsndfile/src/GSM610/table.c,
+	common/libsndfile/src/GSM610/unproto.h,
+	common/libsndfile/tests/Makefile.am,
+	common/libsndfile/tests/Makefile.in,
+	common/libsndfile/tests/alaw_test.c,
+	common/libsndfile/tests/double_test.c,
+	common/libsndfile/tests/error_test.c,
+	common/libsndfile/tests/lossy_comp_test.c,
+	common/libsndfile/tests/read_seek_test.c,
+	common/libsndfile/tests/sftest.c,
+	common/libsndfile/tests/sfversion.c,
+	common/libsndfile/tests/ulaw_test.c,
+	common/libsndfile/tests/write_read_test.c, frontend/faac.dsp,
+	frontend/faac.dsw, frontend/faacgui.dsp, frontend/faacgui.dsw,
+	wingui/faac_wingui.dsp, wingui/faac_wingui.dsw:
+		Added libsndfile to the CVS tree, making compilation a lot easier
+
+	* faac_wingui.nsi:
+		Fixed NSIS install script to avoid warnings
+
+2001-05-08  menno
+	* frontend/: faac.dsp, faacgui.dsp, faacgui.rc, main.c, maingui.c,
+	resource.h:
+		Better support for main profile in frontends
+
+2001-05-02  menno
+	* todo.txt, frontend/main.c, libfaac/bitstream.c,
+	libfaac/bitstream.h, libfaac/coder.h, libfaac/frame.c,
+	libfaac/libfaac.dsp, libfaac/backpred.c, libfaac/backpred.h:
+		Added support for MAIN AAC object type
+
+2001-04-29  flyingfox
+	* wingui/: EncoderJob.cpp, EncoderJob.h,
+	EncoderJobProcessingManager.cpp, EncoderJobProcessingManager.h,
+	EncoderQualityPageDialog.cpp, EncoderQualityPageDialog.h,
+	EncoderQualityPropertyPageContents.cpp,
+	EncoderQualityPropertyPageContents.h, faac_wingui.rc, resource.h:
+		- disabled job list persistence (file format incompatibility)
+		- disabled job list multiple selection (property merging is not working properly anyway)
+		- added MPEG version support
+		- changed AAC profile to AAC object type
+		- disabled LTP under MPEG version 2 (if LTP selected it will go back to LC)
+
+2001-04-27  flyingfox
+	* wingui/faac_wingui.dsp:
+		fixed debug build
+
+	* wingui/EncoderJobProcessingManager.cpp:
+		fixed compile error
+
+2001-04-19  menno
+	* frontend/faacgui.rc, frontend/main.c, frontend/maingui.c,
+	frontend/resource.h, include/faac.h, libfaac/bitstream.c,
+	libfaac/bitstream.h, libfaac/frame.c, libfaac/frame.h,
+	libfaac/tns.c:
+		Changes in MPEG4 file format, mainly comments for clarification
+
+2001-04-11  menno
+	* frontend/faacgui.rc, frontend/main.c, frontend/maingui.c,
+	include/faac.h, libfaac/bitstream.c, libfaac/bitstream.h,
+	libfaac/coder.h, libfaac/frame.c, libfaac/frame.h, libfaac/ltp.c,
+	libfaac/tns.c, wingui/EncoderJobProcessingManager.cpp,
+	wingui/faac_wingui.rc:
+		Fixed MPEG4 object type problem
+
+2001-04-10  menno
+	* libfaac/tns.c:
+		Fixed another MPEG4/2 issue TNS order
+
+	* wingui/: EncoderGeneralPageDialog.cpp,
+	EncoderGeneralPageDialog.h, EncoderJob.cpp, EncoderJob.h,
+	EncoderJobProcessingManager.cpp, EncoderJobProcessingManager.h,
+	Job.cpp, Job.h, JobListUpdatable.h, PageCheckboxCtrlContent.cpp,
+	PageCheckboxCtrlContent.h, PageComboBoxCtrlContent.cpp,
+	PageComboBoxCtrlContent.h, PageEditCtrlContent.cpp,
+	PageEditCtrlContent.h, PageRadioGroupCtrlContent.h,
+	RecursiveDirectoryTraverser.cpp, RecursiveDirectoryTraverser.h,
+	WindowUtil.cpp, WindowUtil.h, faac_wingui.dsp, faac_wingui.rc,
+	faac_winguiDlg.cpp, faac_winguiDlg.h, resource.h:
+		Big update of GUI
+
+2001-04-03  menno
+	* libfaac/bitstream.c:
+		Finally correct MPEG4 ADTS headers
+
+	* libfaac/bitstream.c:
+		Re: ADTS layer fixed for MPEG-4
+
+	* libfaac/bitstream.c:
+		ADTS layer fixed for MPEG-4
+
+2001-04-01  xfhobbes
+	* wingui/: AbstractJob.cpp, AbstractJob.h:
+		improved progress counter;
+		added general user input tracking during job list processing;
+		added column in the job list ctrl to display the outcome of job processing
+
+	* wingui/: AskCreateDirectoryDialog.cpp,
+	AskCreateDirectoryDialog.h, JobProcessingDynamicUserInputInfo.cpp,
+	JobProcessingDynamicUserInputInfo.h:
+		added general user input tracking during job list processing and
+		question for target directory creation where appropriate
+
+2001-03-19  menno
+	* frontend/main.c, libfaac/bitstream.c:
+		Correct encoding of files other than 2 channel now
+
+	* libfaac/frame.c:
+		Table data fix for 8kHz
+
+2001-03-18  xfhobbes
+	* wingui/faac_winguiDlg.cpp:
+		Moved beep after completed processing from individual beep for
+		every job to a global one per processing command.
+
+	* wingui/: EncoderJobProcessingManager.cpp,
+	EncoderJobProcessingManager.h:
+		Rewrote DoProcessing() method to comply to rules of
+		Hungarian Notation and to common C++ code styles.
+
+2001-03-18  menno
+	* faac_wingui.nsi:
+		Changed NSIS installation script
+		now it supports opening of .jbl (joblist) files automatically
+
+	* faac_wingui.nsi:
+		Added NSIS (www.nullsoft.com) installation script
+
+2001-03-18  xfhobbes
+	* wingui/: .cvsignore, AbstractJob.cpp, AbstractJob.h,
+	EncoderGeneralPageDialog.cpp, EncoderJob.cpp, EncoderJob.h,
+	EncoderJobProcessingManager.cpp, EncoderJobProcessingManager.h,
+	FloatingPropertyDialog.cpp, FloatingPropertyDialog.h, Job.cpp,
+	Listobj.cpp, ProcessJobStatusDialog.cpp, ProcessJobStatusDialog.h,
+	ProcessJobStatusDialog2.cpp, ProcessJobStatusDialog2.h,
+	ProcessingStatusDialogInfoFeedbackCallbackInterface.h,
+	RecursiveDirectoryTraverser.cpp, RecursiveDirectoryTraverser.h,
+	TItemList.h, faac_wingui.clw, faac_wingui.cpp, faac_wingui.dsp,
+	faac_wingui.h, faac_wingui.rc, faac_winguiDlg.cpp,
+	faac_winguiDlg.h, resource.h:
+		Major update: roughly consolidated filter job functionality,
+		added shell open support and several other things,
+		cleaned up scc files and ignore list
+
+2001-03-17  menno
+	* libfaac/bitstream.c, wingui/faac_wingui.clw:
+		Added MPEG2 AAC support (compile with MPEG2AAC defined)
+		make sure you don't use LTP when using MPEG2 AAC,
+		because it is not supported in MPEG2 AAC
+
+2001-03-15  menno
+	* wingui/Listobj.cpp:
+		Small bugfix
+
+2001-03-14  menno
+	* wingui/: .cvsignore, AbstractJob.cpp, AbstractJob.h,
+	AbstractPageCtrlContent.cpp, AbstractPageCtrlContent.h,
+	AbstractPropertyPageContents.cpp, AbstractPropertyPageContents.h,
+	ConcreteJobBase.cpp, ConcreteJobBase.h,
+	EncoderGeneralPageDialog.cpp, EncoderGeneralPageDialog.h,
+	EncoderGeneralPropertyPageContents.cpp,
+	EncoderGeneralPropertyPageContents.h, EncoderId3PageDialog.cpp,
+	EncoderId3PageDialog.h, EncoderId3PropertyPageContents.cpp,
+	EncoderId3PropertyPageContents.h, EncoderJob.cpp, EncoderJob.h,
+	EncoderJobProcessingManager.cpp, EncoderJobProcessingManager.h,
+	EncoderQualityPageDialog.cpp, EncoderQualityPageDialog.h,
+	EncoderQualityPropertyPageContents.cpp,
+	EncoderQualityPropertyPageContents.h,
+	FaacWinguiProgramSettings.cpp, FaacWinguiProgramSettings.h,
+	FileListQueryManager.cpp, FileListQueryManager.h,
+	FileMaskAssembler.cpp, FileMaskAssembler.h, FilePathCalc.cpp,
+	FilePathCalc.h, FileSerializable.cpp, FileSerializable.h,
+	FileSerializableJobList.cpp, FileSerializableJobList.h,
+	FloatingPropertyDialog.cpp, FloatingPropertyDialog.h,
+	FolderDialog.cpp, FolderDialog.h, Id3TagInfo.cpp, Id3TagInfo.h,
+	Job.cpp, Job.h, JobList.cpp, JobList.h, JobListCtrlDescribable.cpp,
+	JobListCtrlDescribable.h, JobListUpdatable.cpp, JobListUpdatable.h,
+	JobListsToConfigureSaver.cpp, JobListsToConfigureSaver.h,
+	ListCtrlStateSaver.cpp, ListCtrlStateSaver.h, Listobj.cpp,
+	PageCheckboxCtrlContent.cpp, PageCheckboxCtrlContent.h,
+	PageComboBoxCtrlContent.cpp, PageComboBoxCtrlContent.h,
+	PageEditCtrlContent.cpp, PageEditCtrlContent.h,
+	PageRadioGroupCtrlContent.cpp, PageRadioGroupCtrlContent.h,
+	ProcessJobStatusDialog.cpp, ProcessJobStatusDialog.h,
+	ProcessJobStatusDialog2.cpp, ProcessJobStatusDialog2.h,
+	ProcessingStartStopPauseInteractable.cpp,
+	ProcessingStartStopPauseInteractable.h,
+	ProcessingStatusDialogInfoFeedbackCallbackInterface.cpp,
+	ProcessingStatusDialogInfoFeedbackCallbackInterface.h,
+	PropertiesDummyParentDialog.cpp, PropertiesDummyParentDialog.h,
+	PropertiesTabParentDialog.cpp, PropertiesTabParentDialog.h,
+	ReadMe.txt, RecursiveDirectoryTraverser.cpp,
+	RecursiveDirectoryTraverser.h, SourceTargetFilePair.cpp,
+	SourceTargetFilePair.h, StdAfx.cpp, StdAfx.h,
+	SupportedPropertyPagesData.cpp, SupportedPropertyPagesData.h,
+	TItemList.cpp, TItemList.h, WindowUtil.cpp, WindowUtil.h,
+	faac_wingui.clw, faac_wingui.cpp, faac_wingui.dsp, faac_wingui.dsw,
+	faac_wingui.h, faac_wingui.rc, faac_winguiDlg.cpp,
+	faac_winguiDlg.h, listobj.h, resource.h, res/faac_wingui.ico,
+	res/faac_wingui.rc2, res/toolbarm.bmp:
+		New GUI application
+
+2001-03-13  menno
+	* frontend/.cvsignore, libfaac/.cvsignore:
+		Updated .cvsignore
+
+2001-03-12  menno
+	* frontend/main.c, frontend/maingui.c, include/faac.h,
+	libfaac/frame.c, libfaac/frame.h:
+		Small change in API
+
+	* frontend/faac.dsp, frontend/faacgui.dsp, frontend/maingui.c,
+	libfaac/aacquant.c, libfaac/bitstream.c, libfaac/fft.c,
+	libfaac/filtbank.c, libfaac/frame.c, libfaac/huffman.c,
+	libfaac/libfaac.dsp, libfaac/ltp.c, libfaac/psych.c, libfaac/tns.c,
+	libfaac/util.h:
+		cleanup
+
+2001-03-06  menno
+	* frontend/faac.dsp, frontend/faacgui.dsp, frontend/faacgui.rc,
+	frontend/main.c, frontend/maingui.c, frontend/resource.h,
+	libfaac/psych.c:
+		-added profile selection
+		-some cleanup
+
+	* libfaac/: aacquant.c, frame.c, frame.h, joint.c, joint.h,
+	psych.c:
+		Fix in reconstruction of spectrum before LTP buffer update
+
+2001-03-05  oxygene
+	* libfaac/Makefile:
+		Updated for LTP
+
+	* libfaac/tns.c:
+		Included math.h for math functions in linux.
+
+2001-03-05  menno
+	* frontend/faac.dsp, frontend/maingui.c, frontend/usage.txt,
+	libfaac/ltp.c:
+		LTP speedup
+
+	* todo.txt, frontend/faac.dsp, frontend/faacgui.rc,
+	frontend/main.c, frontend/maingui.c, frontend/resource.h,
+	include/faac.h, libfaac/aacquant.c, libfaac/aacquant.h,
+	libfaac/bitstream.c, libfaac/coder.h, libfaac/filtbank.c,
+	libfaac/filtbank.h, libfaac/frame.c, libfaac/frame.h,
+	libfaac/libfaac.dsp, libfaac/ltp.c, libfaac/ltp.h:
+		Added LTP
+		Needs some more refinement, but it works
+
+2001-03-02  menno
+	* frontend/main.c:
+		unix fix
+
+2001-03-01  oxygene
+	* frontend/Makefile, libfaac/Makefile:
+		Added support for TNS, fixed a typo
+
+	* Makefile, frontend/Makefile, libfaac/Makefile:
+		Install and uninstall target added. Small change
+
+2001-03-01  menno
+	* frontend/main.c:
+		unix fix
+
+2001-02-28  menno
+	* frontend/: faacgui.rc, main.c, maingui.c, resource.h:
+		Support for TNS in frontends
+
+	* include/faac.h, libfaac/aacquant.c, libfaac/bitstream.c,
+	libfaac/bitstream.h, libfaac/channels.c, libfaac/channels.h,
+	libfaac/coder.h, libfaac/filtbank.c, libfaac/filtbank.h,
+	libfaac/frame.c, libfaac/frame.h, libfaac/joint.c,
+	libfaac/libfaac.dsp, libfaac/psych.c, libfaac/psych.h,
+	libfaac/tns.c, libfaac/tns.h, libfaac/util.c, libfaac/util.h:
+		- added TNS support
+		- some other cleanups
+
+2001-02-26  oxygene
+	* libfaac/util.c:
+		Included math.h to make unix compiler happy
+
+	* libfaac/psych.h:
+		Added min() and max() functions for unix
+
+	* libfaac/channels.h:
+		Added min() function for unix
+
+	* frontend/main.c:
+		Added min() function for unix.
+
+2001-02-25  menno
+	* frontend/faacgui.dsp, frontend/maingui.c, libfaac/filtbank.c,
+	libfaac/filtbank.h, libfaac/kbd_win.h:
+		Added calculation of KBD window
+
+2001-02-12  menno
+	* frontend/faac.dsp, frontend/faacgui.dsp, frontend/maingui.c,
+	frontend/resource.h, libfaac/frame.c, libfaac/psych.c,
+	libfaac/psych.h, libfaac/util.c, libfaac/util.h:
+		Different MS switching model
+
+2001-02-10  menno
+	* libfaac/: frame.c, util.c, util.h:
+		- Fixed scalefactor bandwidths (Thanks again to Ivan)
+		- Better checking of configuration
+
+2001-02-09  menno
+	* libfaac/frame.c:
+		Scalefactor bandwidth update (Thanks to Ivan)
+
+2001-02-08  menno
+	* libfaac/frame.c:
+		Fixed scalefactorband data (thanks to Ivan)
+
+2001-02-05  menno
+	* frontend/main.c:
+		changed LINUX -> __unix__
+
+2001-02-04  oxygene2000
+	* Makefile, frontend/.cvsignore, frontend/Makefile,
+	frontend/main.c, libfaac/.cvsignore, libfaac/Makefile,
+	libfaac/aacquant.c, libfaac/bitstream.c, libfaac/channels.h,
+	libfaac/coder.h, libfaac/fft.c, libfaac/filtbank.h,
+	libfaac/frame.h, libfaac/huffman.c, libfaac/psych.c,
+	libfaac/psych.h, libfaac/util.c:
+		- new Makefiles
+		- .cvsignore for a cleaner cvs-output
+		- // xyz -> /* xyz */ for ansi-c compliance
+		- minor fixes to work on linux
+
+2001-02-01  menno
+	* libfaac/: frame.c, psych.c:
+		Fixed memory leakage
+
+	* libfaac/: frame.c, libfaac.dsp, psych.c, psych.h:
+		Completely new psychoacoustic model
+
+2001-01-25  menno
+	* frontend/maingui.c:
+		Small changes
+
+	* frontend/maingui.c:
+		Encoding now done in a thread. Plus some other small changes.
+
+2001-01-24  menno
+	* frontend/: faacgui.rc, maingui.c, resource.h:
+		Minor changes to GUI
+
+	* frontend/faacgui.dsp, frontend/faacgui.dsw, frontend/faacgui.rc,
+	frontend/maingui.c, frontend/resource.h, todo.txt:
+		Added graphical user interface
+
+2001-01-23  menno
+	* libfaac/bitstream.c, libfaac/bitstream.h, libfaac/frame.c,
+	libfaac/frame.h, todo.txt:
+		ADTS headers supported
+
+	* libfaac/: joint.c, joint.h:
+		Fix to remove compiler warnings
+
+2001-01-19  menno
+	* libfaac/: aacquant.c, huffman.c, huffman.h:
+		Speedup in huffman coder
+
+	* libfaac/psych.c:
+		Changed ATH formula
+
+2001-01-17  menno
+	* todo.txt, frontend/main.c, frontend/usage.txt, include/faac.h,
+	libfaac/filtbank.c, libfaac/filtbank.h, libfaac/frame.c,
+	libfaac/frame.h:
+		Added frequency cut off filter
+
+	* Makefile, aac_se_enc.c, aac_se_enc.h, aacenc.h, bitstream.c,
+	bitstream.h, enc.h, enc_tf.c, encoder.c, faac.c, faac.dsp,
+	faac.dsw, faac_dll.dsp, fastfft.c, fastfft.h, huffman.c, huffman.h,
+	hufftab5.h, interface.h, ltp_enc.c, ltp_enc.h, mc_enc.c, mc_enc.h,
+	ms.c, ms.h, profiling.txt, psych.c, psych.h, pulse.c, pulse.h,
+	quant.c, quant.h, rateconv.c, rateconv.h, shape_win.h, tns.c,
+	tns.h, todo.txt, transfo.c, transfo.h, frontend/faac.dsp,
+	frontend/faac.dsw, frontend/main.c, frontend/usage.txt,
+	include/faac.h, libfaac/aacquant.c, libfaac/aacquant.h,
+	libfaac/bitstream.c, libfaac/bitstream.h, libfaac/channels.c,
+	libfaac/channels.h, libfaac/coder.h, libfaac/fft.c, libfaac/fft.h,
+	libfaac/filtbank.c, libfaac/filtbank.h, libfaac/frame.c,
+	libfaac/frame.h, libfaac/huffman.c, libfaac/huffman.h,
+	libfaac/hufftab.h, libfaac/joint.c, libfaac/joint.h,
+	libfaac/kbd_win.h, libfaac/libfaac.dsp, libfaac/psych.c,
+	libfaac/psych.h, libfaac/util.c, libfaac/util.h:
+		no message
+
+2000-12-04  menno
+	* faac.c:
+		Changed usage message a bit
+
+2000-11-10  menno
+	* enc_tf.c, psych.c, quant.c, quant.h:
+		Bugfix in psychoacoustics and window shape switching changed
+
+2000-11-07  menno
+	* enc_tf.c, quant.c, quant.h:
+		Quantizer update. No more quantizer crashes
+
+2000-11-01  menno
+	* aac_se_enc.c, enc_tf.c, ltp_enc.c, ltp_enc.h, mc_enc.c, mc_enc.h,
+	ms.c, ms.h, psych.c, psych.h, quant.c, quant.h, tns.c, tns.h:
+		Code reorganisation
+
+2000-10-31  menno
+	* enc_tf.c, interface.h, psych.c, psych.h, quant.h:
+		Cleanup: more sensible organisation
+
+2000-10-08  menno
+	* tables.h:
+		Removed unused file
+
+	* enc_tf.c, psych.c, psych.h:
+		Bugfixed and commented psychoacoustic module
+
+2000-10-06  menno
+	* Makefile, aac_se_enc.c, aac_se_enc.h, bitstream.c, enc_tf.c,
+	faac.dsp, faac_dll.dsp, huffman.c, huffman.h, interface.h,
+	ltp_enc.c, ltp_enc.h, nok_ltp_common.h, nok_ltp_common_internal.h,
+	nok_ltp_enc.c, nok_ltp_enc.h, nok_pitch.c, nok_pitch.h, psych.c,
+	pulse.c, quant.c, quant.h, tns.c, tns.h, transfo.c:
+		Code cleanup
+
+2000-10-05  menno
+	* aac_se_enc.c, aac_se_enc.h, aacenc.h, all.h, bitstream.c,
+	block.h, enc.h, enc_tf.c, fastfft.h, huffman.c, huffman.h,
+	interface.h, mc_enc.h, ms.h, nok_ltp_common.h, nok_ltp_enc.c,
+	nok_ltp_enc.h, nok_pitch.c, psych.c, psych.h, quant.c, quant.h,
+	tf_main.h, tns.c, tns.h, transfo.c, transfo.h:
+		Big code cleanup
+
+	* aac_se_enc.c, aac_se_enc.h, aacenc.h, all.h, bitstream.c,
+	bitstream.h, block.h, enc.h, enc_tf.c, encoder.c, faac.c,
+	fastfft.c, fastfft.h, huffman.c, huffman.h, hufftab5.h,
+	interface.h, mc_enc.c, mc_enc.h, ms.c, ms.h, nok_ltp_common.h,
+	nok_ltp_common_internal.h, nok_ltp_enc.c, nok_ltp_enc.h,
+	nok_pitch.c, nok_pitch.h, psych.c, psych.h, pulse.c, pulse.h,
+	quant.c, quant.h, shape_win.h, tf_main.h, tns.c, tns.h, transfo.c,
+	transfo.h:
+		Copyright message cleanup. CVS keywords added
+
+2000-10-04  menno
+	* encoder.c:
+		Wrong bits per frame got calculated
+
+	* enc_tf.c, nok_ltp_enc.c, psych.c, rateconv.c:
+		LFE is now also working correctly
+
+2000-10-03  menno
+	* enc_tf.c, encoder.c, faac.c, nok_ltp_enc.c, psych.c, rateconv.c,
+	tf_main.h:
+		Multichannel fixes. All working now, except LFE channels
+
+2000-10-01  menno
+	* enc_tf.c, psych.c:
+		Small fix in LFE frequency cut-off
+
+	* aacenc.h, enc_tf.c, encoder.c, faac.c, mc_enc.c, mc_enc.h,
+	psych.c:
+		Encoder LFE fixup. Should be working now, but no way to test it yet.
+
+2000-09-30  menno
+	* quant.c:
+		Some variable names changed (purely cosmetic)
+
+2000-09-28  menno
+	* encoder.c:
+		Release updates
+
+2000-09-27  menno
+	* profiling.txt:
+		no message
+
+2000-09-25  menno
+	* psych.c:
+		Small changes
+
+	* enc_tf.c, quant.c:
+		Added VBR quantizer (but not working yet)
+
+2000-08-24  menno
+	* psych.c, psych.h:
+		Fixed a bug in MS threshold calculation
+
+	* psych.c, quant.c:
+		Cleanup and small quality update
+
+2000-08-23  menno
+	* encoder.c, psych.c:
+		Different bark formula
+
+2000-08-20  menno
+	* Makefile:
+		Fixed Makefile
+
+2000-08-11  menno
+	* psych.c:
+		removed some redundant code
+
+	* enc_tf.c, ms.c, psych.c:
+		Bugfixes and multichannel updates
+
+2000-08-10  menno
+	* is.c, is.h:
+		removed IS
+
+	* ms.c, psych.c:
+		bugfix
+
+	* faac.dsp, faac_dll.dsp, psych.h:
+		Cleanup
+
+2000-08-08  menno
+	* aacenc.h, all.h, enc_tf.c, encoder.c, faac.c, ms.c, ms.h,
+	quant.c:
+		Removed IS. It is useless
+
+	* enc_tf.c, ms.c, ms.h, psych.c, psych.h:
+		Changed for multichannel support. And big cleanup
+
+	* mc_enc.c, mc_enc.h:
+		Changed for multichannel support
+
+2000-07-22  prkoat
+	* encoder.c, faac.c:
+		Support for SCE (mono files)
+
+2000-05-18  menno
+	* enc_tf.c, psych.c, psych.h:
+		Tuned short block switching
+
+2000-05-16  menno
+	* encoder.c:
+		First go at multichannel support (not working at all, yet)
+
+2000-04-05  oxygene2000
+	* faac.c:
+		- With -DLINUX faac shows the cpu-time needed to encode
+		not real-time, therefore better measurement is possible
+
+	* pulse.h:
+		- Cosmetic change (gcc complains about missing newline at EOF)
+
+	* Makefile, huffman.h, psych.h:
+		- Made it compile with gcc/linux again
+
+2000-03-29  menno
+	* enc_tf.c, psych.c, quant.c:
+		Quality update
+
+2000-03-28  menno
+	* huffman.c, huffman.h, quant.c, quant.h:
+		Moved a function
+
+	* quant.c:
+		Small change
+
+	* aac_qc.c, aac_qc.h, aac_se_enc.c, aac_se_enc.h, enc_tf.c,
+	faac.dsp, faac_dll.dsp, huffman.c, huffman.h, is.h, ms.h, pulse.c,
+	quant.c, quant.h:
+		Separated quantization and noiseless coding
+
+	* encoder.c, faac.c:
+		Made TNS default again
+
+2000-03-23  lenox
+	* aac_se_enc.c, enc_tf.c:
+		restored gain control bits in the stream
+
+2000-03-22  lenox
+	* aacenc.h, encoder.c, faac.c:
+		added new parameters for 'block' mode
+
+2000-03-17  lenox
+	* aacenc.h, encoder.c, faac.c:
+		removed function faac_EncodeFinish()
+
+2000-03-13  lenox
+	* aacenc.h, encoder.c:
+		added support for block input (for DLL interface without input files)
+
+2000-03-12  lenox
+	* aac_qc.c, aac_se_enc.c, enc_tf.c, encoder.c, faac.c:
+		removed gain control & changed win32 defines
+
+2000-03-02  lenox
+	* aac_qc.c:
+		added gcc asm code
+
+	* aac_qc.c:
+		new quantizer code for other than VC and BCB compilers
+
+2000-02-28  lenox
+	* ms.c, transfo.c:
+		improved readability of the code
+
+	* aac_qc.c:
+		added BC asm compatibility
+
+	* aac_qc.c, aac_qc.h, aac_se_enc.c, aac_se_enc.h, enc_tf.c, is.c,
+	is.h, ms.c, ms.h, nok_ltp_enc.c, nok_pitch.c, nok_pitch.h, psych.c,
+	psych.h, tns.c:
+		huge cleanup (for unused parameters and vars)
+
+2000-02-28  menno
+	* aac_se_enc.c:
+		Bugfix
+
+2000-02-28  lenox
+	* block.h, enc_tf.c, nok_ltp_common.h, nok_ltp_enc.c,
+	nok_ltp_enc.h, tns.c:
+		removed unused parameters
+
+	* faac.c:
+		slightly changed arg parsing
+
+2000-02-27  menno
+	* aac_qc.c:
+		Changed short block quantization
+
+2000-02-24  menno
+	* psych.c:
+		Now using LAME's mid/side threshold calculation
+
+2000-02-24  thebard
+	* Makefile, psych.c:
+		Removed remainign thread and semephore code
+
+	* Makefile, all.h, profiling.txt, psych.c, psych.h:
+		After more compilation, there is not any function thats taking
+		more than 10% of the total time (see the profile graph)
+		For fun I added threads to psy6, but since its only 7 seconds,
+		the constant rebuilds of the threads gain little improvement,
+		and will suck on non multiple cpu boxes, so I removed it.
+
+2000-02-23  thebard
+	* psych.c, psych.h:
+		Alterations so that we can thread functions for multiple CPU's
+
+2000-02-23  lenox
+	* encoder.c, faac.c:
+		fixed wildcards processing
+
+2000-02-23  menno
+	* psych.c, tns.c:
+		Quality update
+
+	* Makefile, enc_tf.c, faac.dsp, faac_dll.dsp, winswitch.c,
+	winswitch.h:
+		Removed winswitch.c
+
+2000-02-23  thebard
+	* Makefile, profiling.txt:
+		Now encoding faster than realtime with suggested compiler 
+		options in Makefile. Still alot of room left for assembler
+		and/or thread tweaking.
+
+	* Makefile, profiling.txt:
+		Got run time down 100%. It looks like gcc is starving registers or causing
+		mosterous cache misses. More to come.
+
+2000-02-22  thebard
+	* aac_qc.c, profiling.txt:
+		inlined output_bits, not that it matters much in performance...
+
+2000-02-22  menno
+	* enc_tf.c:
+		Made ADTS quality same as other files quality
+
+2000-02-22  thebard
+	* Makefile, nok_ltp_enc.c, profiling.txt:
+		Macroized double_to_int. Shaved off a few seconds
+		(avoided all the function call overhead)
+
+	* profiling.txt:
+		Added the profiling text file.
+
+	* faac.c:
+		Changes the ending return to an exit so we can profile.
+
+	* faac.c:
+		Timer now works correctly for unix.
+
+	* Makefile, faac.c:
+		Makefile changes for default compile and nots on options,
+		Also added an include so that faac.c links.
+
+2000-02-19  lenox
+	* Makefile:
+		added faac.c
+
+	* faac.c, faac.dsp, faac_dll.dsp:
+		added faac.c
+
+	* aacenc.h, encoder.c:
+		restructure
+
+2000-02-19  oxygene
+	* Makefile:
+		Uninstall target added
+
+2000-02-18  menno
+	* faac_dll.dsp:
+		Added libsndfile.lib
+
+2000-02-18  lenox
+	* aacenc.h, enc.h, enc_tf.c, encoder.c:
+		new interface functions
+
+	* rateconv.h, rateconv.c, nok_ltp_enc.c, aac_qc.c:
+		cleanup
+
+2000-02-17  menno
+	* aac_se_enc.c:
+		Removed some debug code
+
+	* aac_qc.c, aac_se_enc.c, enc_tf.c, nok_ltp_enc.c:
+		Bugfixes for bit counting
+
+2000-02-17  lenox
+	* enc_tf.c, encoder.c:
+		added support for all headers
+
+2000-02-17  oxygene
+	* Makefile:
+		Install target added.
+
+2000-02-15  menno
+	* aac_qc.c, aac_qc.h, aac_se_enc.c, aac_se_enc.h, bitstream.c,
+	bitstream.h, enc_tf.c, encoder.c:
+		Added ADTS header writing
+
+	* aacenc.h:
+		Fixed DLL
+
+2000-02-15  lenox
+	* aacenc.h, encoder.c:
+		new parsing function
+
+2000-02-15  menno
+	* aacenc.h, encoder.c:
+		Made DLL compile
+
+2000-02-15  lenox
+	* aacenc.h, enc.h, enc_tf.c, encoder.c:
+		restructure (aacconfig eliminated)
+
+2000-02-14  lenox
+	* Makefile, faac.dsp, faac_dll.dsp:
+		removed rdft stuff
+
+	* rdft.h, rdft_spectrum.c, rdft_spectrum2.c:
+		removed rdft due to new real fft
+
+	* enc_tf.c, fastfft.c, psych.c, transfo.c, transfo.h:
+		new rft (reference to fftw removed, sorry :) )
+
+2000-02-09  oxygene2000
+	* enc_tf.c, rdft_spectrum2.c:
+		Placed fftw_init/destroy where they have to be
+		Removed transfo.h as it isn't needed
+		Added rdft.h
+
+	* rdft_spectrum2.c:
+		Another mistake, argh!
+
+	* rdft.h, rdft_spectrum2.c:
+		Added fixed fftw-stuff. Use rdft_spectrum2.c instead of rdft_spectrum.c
+		and set -DUSE_FFTW in Makefile to enable it..
+		Be sure that you have libfftw installed
+		fftw_init() and fftw_destroy() have to be placed elsewhere
+		(should only be run once in the program -> speed)
+
+2000-02-09  menno
+	* encoder.c:
+		Restored small mistakes.
+
+2000-02-09  lenox
+	* rdft.h:
+		fix to use without fttw
+
+2000-02-09  oxygene2000
+	* encoder.c, rdft.h, rdft_spectrum.c, rdft_spectrum2.c:
+		Added additional implementation of rdft using fftw (from rank 1 to rank
+		>20 in my profiler = a lot faster)
+
+2000-02-08  oxygene2000
+	* enc_tf.c:
+		Why calculating sqrt(2) if it is present as constant?
+
+	* psych.c:
+		really small speed-up in psy_step6
+
+2000-02-08  menno
+	* nok_pitch.c:
+		Made advantage of Oxygene2000's optimization, to use more accurate delay estimation
+
+	* aac_qc.c:
+		Better quantization of short blocks
+
+2000-02-08  lenox
+	* enc_tf.c, fastfft.c, kbd_win.h, psych.c, shape_win.h, tf_main.h,
+	transfo.c, transfo.h:
+		removed old FFT & some restucture
+
+2000-02-07  menno
+	* psych.c:
+		Change in window switching parameters
+
+2000-02-07  lenox
+	* rdft_spectrum.c:
+		fixed bug with atan2()
+
+2000-02-07  menno
+	* psych.c:
+		Bug fix
+
+	* aac_qc.h, enc_tf.c:
+		One step closer to window shape switching
+
+	* psych.c:
+		Same change to short blocks as oxy2000 made to long blocks
+
+	* encoder.c:
+		Changed command line (TNS is now off by default)
+
+2000-02-07  oxygene2000
+	* Makefile:
+		Made more variables to tune gcc
+
+2000-02-07  menno
+	* enc_tf.c, psych.c, psych.h:
+		Changed last changes back, they made no difference
+
+	* enc_tf.c, psych.c, psych.h:
+		Bugs fixed in psych
+
+2000-02-07  oxygene2000
+	* psych.c:
+		Another speedup by solving calculations into something
+		more simple but equivalent
+
+	* psych.c:
+		Commented out unused loop
+
+2000-02-07  lenox
+	* encoder.c:
+		some cleanup
+
+	* transfo.c:
+		bugfix
+
+	* all.h, block.h, enc_tf.c, nok_ltp_enc.c, tf_main.h, transfo.c:
+		added support for different window shapes
+
+	* dolby_def.h, dolby_win.h:
+		cleanup
+
+	* kbd_win.h:
+		added kbd window tables
+
+2000-02-07  oxygene2000
+	* Makefile:
+		Fixed missing dependency rateconv.c
+
+	* nok_pitch.c:
+		Speeded up estimate_delay
+
+2000-02-06  menno
+	* psych.c:
+		Quite some bug fixes
+
+	* aac_qc.c:
+		Speedup
+
+2000-02-05  menno
+	* aac_qc.c, psych.c:
+		Psych changed and pulse coding updated
+
+	* enc_tf.c, psych.c:
+		Bugfixes
+
+	* ms.h:
+		Fixed lower bitrates (continued)
+
+	* enc_tf.c, psych.c:
+		SMR values were one frame ahead of data. Big quality improvement.
+
+	* aac_qc.c, tns.c:
+		More fixes
+
+	* aac_qc.c, enc_tf.c, is.h, ms.c:
+		Fixed lower bitrate encoding
+
+2000-02-04  menno
+	* enc_tf.c, psych.c:
+		Window switching back to old
+
+	* aac_qc.c, aac_qc.h:
+		Bugs fixed
+
+	* psych.c:
+		Fixed mistake. This caused a very bad sound
+
+	* Makefile, faac.dsp, faac_dll.dsp, psych.c, rdft_spectrum.c:
+		Psycho speedup
+
+2000-02-03  menno
+	* encoder.c:
+		Printing options to screen
+
+	* aac_qc.c:
+		bugfix for blocks with only 0's
+
+2000-02-02  menno
+	* aac_qc.c, psych.c:
+		Serious bugfixes and speedups
+
+	* bitstream.c, psych.c:
+		Bug fixes
+
+	* aac_qc.c:
+		Big quantizer change
+
+2000-01-31  menno
+	* enc_tf.c, psych.c:
+		Reduced psycho complexity (same result)
+
+2000-01-31  lenox
+	* rateconv.c:
+		cleanup
+
+	* transfo.c:
+		bugfix & cleanup
+
+2000-01-30  menno
+	* psych.c:
+		FFT change (cleanup)
+
+2000-01-29  lenox
+	* Makefile, faac.dsp, faac_dll.dsp:
+		removed imdct.c
+
+	* imdct.c:
+		no message
+
+	* enc_tf.c, nok_ltp_enc.c, tf_main.h, transfo.c:
+		changed T/F transformation
+
+2000-01-27  menno
+	* Makefile, enc_tf.c, faac.dsp, faac_dll.dsp, winswitch.c,
+	winswitch.h:
+		New block switching (sounds bad for now)
+
+2000-01-24  lenox
+	* enc_tf.c:
+		removed unneeded stuff for LTP off
+
+2000-01-24  menno
+	* enc_tf.c, ms.c:
+		Unneeded calls to functions removed
+
+	* encoder.c:
+		Command line parsing fixed
+
+2000-01-21  menno
+	* encoder.c:
+		Bug fix
+
+	* encoder.c:
+		Version upgraded
+
+2000-01-19  menno
+	* enc_tf.c, encoder.c:
+		LTP fixed and some other bugs.
+
+2000-01-18  menno
+	* encoder.c:
+		Oops
+
+	* aacenc.h, enc_tf.c, encoder.c, imdct.c, tf_main.h:
+		Added frequency cut-off option (-c)
+
+	* psych.c:
+		Fixed encoding of some samplerates
+
+2000-01-17  menno
+	* aac_qc.c, aacenc.h, enc_tf.c, encoder.c, faac.dsp, faac_dll.dsp,
+	rateconv.c, rateconv.h:
+		Added sampling rate conversion (-s), buggy with some sample rates
+
+2000-01-14  menno
+	* aac_qc.c, aacenc.h, enc_tf.c, encoder.c:
+		First attempt at doing PNS (use -pns). Also every bitrate
+		higher than 16kbps is now supported in step of 1kbps
+
+2000-01-12  menno
+	* imdct.c:
+		Cleanup
+
+2000-01-10  menno
+	* psych.c, psych.h:
+		All psycho values now calculated by formulas
+
+	* enc_tf.c:
+		Small fix
+
+	* tf_main.h:
+		Added support for all sampling rates
+
+	* psych.c:
+		Full support of all sample rates, and some other fixes
+
+2000-01-09  menno
+	* enc_tf.c:
+		restored previous change
+
+	* enc_tf.c:
+		Bugfix
+
+2000-01-09  lenox
+	* faac.dsp, faac_dll.dsp:
+		new dirs for output
+
+2000-01-08  lenox
+	* enc_tf.c, ms.c, nok_ltp_common_internal.h, nok_ltp_enc.c,
+	nok_pitch.c, psych.c, tns.c, transfo.c:
+		some cleanup
+
+	* fastfft.c:
+		some cleanup
+
+2000-01-07  lenox
+	* psych.c:
+		fixed bug in block switching (was since 1.16)
+
+2000-01-07  menno
+	* aacenc.h, enc_tf.c, encoder.c:
+		Added option to disable LTP (-nl)
+
+2000-01-06  menno
+	* aac_qc.c, aac_qc.h, enc_tf.c:
+		Added support for PNS (but it is not used at the moment)
+
+	* psych.c, psych.h:
+		Cleanup
+
+	* nok_ltp_enc.c, nok_pitch.c:
+		Updated delay detection in LTP
+
+	* aac_qc.c:
+		Fix
+
+	* psych.c:
+		Mistake fixed
+
+2000-01-06  lenox
+	* fastfft.c, fastfft.h, psych.c, transfo.c, transfo.h:
+		new restructured mdct and fft
+
+2000-01-06  menno
+	* nok_pitch.c:
+		Divide by zero bugfix
+
+	* aac_qc.c, psych.c:
+		Small quality fixes
+
+	* enc_tf.c, psych.c:
+		Changed block switching
+
+2000-01-05  menno
+	* Makefile, aac_qc.h, aac_se_enc.c, aac_se_enc.h, all.h, enc_tf.c,
+	faac.dsp, faac_dll.dsp, imdct.c, is.c, is.h, psych.c, psych.h,
+	tns.c, transfo.c, transfo.h, nok_ltp_common.h,
+	nok_ltp_common_internal.h, nok_ltp_enc.c, nok_ltp_enc.h,
+	nok_pitch.c, nok_pitch.h:
+		Added Long Term Prediction (LTP), new decoder is needed for this
+
+	* aac_back_pred.c, aac_back_pred.h:
+		Removed backward prediction
+
+2000-01-04  menno
+	* psych.c:
+		no message
+
+2000-01-03  lenox
+	* fastfft.c, psych.c, transfo.c, transfo.h:
+		Added 2048 FFT
+
+1999-12-30  menno
+	* psych.c, psych.h:
+		Structure cleanup
+
+1999-12-29  menno
+	* Makefile, enc_tf.c, faac.dsp, faac_dll.dsp, psych.c, psych.h,
+	fft.c:
+		Restored old FFT due to some serious bugs
+
+1999-12-23  menno
+	* psych.c:
+		Quality fix, in MS protection ratio calculation
+
+	* psych.c:
+		Little fix
+
+	* enc_tf.c:
+		Removed the need for 4 channel buffers. Now there are 2
+
+	* Makefile:
+		Added fft.c
+
+	* psych.c:
+		Quick bugfix after latest update
+
+	* faac.dsp, faac_dll.dsp, fft.c, psych.c, psych.h:
+		New fft in psycho model (fast) and new unpredictabilty measure calculation
+
+	* enc_tf.c:
+		Fix in Mid/Side calculation
+
+1999-12-22  menno
+	* psych.c, psych.h:
+		Streamlined spreading function. Big speedup
+
+	* encoder.c:
+		Changed the DLL interface version.
+
+1999-12-20  lenox
+	* aac_back_pred.c, aac_back_pred.h, enc.h, enc_tf.c, encoder.c,
+	psych.c, tf_main.h, tns.c, tns.h:
+		some cleanup
+
+1999-12-20  menno
+	* tns.h:
+		Changed TNS switching
+
+1999-12-20  lenox
+	* fastfft.c, fastfft.h, transfo.c, transfo.h:
+		some cleanup
+
+1999-12-20  menno
+	* aac_qc.c:
+		Very big speedup
+
+	* ms.c:
+		Ooops, quick bugfix after latest changes gave an extra bug
+
+	* aacenc.h, enc_tf.c, encoder.c, ms.h, tns.c, tns.h:
+		Added some extra options
+
+	* ms.c:
+		Bugfix: MS first gave some distortion in the right channel.
+		Because the Side channel was incorrectly formed.
+
+1999-12-19  menno
+	* aac_qc.c:
+		Bugfix preventing memory overflow
+
+	* aacenc.h, encoder.c:
+		Changed InputBuffer into double instead of float (less conversions)
+
+1999-12-19  lenox
+	* transfo.c, transfo.h:
+		new FFT code & converted vars to double
+
+	* Makefile, faac.dsp, faac_dll.dsp:
+		added fastfft.c
+
+	* fastfft.c, fastfft.h:
+		new FFT code
+
+	* block.h:
+		removed reference to transfo.h
+
+1999-12-17  lenox
+	* Makefile:
+		removed util.c
+
+1999-12-16  menno
+	* enc_tf.c:
+		Put MSEnergy() after MSPreprocess(). Off course.
+
+	* aac_back_pred.c, aac_qc.c, aac_se_enc.c, enc.h, enc_tf.c,
+	imdct.c, psych.c, tns.c:
+		Serious bugfix in psych.c and removed all global statics,
+		they are just normal global variables now.
+
+	* encoder.c:
+		Fixed bug with calculating number of bytes from the number of bits.
+
+	* enc_tf.c, ms.c, ms.h:
+		New and cleaner energy calculation in ms.c
+
+	* psych.c, psych.h:
+		Code cleanup and one bugfix
+
+	* encoder.c:
+		Fixed bug with bitBuffer and better ADIF header writing
+
+1999-12-15  lenox
+	* util.c, util.h:
+		no message
+
+	* transfo.c, transfo.h:
+		some speed optimization and restructure
+
+	* faac.dsp, faac_dll.dsp:
+		Removed util.c
+
+1999-12-13  menno
+	* enc_tf.c, imdct.c, psych.c, psych.h, tf_main.h:
+		some bugfixes
+
+1999-12-13  lenox
+	* transfo.c:
+		no message
+
+	* aac_qc.c, aac_se_enc.c, bitstream.c, COPYING, encoder.c, imdct.c,
+	is.c, mc_enc.c, ms.c, psych.c, pulse.c, tns.c, faac.dsp, faac.dsw,
+	faac_dll.dsp, transfo.c, util.c:
+		Initial revision
+
+	* aac_qc.c, aac_se_enc.c, bitstream.c, COPYING, encoder.c, imdct.c,
+	is.c, mc_enc.c, ms.c, psych.c, pulse.c, tns.c, faac.dsp, faac.dsw,
+	faac_dll.dsp, transfo.c, util.c:
+		no message
+
+	* Makefile, aac_back_pred.h, enc_tf.c, aac_qc.h, aac_se_enc.h,
+	aacenc.h, all.h, bitstream.h, block.h, dolby_def.h, dolby_win.h,
+	enc.h, hufftab5.h, interface.h, is.h, mc_enc.h, ms.h, psych.h,
+	pulse.h, tables.h, tf_main.h, tns.h, transfo.h, util.h,
+	aac_back_pred.c:
+		Initial revision
+
+	* Makefile, aac_back_pred.h, enc_tf.c, aac_qc.h, aac_se_enc.h,
+	aacenc.h, all.h, bitstream.h, block.h, dolby_def.h, dolby_win.h,
+	enc.h, hufftab5.h, interface.h, is.h, mc_enc.h, ms.h, psych.h,
+	pulse.h, tables.h, tf_main.h, tns.h, transfo.h, util.h,
+	aac_back_pred.c:
+		no message
+

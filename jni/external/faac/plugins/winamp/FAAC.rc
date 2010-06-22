@@ -1,0 +1,204 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ENCODER DIALOG DISCARDABLE  0, 0, 195, 167
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "AAC-MPEG4 options"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,119,148,36,14
+    PUSHBUTTON      "Cancel",IDCANCEL,155,148,36,14
+    CONTROL         "Automatic configuration",IDC_CHK_AUTOCFG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,4,90,10
+    CONTROL         "MPEG4",IDC_RADIO_MPEG4,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,8,29,42,10
+    CONTROL         "MPEG2",IDC_RADIO_MPEG2,"Button",BS_AUTORADIOBUTTON,8,42,
+                    41,9
+    CONTROL         "Main",IDC_RADIO_MAIN,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,12,73,31,10
+    CONTROL         "LC",IDC_RADIO_LOW,"Button",BS_AUTORADIOBUTTON,12,85,25,
+                    10
+    CONTROL         "SSR",IDC_RADIO_SSR,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,12,97,31,10
+    CONTROL         "LTP",IDC_RADIO_LTP,"Button",BS_AUTORADIOBUTTON,12,109,
+                    29,10
+    CONTROL         "Raw",IDC_RADIO_RAW,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,59,30,42,10
+    CONTROL         "ADTS",IDC_RADIO_ADTS,"Button",BS_AUTORADIOBUTTON,59,42,
+                    41,9
+    CONTROL         "Allow Mid/Side",IDC_CHK_ALLOWMIDSIDE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,107,21,63,10
+    CONTROL         "Use TNS",IDC_CHK_USETNS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,107,34,45,10
+    CONTROL         "Write .mp4",IDC_CHK_WRITEMP4,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,107,46,50,10
+    CONTROL         "Use LFE channel",IDC_CHK_USELFE,"Button",
+                    BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | 
+                    WS_TABSTOP,4,152,67,10
+    CONTROL         "Quality",IDC_RADIO_QUALITY,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,62,74,37,10
+    COMBOBOX        IDC_CB_QUALITY,138,72,48,97,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Bitrate per channel",IDC_RADIO_BITRATE,"Button",
+                    BS_AUTORADIOBUTTON,62,90,75,10
+    COMBOBOX        IDC_CB_BITRATE,138,88,48,86,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    COMBOBOX        IDC_CB_BANDWIDTH,138,109,48,81,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_E_BROWSE,4,128,163,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Browse",IDC_BTN_BROWSE,173,128,18,14,BS_BITMAP | 
+                    BS_FLAT
+    GROUPBOX        "AAC type",IDC_STATIC,4,18,48,38
+    GROUPBOX        "Profile",IDC_STATIC,4,63,48,59
+    GROUPBOX        "Header",IDC_STATIC,55,18,48,38
+    LTEXT           "Bandwidth",IDC_STATIC,74,112,34,8
+    GROUPBOX        "Encoding mode",IDC_STATIC,56,63,135,42
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ENCODER, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 191
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 162
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Italian (Italy) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)
+#ifdef _WIN32
+LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOG DISCARDABLE  0, 0, 192, 230
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "About"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,135,209,50,14
+    CONTROL         107,IDC_AUDIOCODING,"Static",SS_BITMAP | SS_NOTIFY | 
+                    SS_SUNKEN,7,7,178,69
+    CONTROL         110,IDC_MPEG4IP,"Static",SS_BITMAP | SS_NOTIFY | 
+                    SS_SUNKEN,7,204,59,19
+    CONTROL         109,IDC_EMAIL,"Static",SS_BITMAP | SS_NOTIFY,77,205,43,
+                    18
+    LTEXT           "Text",IDC_L_ABOUT,7,55,177,142
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 185
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 223
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BROWSE              BITMAP  DISCARDABLE     "Open.bmp"
+IDB_AUDIOCODING         BITMAP  DISCARDABLE     "AudioCoding.bmp"
+IDB_EMAIL               BITMAP  DISCARDABLE     "Email.bmp"
+IDB_MPEG4IP             BITMAP  DISCARDABLE     "mpeg4ip-v.bmp"
+#endif    // Italian (Italy) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

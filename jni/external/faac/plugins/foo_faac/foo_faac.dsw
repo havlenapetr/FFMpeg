@@ -1,0 +1,125 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "foo_faac"=.\foo_faac.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name foobar2000_SDK
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pfc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name foobar2000_component_client
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libfaac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8api
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libmp4v2_cb
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "foobar2000_SDK"=..\SDK\foobar2000_SDK.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name utf8api
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "foobar2000_component_client"=..\foobar2000_component_client\foobar2000_component_client.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libfaac"=..\..\..\faac\libfaac\libfaac.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libmp4v2_cb"=..\..\..\faad2\common\mp4v2\libmp4v2_cb.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "pfc"=..\..\pfc\pfc.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "utf8api"=..\utf8api\utf8api.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name pfc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

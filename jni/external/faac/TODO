@@ -1,0 +1,26 @@
+TODO: In any order
+Big list, but a lot of it can be done fairly easily with some old code
+
+
+- DONE: Add frequency cutoff filter
+- DONE: Add ADTS headers
+- DONE: Write GUI
+- DONE: Add TNS
+- DONE: Add LTP
+- DONE: Add backward prediction (MPEG2-AAC)????
+- DONE: Test (and maybe fix) sample rates other than 44100 Hz
+- DONE: Test (and maybe fix) multichannel and mono support
+- DONE: Figure out how to read and write ".mp4" format
+- DONE: Write documentation for library interface
+- DONE: Improve command line tool
+- DONE: VBR quantizer
+- DONE: Speedup
+- Add PNS
+- Add IS
+- Add bit reservoir control
+- Add pulse coding
+- Rewrite noiseless coding (now taken from old version)
+- Fix short block psychoacoustics
+- Clean up psychoacoustics code
+- Better grouping support
+- Add Window shape switching

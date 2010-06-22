@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    
+    <LinearLayout
+		android:id="@+id/linearlayout_header"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+	    <EditText
+	    	android:id="@+id/edittext_inputfile"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_vertical"
+	        android:maxLines="1"/>
+	        
+	  	<Button android:id="@+id/button_convert"
+           	android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/convert"
+            android:layout_gravity="center_horizontal"/>
+            
+        <RadioGroup
+        	android:id="@+id/radiogroup_radiobuttons"
+		  	android:layout_width="fill_parent"
+		   	android:layout_height="wrap_content"
+		   	android:orientation="vertical">
+		   	<RadioButton
+		    	android:id="@+id/radiobutton_option1"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="Bitrate 128kb/s"/>
+		   <RadioButton
+		    	android:id="@+id/radiobutton_option2"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="Bitrate 512kb/s" 
+		    	android:checked="true"/>
+		   <RadioButton
+		    	android:id="@+id/radiobutton_option3"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="Bitrate 1024kb/s" />
+		 </RadioGroup>
+	        
+    </LinearLayout>
+    
+    <LinearLayout
+    	android:id="@+id/linearlayout_output"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		
+	    <ScrollView
+	    	android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/scrollview_output">
+			<TextView 
+				android:id="@+id/textview_output" 
+			    android:layout_width="fill_parent" 
+			    android:layout_height="wrap_content"/>
+		</ScrollView>
+	</LinearLayout>
+		    
+</LinearLayout>

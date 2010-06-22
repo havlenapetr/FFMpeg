@@ -1,0 +1,80 @@
+
+
+[Version]
+Signature = "$CHICAGO$"
+Class = MEDIA
+
+[SourceDisksNames]
+1="AAC Audio Codec Install Disk",, 0001
+
+[SourceDisksFiles]
+aac_acm.dll=1
+aac_acm.inf=1
+
+[Installable.Drivers]
+divxa32 = 1:aac_acm.dll, "msacm.aac" , "AAC Audio Codec" , , , 
+
+[DefaultInstall]
+CopyFiles=AAC.Copy,AAC.Copy.Inf
+Updateinis = AAC.Updateini
+addreg = AAC.AddReg9x
+MediaType = SOFTWARE
+
+[DefaultInstall.ntx86]
+CopyFiles=AAC.Copy,AAC.Copy.Inf
+addreg = AAC.AddRegNT
+MediaType = SOFTWARE
+
+[Remove_AAC]
+AddReg = AAC.Unregister
+DelFiles = AAC.Copy,AAC.Copy.Inf
+UpdateInis = AAC.DelIni
+
+[AAC.Copy]
+aac_acm.dll
+
+[AAC.Copy.Inf]
+aac_acm.inf
+
+[AAC.UpdateIni]
+system.ini, drivers32,,"msacm.aac=aac_acm.dll"
+
+[AAC.DelIni]
+system.ini, drivers32,"msacm.aac=aac_acm.dll"
+
+[AAC.AddReg9x]
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\acm\msacm.aac,Description,,%AACAudio%
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\acm\msacm.aac,Driver,,aac_acm.dll
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\acm\msacm.aac,FriendlyName,,%AACAudio%
+
+HKLM,%UnInstallPath%,DisplayName,,%UninstallDispName%
+HKLM,%UnInstallPath%,UninstallString,,"%10%\rundll.exe setupx.dll,InstallHinfSection Remove_AAC 132 %17%\%InfFile%"
+
+[AAC.AddRegNT]
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers.desc,aac_acm.dll,,%AACAudio%
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers32,msacm.aac,,aac_acm.dll
+
+
+HKLM,%UnInstallPath%,DisplayName,,%UninstallDispName%
+HKLM,%UnInstallPath%,UninstallString,,"%11%\rundll32.exe setupapi,InstallHinfSection Remove_AAC 132 %17%\%InfFile%"
+
+[AAC.DelReg]
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\acm\msacm.aac
+
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers.desc,aac_acm.dll,,""
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers32,msacm.aac,,""
+HKLM,%UnInstallPath%
+
+[DestinationDirs]
+DefaultDestDir = 11	; LDID_SYS
+AAC.Copy = 11
+AAC.Copy.Inf = 17
+
+[Strings]
+AACAudio="MPEG-2/4 AAC audio codec"
+InfFile="aac_acm.inf"
+UninstallDispName="MPEG-2/4 AAC audio codec"
+UnInstallPath="Software\Microsoft\Windows\CurrentVersion\Uninstall\AACCodec"
+MediaClassName="Media Devices"
+mfgname="No more money !"
+

@@ -1,0 +1,49 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FAAC", "FAAC.vcproj", "{088ABC53-EDEB-47C6-BF78-9A633054EA09}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aacInfoLib", "aacInfoLib.vcproj", "{C9F1F5AE-902D-4B87-B149-8DDB40074227}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfaac", "..\..\libfaac\libfaac.vcproj", "{1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfaad", "..\..\..\faad2\libfaad\libfaad.vcproj", "{F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmp4v2_st", "..\..\..\faad2\common\mp4v2\libmp4v2_st60.vcproj", "{95F5A44D-E9E4-4612-91D4-E9AF16542F62}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.0 = {C9F1F5AE-902D-4B87-B149-8DDB40074227}
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.1 = {95F5A44D-E9E4-4612-91D4-E9AF16542F62}
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.2 = {F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.3 = {1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.Debug.ActiveCfg = Debug|Win32
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.Debug.Build.0 = Debug|Win32
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.Release.ActiveCfg = Release|Win32
+		{088ABC53-EDEB-47C6-BF78-9A633054EA09}.Release.Build.0 = Release|Win32
+		{C9F1F5AE-902D-4B87-B149-8DDB40074227}.Debug.ActiveCfg = Debug|Win32
+		{C9F1F5AE-902D-4B87-B149-8DDB40074227}.Debug.Build.0 = Debug|Win32
+		{C9F1F5AE-902D-4B87-B149-8DDB40074227}.Release.ActiveCfg = Release|Win32
+		{C9F1F5AE-902D-4B87-B149-8DDB40074227}.Release.Build.0 = Release|Win32
+		{1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}.Debug.ActiveCfg = Debug|Win32
+		{1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}.Debug.Build.0 = Debug|Win32
+		{1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}.Release.ActiveCfg = Release|Win32
+		{1BC93B83-B0D7-4A08-9461-0BCABB8A6E73}.Release.Build.0 = Release|Win32
+		{F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}.Debug.ActiveCfg = Debug|Win32
+		{F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}.Debug.Build.0 = Debug|Win32
+		{F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}.Release.ActiveCfg = Release|Win32
+		{F8F02EFC-27F1-4ED8-AD33-51BC1CB5EDAF}.Release.Build.0 = Release|Win32
+		{95F5A44D-E9E4-4612-91D4-E9AF16542F62}.Debug.ActiveCfg = Debug|Win32
+		{95F5A44D-E9E4-4612-91D4-E9AF16542F62}.Debug.Build.0 = Debug|Win32
+		{95F5A44D-E9E4-4612-91D4-E9AF16542F62}.Release.ActiveCfg = Release|Win32
+		{95F5A44D-E9E4-4612-91D4-E9AF16542F62}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

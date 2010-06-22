@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Out_FAAC", "Out_FAAC.vcproj", "{D5E38472-E616-414F-AE28-2138AAB73DA7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfaac", "..\..\libfaac\libfaac.vcproj", "{27812E8E-D771-4C78-8675-FB67C3FF26FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+		{D5E38472-E616-414F-AE28-2138AAB73DA7}.0 = {27812E8E-D771-4C78-8675-FB67C3FF26FD}
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{D5E38472-E616-414F-AE28-2138AAB73DA7}.Debug.ActiveCfg = Debug|Win32
+		{D5E38472-E616-414F-AE28-2138AAB73DA7}.Debug.Build.0 = Debug|Win32
+		{D5E38472-E616-414F-AE28-2138AAB73DA7}.Release.ActiveCfg = Release|Win32
+		{D5E38472-E616-414F-AE28-2138AAB73DA7}.Release.Build.0 = Release|Win32
+		{27812E8E-D771-4C78-8675-FB67C3FF26FD}.Debug.ActiveCfg = Debug|Win32
+		{27812E8E-D771-4C78-8675-FB67C3FF26FD}.Debug.Build.0 = Debug|Win32
+		{27812E8E-D771-4C78-8675-FB67C3FF26FD}.Release.ActiveCfg = Release|Win32
+		{27812E8E-D771-4C78-8675-FB67C3FF26FD}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
