@@ -4,6 +4,7 @@ public class FFMpegAVFormatContext {
 	
 	public static final long AV_TIME_BASE = 1000000;
 	
+	protected long  pointer;
 	public int 		nb_streams;
 	public String 	filename;
 	public long 	timestamp;

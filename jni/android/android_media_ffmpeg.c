@@ -4454,6 +4454,9 @@ static jobject av_getFormatContext(JNIEnv *env, jobject obj) {
     jclass clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
     jobject result = (*env)->NewObject(env, clazz, fields.con_formatContext);
 
+	// set native pointer to java class for later use
+	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "pointer", "J"), (jlong *)input_files[0]);
+	
     (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "nb_streams", "I"), input_files[0]->nb_streams);
     (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "year", "I"), input_files[0]->year);
     (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "track", "I"), input_files[0]->track);
