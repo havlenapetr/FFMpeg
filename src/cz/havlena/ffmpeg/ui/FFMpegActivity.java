@@ -1,9 +1,15 @@
 package cz.havlena.ffmpeg.ui;
 
+import java.io.FileNotFoundException;
+
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 
 import android.media.ffmpeg.FFMpeg;
+import android.media.ffmpeg.FFMpegAVFormatContext;
 import android.media.ffmpeg.FFMpegConfig;
 import android.media.ffmpeg.FFMpegReport;
 import android.media.ffmpeg.FFMpeg.IFFMpegListener;
@@ -21,13 +27,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 
 public class FFMpegActivity extends Activity {
 	
 	private static final String TAG = "FFMpegActivity";
-	
-	private TextView 	mOutput;
+
 	private EditText 	mEditText;
 	private Button		mButton;
 	private RadioButton mRadioButton1;
@@ -48,7 +52,7 @@ public class FFMpegActivity extends Activity {
         setListeners();
         
         mFFMpegController = new FFMpeg();
-    	mFFMpegController.setListener(new FFMpegHandler());
+    	mFFMpegController.setListener(new FFMpegHandler(this));
     
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
@@ -59,7 +63,7 @@ public class FFMpegActivity extends Activity {
      * Initialize all UI elements from resources.
      */
     private void initResourceRefs() {
-    	mOutput = (TextView) findViewById(R.id.textview_output);
+    	//mOutput = (TextView) findViewById(R.id.textview_output);
     	mEditText = (EditText) findViewById(R.id.edittext_inputfile);
     	mButton = (Button) findViewById(R.id.button_convert);
     	
@@ -80,21 +84,27 @@ public class FFMpegActivity extends Activity {
 				else if(mRadioButton3.isChecked()) {
 					bitrate = FFMpegConfig.BITRATE_HIGH;
 				}
-				startConversion(mEditText.getText().toString(), bitrate);
+				try {
+					startConversion(mEditText.getText().toString(), bitrate);
+				} catch (FileNotFoundException e) {
+					showError(e.getMessage());
+				} catch (RuntimeException e) {
+					showError(e.getMessage());
+				}
 			}
 		});
     }
     
-    private void hideControls() {
-    	mRadioButtons.setVisibility(View.GONE);
-    	mButton.setVisibility(View.GONE);
-    	mEditText.setVisibility(View.GONE);
-    }
-    
-    private void showControls() {
-    	mRadioButtons.setVisibility(View.VISIBLE);
-    	mButton.setVisibility(View.VISIBLE);
-    	mEditText.setVisibility(View.VISIBLE);
+    private void showError(String msg) {
+    	new AlertDialog.Builder(this)  
+        .setMessage(msg)  
+        .setTitle("Error")  
+        .setCancelable(true)  
+        .setNeutralButton(android.R.string.cancel,  
+           new DialogInterface.OnClickListener() {  
+           public void onClick(DialogInterface dialog, int whichButton){}  
+           })  
+        .show();
     }
     
     @Override
@@ -127,88 +137,85 @@ public class FFMpegActivity extends Activity {
     	return res;
     }
     
-    private void startConversion(String filePath, String bitrate) {
+    private void startConversion(String filePath, String bitrate) throws FileNotFoundException, RuntimeException {
     	String resolution =  getScreenResolution();
     	String codec = FFMpegConfig.CODEC_MPEG4;
     	String ratio = FFMpegConfig.RATIO_3_2;
-    	
-    	mFFMpegController.init(resolution, codec, bitrate, ratio);
-
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);
     	String outputFile = before + ".android.mp4";
     	
-    	mFFMpegController.convertAsync(inputFile, outputFile);
+    	mFFMpegController.init(resolution, codec, bitrate, ratio, inputFile, outputFile);
+    	mFFMpegController.convertAsync();
     }
     
     private class FFMpegHandler implements IFFMpegListener {
     	
-    	private static final int MSG_REPORT = 1;
-    	private static final int MSG_STRING = 2;
-    	private static final int MSG_SHOW_CONTROLS = 3;
-    	private static final int MSG_HIDE_CONTROLS = 4;
+    	private static final int CONVERSION_ERROR = -1;
+    	private static final int CONVERSION_PROGRESS = 1;
+    	private static final int CONVERSION_STARTED = 3;
+    	private static final int CONVERSION_ENDED = 4;
     	
-    	private int mLineCounter = 0;
+    	private ProgressDialog mDialog;
+    	
+    	public FFMpegHandler(Context context) {
+    		mDialog = new ProgressDialog(context);
+    		mDialog.setMax(100);
+    		mDialog.setMessage("Converting video to mp4 ...");
+    		mDialog.setProgress(0);
+    		mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    		mDialog.setCancelable(false);
+		}
     	
     	private Handler mHanlder = new Handler() {
     		@Override
     		public void handleMessage(Message msg) {
     			switch(msg.what) {
     			
-    			case MSG_STRING:
-    				if(msg.arg1 == MSG_SHOW_CONTROLS) {
-    					showControls();
-    				}
-    				if(msg.arg1 == MSG_HIDE_CONTROLS) {
-    					hideControls();
-    				}
-	    			String m = (String) msg.obj;
-	    			mOutput.setText(mOutput.getText() + m + "\n");
-	    			break;
+    			case CONVERSION_STARTED:
+    				mDialog.show();
+    				break;
+    				
+    			case CONVERSION_ENDED:
+    				mDialog.dismiss();
+    				break;
     			
-    			case MSG_REPORT:
-    				if(mLineCounter > 50) {
-    					mOutput.setText("");
-    					mLineCounter = 0;
-    				}
+    			case CONVERSION_PROGRESS:
     				FFMpegReport report = (FFMpegReport) msg.obj;
-    				mOutput.setText(mOutput.getText() + 
-    						"bitrate: " + Math.round(report.bitrate) + 
-    						", time: " + Math.round(report.time) + 
-    						", total size: " + Math.round(report.total_size) + 
-    						"\n");
-    				mLineCounter++;
+    				FFMpegAVFormatContext context = mFFMpegController.getFormatContext();
+    				int res = (int) ((report.time * 100) / context.getDurationInSeconds());
+    				mDialog.setProgress(res);
+    				break;
+    				
+    			case CONVERSION_ERROR:
+    				Exception e = (Exception) msg.obj;
+    				mDialog.dismiss();
+    				showError(e.getMessage());
     				break;
     			}
     		}
     	};
 
 		public void onConversionCompleted() {
-			Message m = mHanlder.obtainMessage(MSG_STRING);
-			m.arg1 = MSG_SHOW_CONTROLS;
-			m.obj = "Conversion completed";
+			Message m = mHanlder.obtainMessage(CONVERSION_ENDED);
 			mHanlder.sendMessage(m);
 		}
 
 		public void onConversionStarted() {
-			mLineCounter = 0;
-			Message m = mHanlder.obtainMessage(MSG_STRING);
-			m.arg1 = MSG_HIDE_CONTROLS;
-			m.obj = "Conversion started";
+			Message m = mHanlder.obtainMessage(CONVERSION_STARTED);
 			mHanlder.sendMessage(m);
 		}
 
 		public void onConversionProcessing(FFMpegReport report) {
-			Message m = mHanlder.obtainMessage(MSG_REPORT);
+			Message m = mHanlder.obtainMessage(CONVERSION_PROGRESS);
 			m.obj = report;
 			mHanlder.sendMessage(m);
 		}
 
 		public void onError(Exception e) {
-			Message m = mHanlder.obtainMessage(MSG_STRING);
+			Message m = mHanlder.obtainMessage(CONVERSION_ERROR);
 			m.obj = e.getMessage();
-			m.arg1 = MSG_SHOW_CONTROLS;
 			mHanlder.sendMessage(m);
 		}
     	

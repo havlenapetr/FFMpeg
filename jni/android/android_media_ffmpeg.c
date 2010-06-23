@@ -4300,6 +4300,7 @@ static const OptionDef options[] = {
 struct fields_t
 {
     jmethodID clb_onReport;
+    jmethodID con_formatContext;
 };
 static struct fields_t fields;
 static JavaVM *sVm;
@@ -4363,6 +4364,14 @@ static void av_init(JNIEnv *env, jobject obj) {
                           "java/lang/RuntimeException",
                           "can't load clb_onReport callback");
     }
+
+    clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
+    fields.con_formatContext = (*env)->GetMethodID(env, clazz, "<init>", "()V");
+    if (fields.con_formatContext == NULL) {
+        jniThrowException(env,
+                          "java/lang/RuntimeException",
+                          "can't load clb_onReport callback");
+    }
 	
 #if HAVE_ISATTY
     if(isatty(STDIN_FILENO))
@@ -4376,6 +4385,31 @@ static void av_init(JNIEnv *env, jobject obj) {
     avformat_opts = avformat_alloc_context();
     sws_opts = sws_getContext(16,16,0, 16,16,0, sws_flags, NULL,NULL,NULL);
 }
+
+/*
+static void av_setBitrate(int codec_type, const char *value)
+{
+    //int codec_type = opt[0]=='a' ? AVMEDIA_TYPE_AUDIO : AVMEDIA_TYPE_VIDEO;
+    const AVOption *o= NULL;
+    int opt_types[]={AV_OPT_FLAG_VIDEO_PARAM, AV_OPT_FLAG_AUDIO_PARAM, 0, AV_OPT_FLAG_SUBTITLE_PARAM, 0};
+
+    for(type=0; type<AVMEDIA_TYPE_NB && ret>= 0; type++){
+        const AVOption *o2 = av_find_opt(avcodec_opts[0], opt, NULL, opt_types[type], opt_types[type]);
+        if(o2) {
+            av_set_string3(avcodec_opts[type], opt, arg, 1, &o);
+	}
+    }
+    if(!o)
+	jniThrowException(env,
+                          "java/lang/RuntimeException",
+                          "bad option");
+
+    if (av_get_int(avcodec_opts[codec_type], "b", NULL) < 1000)
+        __android_log_print(ANDROID_LOG_WARNING, TAG,  "WARNING: The bitrate parameter is set too low. It takes bits/s as argument, not kbits/s\n");
+
+    return 0;
+}
+*/
 
 static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
 	int i = 0;
@@ -4416,6 +4450,53 @@ static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
     }
 }
 
+static jobject av_getFormatContext(JNIEnv *env, jobject obj) {
+    jclass clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
+    jobject result = (*env)->NewObject(env, clazz, fields.con_formatContext);
+
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "nb_streams", "I"), input_files[0]->nb_streams);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "year", "I"), input_files[0]->year);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "track", "I"), input_files[0]->track);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "bit_rate", "I"), input_files[0]->bit_rate);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "mux_rate", "I"), input_files[0]->mux_rate);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "packet_size", "I"), input_files[0]->packet_size);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "preload", "I"), input_files[0]->preload);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "max_delay", "I"), input_files[0]->max_delay);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "loop_output", "I"), input_files[0]->loop_output);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "flags", "I"), input_files[0]->flags);
+    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "loop_input", "I"), input_files[0]->loop_input);
+
+    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "timestamp", "J"), input_files[0]->timestamp);
+    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "start_time", "J"), input_files[0]->start_time);
+    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "duration", "J"), input_files[0]->duration);
+    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "file_size", "J"), input_files[0]->file_size);
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "filename", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->filename));
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "title", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->title));
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "author", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->author));
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "copyright", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->copyright));
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "comment", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->comment));
+    (*env)->SetObjectField(env, 
+			   result, 
+                           (*env)->GetFieldID(env, clazz, "album", "Ljava/lang/String;"), 
+                           (*env)->NewStringUTF(env, input_files[0]->album));
+    return result;
+}
+
 static void av_convert(JNIEnv *env, jobject obj) {
     if (av_transcode(output_files,
                      nb_output_files,
@@ -4451,7 +4532,8 @@ static JNINativeMethod methods[] = {
 	{ "native_av_init", "()V", (void*) av_init },
 	{ "native_av_parse_options", "([Ljava/lang/String;)V", (void*) av_parse_options },
 	{ "native_av_convert", "()V", (void*) av_convert },
-	{ "native_av_release", "(I)I", (void*) av_release }
+	{ "native_av_release", "(I)I", (void*) av_release },
+	{ "native_av_getFormatContext", "()Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_getFormatContext}
 };
 
 /*                                                                                                                                                          

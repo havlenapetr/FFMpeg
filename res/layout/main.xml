@@ -48,21 +48,5 @@
 		 </RadioGroup>
 	        
     </LinearLayout>
-    
-    <LinearLayout
-    	android:id="@+id/linearlayout_output"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content">
-		
-	    <ScrollView
-	    	android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:id="@+id/scrollview_output">
-			<TextView 
-				android:id="@+id/textview_output" 
-			    android:layout_width="fill_parent" 
-			    android:layout_height="wrap_content"/>
-		</ScrollView>
-	</LinearLayout>
 		    
 </LinearLayout>

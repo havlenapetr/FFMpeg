@@ -7,6 +7,7 @@ public class FFMpeg {
 	
 	public static final String LIB_NAME = "ffmpeg_jni";
 	
+	private FFMpegAVFormatContext mContext;
 	private Thread mThread;
 	private IFFMpegListener mListener;
 	
@@ -30,15 +31,13 @@ public class FFMpeg {
 		mListener = listener;
 	}
 	
-    public void init(String res, String codec, String bitrate, String ratio) throws RuntimeException {
+    public void init(String res, String codec, String bitrate, String ratio, String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
     	mResolution = res;
     	mCodec = codec;
     	mBitrate = bitrate;
     	mRatio = ratio;
 		native_av_init();
-	}
-	
-	public void convert(String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
+		
 		mInputFile = new File(inputFile);
 		mOutputFile = new File(outputFile);
 		if(!mInputFile.exists()) {
@@ -68,6 +67,15 @@ public class FFMpeg {
 				mRatio, 
 				mOutputFile.getAbsolutePath() });
 		
+		mContext = native_av_getFormatContext();
+	}
+    
+    public FFMpegAVFormatContext getFormatContext() {
+    	return mContext;
+    }
+	
+	public void convert() throws RuntimeException {
+		
 		if(mListener != null) {
 			mListener.onConversionStarted();
 		}
@@ -79,16 +87,12 @@ public class FFMpeg {
 		}
 	}
 	
-	public void convertAsync(final String inputFile, final String outputFile) throws RuntimeException {
+	public void convertAsync() throws RuntimeException {
 		mThread = new Thread() {
 			@Override
 			public void run() {
 				try {
-					convert(inputFile, outputFile);
-				} catch (FileNotFoundException e) {
-					if(mListener != null) {
-						mListener.onError(e);
-					}
+					convert();
 				} catch (RuntimeException e) {
 					if(mListener != null) {
 						mListener.onError(e);
@@ -142,6 +146,8 @@ public class FFMpeg {
 	private native void native_av_register_all();
 	
     private native void native_av_init() throws RuntimeException;
+    
+    private native FFMpegAVFormatContext native_av_getFormatContext();
 	
 	private native void native_av_parse_options(String[] args) throws RuntimeException;
 	
