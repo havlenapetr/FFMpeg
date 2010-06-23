@@ -31,6 +31,14 @@ public class FFMpeg {
 		mListener = listener;
 	}
 	
+	public File getOutputFile() {
+		return mOutputFile;
+	}
+	
+	public File getInputFile() {
+		return mInputFile;
+	}
+	
     public void init(String res, String codec, String bitrate, String ratio, String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
     	mResolution = res;
     	mCodec = codec;

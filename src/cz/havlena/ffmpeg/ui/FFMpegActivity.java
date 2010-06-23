@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.media.ffmpeg.FFMpeg;
 import android.media.ffmpeg.FFMpegAVFormatContext;
 import android.media.ffmpeg.FFMpegConfig;
+import android.media.ffmpeg.FFMpegMediaScannerNotifier;
 import android.media.ffmpeg.FFMpegReport;
 import android.media.ffmpeg.FFMpeg.IFFMpegListener;
 
@@ -157,9 +158,11 @@ public class FFMpegActivity extends Activity {
     	private static final int CONVERSION_STARTED = 3;
     	private static final int CONVERSION_ENDED = 4;
     	
-    	private ProgressDialog mDialog;
+    	private ProgressDialog 	mDialog;
+    	private Context 		mContext;
     	
     	public FFMpegHandler(Context context) {
+    		mContext = context;
     		mDialog = new ProgressDialog(context);
     		mDialog.setMax(100);
     		mDialog.setMessage("Converting video to mp4 ...");
@@ -179,6 +182,8 @@ public class FFMpegActivity extends Activity {
     				
     			case CONVERSION_ENDED:
     				mDialog.dismiss();
+    				new FFMpegMediaScannerNotifier(mContext, 
+    											   mFFMpegController.getOutputFile().getAbsolutePath());
     				break;
     			
     			case CONVERSION_PROGRESS:

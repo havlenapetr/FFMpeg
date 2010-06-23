@@ -4494,6 +4494,10 @@ static jobject av_getFormatContext(JNIEnv *env, jobject obj) {
 			   result, 
                            (*env)->GetFieldID(env, clazz, "album", "Ljava/lang/String;"), 
                            (*env)->NewStringUTF(env, input_files[0]->album));
+    (*env)->SetObjectField(env,
+    			   result,
+                               (*env)->GetFieldID(env, clazz, "genre", "Ljava/lang/String;"),
+                               (*env)->NewStringUTF(env, input_files[0]->genre));
     return result;
 }
 
