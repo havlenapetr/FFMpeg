@@ -64,7 +64,8 @@ public class FFMpeg {
 				"-b", 
 				mBitrate,
 				"-aspect", 
-				mRatio});
+				mRatio,
+				mOutputFile.getFile().getAbsolutePath()});
 	}
     
     private int setBitrate(String opt, String arg) {
@@ -85,8 +86,8 @@ public class FFMpeg {
     	if(f.exists()) {
     		f.delete();
     	}
-    	FFMpegAVFormatContext c = native_av_setOutputFile(filePath);
-    	return new FFMpegFile(f, c);
+    	//FFMpegAVFormatContext c = native_av_setOutputFile(filePath);
+    	return new FFMpegFile(f, null);
     }
     
     private void newVideoStream(FFMpegAVFormatContext context) {

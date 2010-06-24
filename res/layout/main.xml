@@ -52,7 +52,7 @@
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
 		   	android:text="@string/delete_src_movie"
-		   	android:checked="true"/>
+		   	android:checked="false"/>
 	        
     </LinearLayout>
 		    
