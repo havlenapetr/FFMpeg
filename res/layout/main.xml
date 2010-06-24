@@ -46,6 +46,13 @@
 		    	android:layout_height="wrap_content"
 		    	android:text="Bitrate 1024kb/s" />
 		 </RadioGroup>
+		 
+		 <CheckBox
+		 	android:id="@+id/checkbox_delete_source"
+		  	android:layout_width="fill_parent"
+		   	android:layout_height="wrap_content"
+		   	android:text="@string/delete_src_movie"
+		   	android:checked="true"/>
 	        
     </LinearLayout>
 		    

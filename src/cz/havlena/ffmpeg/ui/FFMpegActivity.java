@@ -9,7 +9,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-import android.media.MediaScannerConnection;
 import android.media.ffmpeg.FFMpeg;
 import android.media.ffmpeg.FFMpegAVFormatContext;
 import android.media.ffmpeg.FFMpegConfig;
@@ -27,6 +26,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -41,6 +41,7 @@ public class FFMpegActivity extends Activity {
 	private RadioButton mRadioButton2;
 	private RadioButton mRadioButton3;
 	private RadioGroup  mRadioButtons;
+	private CheckBox    mCheckBox;
 	
 	private FFMpeg 		mFFMpegController;
 	private PowerManager.WakeLock mWakeLock = null;
@@ -73,7 +74,9 @@ public class FFMpegActivity extends Activity {
     	mRadioButtons = (RadioGroup) findViewById(R.id.radiogroup_radiobuttons);
     	mRadioButton1 = (RadioButton) findViewById(R.id.radiobutton_option1);
     	mRadioButton2 = (RadioButton) findViewById(R.id.radiobutton_option2);
-    	mRadioButton3 = (RadioButton) findViewById(R.id.radiobutton_option3); 
+    	mRadioButton3 = (RadioButton) findViewById(R.id.radiobutton_option3);
+    	
+    	mCheckBox = (CheckBox) findViewById(R.id.checkbox_delete_source);
     }
     
     private void setListeners() {
@@ -191,6 +194,9 @@ public class FFMpegActivity extends Activity {
 				    File outFile = mFFMpegController.getOutputFile().getFile();
     				FFMpegMediaScannerNotifier.scan(mContext, outFile.getAbsolutePath());
     				mDuration = 0;
+    				if(mCheckBox.isChecked()) {
+    					mFFMpegController.getInputFile().delete();
+    				}
     				break;
     			
     			case CONVERSION_PROGRESS:

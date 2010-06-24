@@ -12,7 +12,11 @@ include $(BUILD_EXECUTABLE)
 # build android native lib
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := android/android_media_ffmpeg.c cmdutils.c
+LOCAL_SRC_FILES := \
+		android/onLoad.c \
+		android/android_media_FFMpegAVFormatContext.c \
+		android/android_media_FFMpeg.c \
+		cmdutils.c
 
 LOCAL_LDLIBS := -llog
 LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale

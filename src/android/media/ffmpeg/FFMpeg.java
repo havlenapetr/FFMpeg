@@ -67,7 +67,11 @@ public class FFMpeg {
 				mRatio});
 	}
     
-    public FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
+    private int setBitrate(String opt, String arg) {
+    	return native_av_setBitrate(opt, arg);
+    }
+    
+    private FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
     	File f = new File(filePath);
     	if(!f.exists()) {
     		throw new FileNotFoundException("File: " + filePath + " doesn't exist");
@@ -76,13 +80,17 @@ public class FFMpeg {
     	return new FFMpegFile(f, c);
     }
     
-    public FFMpegFile setOutputFile(String filePath) throws FileNotFoundException {
+    private FFMpegFile setOutputFile(String filePath) throws FileNotFoundException {
     	File f = new File(filePath);
     	if(f.exists()) {
     		f.delete();
     	}
     	FFMpegAVFormatContext c = native_av_setOutputFile(filePath);
     	return new FFMpegFile(f, c);
+    }
+    
+    private void newVideoStream(FFMpegAVFormatContext context) {
+    	native_av_newVideoStream(context.pointer);
     }
 	
 	public void convert() throws RuntimeException {
@@ -161,6 +169,10 @@ public class FFMpeg {
     private native FFMpegAVFormatContext native_av_setInputFile(String filePath);
     
     private native FFMpegAVFormatContext native_av_setOutputFile(String filePath);
+    
+    private native int native_av_setBitrate(String opt, String arg);
+    
+    private native void native_av_newVideoStream(int pointer);
 	
 	private native void native_av_parse_options(String[] args) throws RuntimeException;
 	

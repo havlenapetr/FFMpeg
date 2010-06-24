@@ -20,4 +20,11 @@ public class FFMpegFile {
 		return mContext;
 	}
 	
+	public void delete() {
+		mFile.delete();
+		mFile = null;
+		//mContext.release();
+		//mContext = null;
+	}
+	
 }

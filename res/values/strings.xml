@@ -4,5 +4,6 @@
     <string name="app_name">ffmpeg</string>
     <string name="type_file">input file</string>
     <string name="convert">Convert</string>
+    <string name="delete_src_movie">Delete src movie</string>
     
 </resources>

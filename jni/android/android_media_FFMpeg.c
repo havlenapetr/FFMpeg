@@ -23,8 +23,8 @@
 #define _XOPEN_SOURCE 600
 #define TAG "android_media_ffmpeg"
 
-#include <jni.h>
 #include <android/log.h>
+#include "jniUtils.h"
 
 #include "config.h"
 #include <ctype.h>
@@ -2757,6 +2757,8 @@ static int opt_frame_rate(const char *opt, const char *arg)
 
 static int opt_bitrate(const char *opt, const char *arg)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG,  "opt: %s, arg: %s", opt, arg);
+
     int codec_type = opt[0]=='a' ? AVMEDIA_TYPE_AUDIO : AVMEDIA_TYPE_VIDEO;
 
     opt_default(opt, arg);
@@ -4302,109 +4304,11 @@ static const OptionDef options[] = {
 struct fields_t
 {
     jmethodID clb_onReport;
-    jmethodID con_formatContext;
 };
 static struct fields_t fields;
-static JavaVM *sVm;
 static jobject sObject;
 
-/*                                                                                                                                                          
- * Throw an exception with the specified class and an optional message.                                                                                     
- */                                                                                                                                                         
-int jniThrowException(JNIEnv* env, const char* className, const char* msg) {
-    jclass exceptionClass = (*env)->FindClass(env, className);
-    if (exceptionClass == NULL) {                                                                                                                           
-        __android_log_print(ANDROID_LOG_ERROR, 
-			    TAG, 
-			    "Unable to find exception class %s",
-	                    className);                                                                                             
-        assert(0);      /* fatal during dev; should always be fatal? */                                                                                     
-        return -1;                                                                                                                                          
-    }                                                                                                                                                       
-	
-    if ((*env)->ThrowNew(env, exceptionClass, msg) != JNI_OK) {                                                                                             
-        __android_log_print(ANDROID_LOG_ERROR, 
-			    TAG, 
-			    "Failed throwing '%s' '%s'", 
-			    className, msg);                                                                                                
-        assert(!"failed to throw");                                                                                                                         
-    }                                                                                                                                                       
-    return 0;                                                                                                                                               
-}
-
-JNIEnv* getJNIEnv() {
-    JNIEnv* env = NULL;
-    if ((*sVm)->GetEnv(sVm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-	__android_log_print(ANDROID_LOG_ERROR, 
-			    TAG, 
-			    "Failed to obtain JNIEnv");
-        return NULL;
-    }
-    return env;
-}
-
-jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext) {
-	jclass clazz = (*env)->FindClass(env,
-			"android/media/ffmpeg/FFMpegAVFormatContext");
-	jobject result = (*env)->NewObject(env, clazz, fields.con_formatContext);
-
-	// set native pointer to java class for later use
-	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "pointer", "J"), (jlong *)fileContext);
-
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
-			"nb_streams", "I"), fileContext->nb_streams);
-	(*env)->SetIntField(env, result,
-			(*env)->GetFieldID(env, clazz, "year", "I"), fileContext->year);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "track",
-			"I"), fileContext->track);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "bit_rate",
-			"I"), fileContext->bit_rate);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "mux_rate",
-			"I"), fileContext->mux_rate);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
-			"packet_size", "I"), fileContext->packet_size);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "preload",
-			"I"), fileContext->preload);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
-			"max_delay", "I"), fileContext->max_delay);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
-			"loop_output", "I"), fileContext->loop_output);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "flags",
-			"I"), fileContext->flags);
-	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
-			"loop_input", "I"), fileContext->loop_input);
-
-	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
-			"timestamp", "J"), fileContext->timestamp);
-	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
-			"start_time", "J"), fileContext->start_time);
-	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
-			"duration", "J"), fileContext->duration);
-	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
-			"file_size", "J"), fileContext->file_size);
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
-			"filename", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
-			fileContext->filename));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "title",
-			"Ljava/lang/String;"),
-			(*env)->NewStringUTF(env, fileContext->title));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
-			"author", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
-			fileContext->author));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
-			"copyright", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
-			fileContext->copyright));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
-			"comment", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
-			fileContext->comment));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "album",
-			"Ljava/lang/String;"),
-			(*env)->NewStringUTF(env, fileContext->album));
-	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "genre",
-			"Ljava/lang/String;"),
-			(*env)->NewStringUTF(env, fileContext->genre));
-	return result;
-}
+extern jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext);
 
 void handleReport(double total_size, double time, double bitrate)
 {
@@ -4429,14 +4333,6 @@ static void av_init(JNIEnv *env, jobject obj) {
                           "java/lang/RuntimeException",
                           "can't load clb_onReport callback");
     }
-
-    clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
-    fields.con_formatContext = (*env)->GetMethodID(env, clazz, "<init>", "()V");
-    if (fields.con_formatContext == NULL) {
-        jniThrowException(env,
-                          "java/lang/RuntimeException",
-                          "can't load clb_onReport callback");
-    }
 	
 #if HAVE_ISATTY
     if(isatty(STDIN_FILENO))
@@ -4451,30 +4347,12 @@ static void av_init(JNIEnv *env, jobject obj) {
     sws_opts = sws_getContext(16,16,0, 16,16,0, sws_flags, NULL,NULL,NULL);
 }
 
-/*
-static void av_setBitrate(int codec_type, const char *value)
+static int av_setBitrate(JNIEnv *env, jobject obj, jstring opt, jstring arg)
 {
-    //int codec_type = opt[0]=='a' ? AVMEDIA_TYPE_AUDIO : AVMEDIA_TYPE_VIDEO;
-    const AVOption *o= NULL;
-    int opt_types[]={AV_OPT_FLAG_VIDEO_PARAM, AV_OPT_FLAG_AUDIO_PARAM, 0, AV_OPT_FLAG_SUBTITLE_PARAM, 0};
-
-    for(type=0; type<AVMEDIA_TYPE_NB && ret>= 0; type++){
-        const AVOption *o2 = av_find_opt(avcodec_opts[0], opt, NULL, opt_types[type], opt_types[type]);
-        if(o2) {
-            av_set_string3(avcodec_opts[type], opt, arg, 1, &o);
-	}
-    }
-    if(!o)
-	jniThrowException(env,
-                          "java/lang/RuntimeException",
-                          "bad option");
-
-    if (av_get_int(avcodec_opts[codec_type], "b", NULL) < 1000)
-        __android_log_print(ANDROID_LOG_WARNING, TAG,  "WARNING: The bitrate parameter is set too low. It takes bits/s as argument, not kbits/s\n");
-
-    return 0;
+	const char *_opt = (*env)->GetStringUTFChars(env, opt, NULL);
+	const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
+    return opt_bitrate(_opt, _arg);
 }
-*/
 
 static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
 	int i = 0;
@@ -4527,6 +4405,11 @@ static jobject av_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	return newAVFormatContext(env, fileContext);
 }
 
+static void av_newVideoStream(JNIEnv *env, jobject obj, jint pointer) {
+	AVFormatContext *context = (AVFormatContext *)pointer;
+	new_video_stream(context);
+}
+
 static void av_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFile) {
 	//AVFormatContext *_inputFile = (AVFormatContext *) inputFile;
 	//AVFormatContext *_outputFile = (AVFormatContext *) outputFile;
@@ -4566,55 +4449,11 @@ static JNINativeMethod methods[] = {
 	{ "native_av_convert", "()V", (void*) av_convert },
 	{ "native_av_release", "(I)I", (void*) av_release },
 	{ "native_av_setInputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setInputFile},
-	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setOutputFile}
+	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setOutputFile},
+	{ "native_av_setBitrate", "(Ljava/lang/String;Ljava/lang/String;)I", (void*) av_setBitrate },
+	{ "native_av_newVideoStream", "(I)V", (void*) av_newVideoStream },
 };
 
-/*                                                                                                                                                          
- * Register native JNI-callable methods.                                                                                                                    
- *                                                                                                                                                          
- * "className" looks like "java/lang/String".                                                                                                               
- */          
-int jniRegisterNativeMethods(JNIEnv* env,
-                             const char* className,
-                             const JNINativeMethod* gMethods,
-                             int numMethods)
-{                                                                                                                                                           
-    jclass clazz;                                                                                                                                           
-	
-    __android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives\n", className);                                                                                                            
-    clazz = (*env)->FindClass(env, className);                                                                                                              
-    if (clazz == NULL) {                                                                                                                                    
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Native registration unable to find class '%s'\n", className);                                                                                 
-        return -1;                                                                                                                                          
-    }                                                                                                                                                       
-    if ((*env)->RegisterNatives(env, clazz, gMethods, numMethods) < 0) {                                                                                    
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "RegisterNatives failed for '%s'\n", className);                                                                                               
-        return -1;                                                                                                                                          
-    }                                                                                                                                                       
-    return 0;                                                                                                                                               
-}
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    JNIEnv* env = NULL;
-    jint result = JNI_ERR;
-	sVm = vm;
-
-    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "GetEnv failed!");
-        return result;
-    }
-	
-    __android_log_print(ANDROID_LOG_INFO, TAG, "loading . . .");
-
-    if(jniRegisterNativeMethods(env, "android/media/ffmpeg/FFMpeg", methods, sizeof(methods) / sizeof(methods[0])) != JNI_OK) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "can't load LibraryLoader");
-        goto end;
-    }
-	
-    __android_log_print(ANDROID_LOG_INFO, TAG, "loaded");
-	
-    result = JNI_VERSION_1_4;
-	   
-end:
-    return result;
+int register_android_media_FFMpeg(JNIEnv *env) {
+	return jniRegisterNativeMethods(env, "android/media/ffmpeg/FFMpeg", methods, sizeof(methods) / sizeof(methods[0]));
 }
