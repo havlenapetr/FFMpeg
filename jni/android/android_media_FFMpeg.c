@@ -324,7 +324,7 @@ typedef struct AVInputFile {
     int nb_streams;       /* nb streams we are aware of */
 } AVInputFile;
 
-void handleReport(double total_size, double time, double bitrate);
+void FFMpeg_handleReport(double total_size, double time, double bitrate);
 
 #if HAVE_TERMIOS_H
 
@@ -1505,7 +1505,7 @@ static void print_report(AVFormatContext **output_files,
         );
     }
 
-    handleReport((double)total_size / 1024, ti1, bitrate);
+    FFMpeg_handleReport((double)total_size / 1024, ti1, bitrate);
 }
 
 /* pkt = NULL means EOF (needed to flush decoder buffers) */
@@ -4308,10 +4308,9 @@ struct fields_t
 static struct fields_t fields;
 static jobject sObject;
 
-extern jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext);
+extern jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext);
 
-void handleReport(double total_size, double time, double bitrate)
-{
+void FFMpeg_handleReport(double total_size, double time, double bitrate) {
     JNIEnv *env = getJNIEnv();
     if (env == NULL) {
         return;
@@ -4324,7 +4323,7 @@ void handleReport(double total_size, double time, double bitrate)
                            bitrate);
 }
 
-static void av_init(JNIEnv *env, jobject obj) {	
+static void FFMpeg_init(JNIEnv *env, jobject obj) {
     sObject = (*env)->NewGlobalRef(env, obj);
     jclass clazz = (*env)->GetObjectClass(env, obj);
     fields.clb_onReport = (*env)->GetMethodID(env, clazz, "onReport", "(DDD)V");
@@ -4347,14 +4346,13 @@ static void av_init(JNIEnv *env, jobject obj) {
     sws_opts = sws_getContext(16,16,0, 16,16,0, sws_flags, NULL,NULL,NULL);
 }
 
-static int av_setBitrate(JNIEnv *env, jobject obj, jstring opt, jstring arg)
-{
+static int FFMpeg_setBitrate(JNIEnv *env, jobject obj, jstring opt, jstring arg) {
 	const char *_opt = (*env)->GetStringUTFChars(env, opt, NULL);
 	const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
     return opt_bitrate(_opt, _arg);
 }
 
-static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
+static void FFMpeg_parseOptions(JNIEnv *env, jobject obj, jobjectArray args) {
 	int i = 0;
 	int argc = 0;
 	char **argv = NULL;
@@ -4393,24 +4391,24 @@ static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
     }
 }
 
-static jobject av_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
+static jobject FFMpeg_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
 	AVFormatContext *fileContext = opt_input_file(_filePath);
-	return newAVFormatContext(env, fileContext);
+	return AVFormatContext_create(env, fileContext);
 }
 
-static jobject av_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
+static jobject FFMpeg_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
 	AVFormatContext *fileContext = opt_output_file(_filePath);
-	return newAVFormatContext(env, fileContext);
+	return AVFormatContext_create(env, fileContext);
 }
 
-static void av_newVideoStream(JNIEnv *env, jobject obj, jint pointer) {
+static void FFMpeg_newVideoStream(JNIEnv *env, jobject obj, jint pointer) {
 	AVFormatContext *context = (AVFormatContext *)pointer;
 	new_video_stream(context);
 }
 
-static void av_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFile) {
+static void FFMpeg_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFile) {
 	//AVFormatContext *_inputFile = (AVFormatContext *) inputFile;
 	//AVFormatContext *_outputFile = (AVFormatContext *) outputFile;
     if (av_transcode(output_files,
@@ -4425,14 +4423,11 @@ static void av_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFi
     }
 }
 
-
-
-static jint av_release(JNIEnv *env, jobject obj, jint result) {
+static jint FFMpeg_release(JNIEnv *env, jobject obj, jint result) {
     if (sObject != NULL) {
         (*env)->DeleteGlobalRef(env, sObject);
         sObject = NULL;
     }
-	
     return av_exit(result);
 }
 
@@ -4444,14 +4439,14 @@ static JNINativeMethod methods[] = {
 	//{ "native_avdevice_register_all", "()V", (void*) avdevice_register_all },
 	//{ "native_avfilter_register_all", "()V", (void*) avfilter_register_all },
 	{ "native_av_register_all", "()V", (void*) av_register_all },
-	{ "native_av_init", "()V", (void*) av_init },
-	{ "native_av_parse_options", "([Ljava/lang/String;)V", (void*) av_parse_options },
-	{ "native_av_convert", "()V", (void*) av_convert },
-	{ "native_av_release", "(I)I", (void*) av_release },
-	{ "native_av_setInputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setInputFile},
-	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setOutputFile},
-	{ "native_av_setBitrate", "(Ljava/lang/String;Ljava/lang/String;)I", (void*) av_setBitrate },
-	{ "native_av_newVideoStream", "(I)V", (void*) av_newVideoStream },
+	{ "native_av_init", "()V", (void*) FFMpeg_init },
+	{ "native_av_parse_options", "([Ljava/lang/String;)V", (void*) FFMpeg_parseOptions },
+	{ "native_av_convert", "()V", (void*) FFMpeg_convert },
+	{ "native_av_release", "(I)I", (void*) FFMpeg_release },
+	{ "native_av_setInputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpeg_setInputFile},
+	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpeg_setOutputFile},
+	{ "native_av_setBitrate", "(Ljava/lang/String;Ljava/lang/String;)I", (void*) FFMpeg_setBitrate },
+	{ "native_av_newVideoStream", "(I)V", (void*) FFMpeg_newVideoStream },
 };
 
 int register_android_media_FFMpeg(JNIEnv *env) {

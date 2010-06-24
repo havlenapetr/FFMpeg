@@ -11,7 +11,7 @@ struct fields_t
 };
 static struct fields_t fields;
 
-jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext) {
+jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext) {
 	jclass clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
 	jobject result = (*env)->NewObject(env, clazz, fields.formatContext);
 
@@ -73,7 +73,7 @@ jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext) {
 	return result;
 }
 
-static void release(JNIEnv *env, jobject thiz, jint pointer) {
+static void AVFormatContext_release(JNIEnv *env, jobject thiz, jint pointer) {
 	AVFormatContext *fileContext = (AVFormatContext *) pointer;
 	__android_log_print(ANDROID_LOG_INFO, TAG,  "releasing FFMpegAVFormatContext"),
 	free(fileContext);
@@ -83,7 +83,7 @@ static void release(JNIEnv *env, jobject thiz, jint pointer) {
  * JNI registration.
  */
 static JNINativeMethod methods[] = {
-	{ "nativeRelease", "(I)V", (void*) release }
+	{ "nativeRelease", "(I)V", (void*) AVFormatContext_release }
 };
 
 int register_android_media_FFMpegAVFormatContext(JNIEnv *env) {
