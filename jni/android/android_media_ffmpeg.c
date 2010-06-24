@@ -3119,9 +3119,9 @@ static enum CodecID find_codec_or_die(const char *name, int type, int encoder, i
     return codec->id;
 }
 
-static void opt_input_file(const char *filename)
+static AVFormatContext *opt_input_file(const char *filename)
 {
-    AVFormatContext *ic;
+	AVFormatContext *ic;
     AVFormatParameters params, *ap = &params;
     AVInputFormat *file_iformat = NULL;
     int err, i, ret, rfps, rfps_base;
@@ -3317,6 +3317,7 @@ static void opt_input_file(const char *filename)
     av_freep(&video_codec_name);
     av_freep(&audio_codec_name);
     av_freep(&subtitle_codec_name);
+    return ic;
 }
 
 static void check_audio_video_sub_inputs(int *has_video_ptr, int *has_audio_ptr,
@@ -3642,7 +3643,7 @@ static void opt_new_subtitle_stream(void)
     new_subtitle_stream(oc);
 }
 
-static void opt_output_file(const char *filename)
+static AVFormatContext *opt_output_file(const char *filename)
 {
     AVFormatContext *oc;
     int err, use_video, use_audio, use_subtitle;
@@ -3789,6 +3790,7 @@ static void opt_output_file(const char *filename)
     oc->flags |= AVFMT_FLAG_NONBLOCK;
 
     set_context_opts(oc, avformat_opts, AV_OPT_FLAG_ENCODING_PARAM);
+    return oc;
 }
 
 /* same option as mencoder */
@@ -4341,6 +4343,66 @@ JNIEnv* getJNIEnv() {
     return env;
 }
 
+jobject *newAVFormatContext(JNIEnv *env, AVFormatContext *fileContext) {
+	jclass clazz = (*env)->FindClass(env,
+			"android/media/ffmpeg/FFMpegAVFormatContext");
+	jobject result = (*env)->NewObject(env, clazz, fields.con_formatContext);
+
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
+			"nb_streams", "I"), fileContext->nb_streams);
+	(*env)->SetIntField(env, result,
+			(*env)->GetFieldID(env, clazz, "year", "I"), fileContext->year);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "track",
+			"I"), fileContext->track);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "bit_rate",
+			"I"), fileContext->bit_rate);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "mux_rate",
+			"I"), fileContext->mux_rate);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
+			"packet_size", "I"), fileContext->packet_size);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "preload",
+			"I"), fileContext->preload);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
+			"max_delay", "I"), fileContext->max_delay);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
+			"loop_output", "I"), fileContext->loop_output);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "flags",
+			"I"), fileContext->flags);
+	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz,
+			"loop_input", "I"), fileContext->loop_input);
+
+	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
+			"timestamp", "J"), fileContext->timestamp);
+	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
+			"start_time", "J"), fileContext->start_time);
+	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
+			"duration", "J"), fileContext->duration);
+	(*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz,
+			"file_size", "J"), fileContext->file_size);
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
+			"filename", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
+			fileContext->filename));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "title",
+			"Ljava/lang/String;"),
+			(*env)->NewStringUTF(env, fileContext->title));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
+			"author", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
+			fileContext->author));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
+			"copyright", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
+			fileContext->copyright));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz,
+			"comment", "Ljava/lang/String;"), (*env)->NewStringUTF(env,
+			fileContext->comment));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "album",
+			"Ljava/lang/String;"),
+			(*env)->NewStringUTF(env, fileContext->album));
+	(*env)->SetObjectField(env, result, (*env)->GetFieldID(env, clazz, "genre",
+			"Ljava/lang/String;"),
+			(*env)->NewStringUTF(env, fileContext->genre));
+	return result;
+}
+
 void handleReport(double total_size, double time, double bitrate)
 {
     JNIEnv *env = getJNIEnv();
@@ -4450,55 +4512,20 @@ static void av_parse_options(JNIEnv *env, jobject obj, jobjectArray args) {
     }
 }
 
+static jobject av_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
+	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
+	AVFormatContext *fileContext = opt_input_file(_filePath);
+	return newAVFormatContext(env, fileContext);
+}
+
+static jobject av_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
+	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
+	AVFormatContext *fileContext = opt_output_file(_filePath);
+	return newAVFormatContext(env, fileContext);
+}
+
 static jobject av_getFormatContext(JNIEnv *env, jobject obj) {
-    jclass clazz = (*env)->FindClass(env, "android/media/ffmpeg/FFMpegAVFormatContext");
-    jobject result = (*env)->NewObject(env, clazz, fields.con_formatContext);
-
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "nb_streams", "I"), input_files[0]->nb_streams);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "year", "I"), input_files[0]->year);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "track", "I"), input_files[0]->track);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "bit_rate", "I"), input_files[0]->bit_rate);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "mux_rate", "I"), input_files[0]->mux_rate);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "packet_size", "I"), input_files[0]->packet_size);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "preload", "I"), input_files[0]->preload);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "max_delay", "I"), input_files[0]->max_delay);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "loop_output", "I"), input_files[0]->loop_output);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "flags", "I"), input_files[0]->flags);
-    (*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "loop_input", "I"), input_files[0]->loop_input);
-
-    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "timestamp", "J"), input_files[0]->timestamp);
-    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "start_time", "J"), input_files[0]->start_time);
-    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "duration", "J"), input_files[0]->duration);
-    (*env)->SetLongField(env, result, (*env)->GetFieldID(env, clazz, "file_size", "J"), input_files[0]->file_size);
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "filename", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->filename));
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "title", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->title));
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "author", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->author));
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "copyright", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->copyright));
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "comment", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->comment));
-    (*env)->SetObjectField(env, 
-			   result, 
-                           (*env)->GetFieldID(env, clazz, "album", "Ljava/lang/String;"), 
-                           (*env)->NewStringUTF(env, input_files[0]->album));
-    (*env)->SetObjectField(env,
-    			   result,
-                               (*env)->GetFieldID(env, clazz, "genre", "Ljava/lang/String;"),
-                               (*env)->NewStringUTF(env, input_files[0]->genre));
-    return result;
+    return newAVFormatContext(env, input_files[0]);
 }
 
 static void av_convert(JNIEnv *env, jobject obj) {
@@ -4537,7 +4564,9 @@ static JNINativeMethod methods[] = {
 	{ "native_av_parse_options", "([Ljava/lang/String;)V", (void*) av_parse_options },
 	{ "native_av_convert", "()V", (void*) av_convert },
 	{ "native_av_release", "(I)I", (void*) av_release },
-	{ "native_av_getFormatContext", "()Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_getFormatContext}
+	{ "native_av_getFormatContext", "()Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_getFormatContext},
+	{ "native_av_setInputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setInputFile},
+	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setOutputFile}
 };
 
 /*                                                                                                                                                          

@@ -8,6 +8,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
+import android.media.MediaScannerConnection;
 import android.media.ffmpeg.FFMpeg;
 import android.media.ffmpeg.FFMpegAVFormatContext;
 import android.media.ffmpeg.FFMpegConfig;
@@ -182,8 +183,8 @@ public class FFMpegActivity extends Activity {
     				
     			case CONVERSION_ENDED:
     				mDialog.dismiss();
-    				new FFMpegMediaScannerNotifier(mContext, 
-    											   mFFMpegController.getOutputFile().getAbsolutePath());
+    				FFMpegMediaScannerNotifier.scan(mContext, 
+    											    mFFMpegController.getOutputFile().getAbsolutePath());
     				break;
     			
     			case CONVERSION_PROGRESS:

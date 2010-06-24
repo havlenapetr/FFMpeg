@@ -9,10 +9,14 @@ public class FFMpegMediaScannerNotifier implements MediaScannerConnectionClient 
     private MediaScannerConnection mConnection;
     private String mPath;
 
-    public FFMpegMediaScannerNotifier(Context context, String path) {
+    private FFMpegMediaScannerNotifier(Context context, String path) {
         mPath = path;
         mConnection = new MediaScannerConnection(context, this);
         mConnection.connect();
+    }
+    
+    public static void scan(Context context, String path) {
+    	new FFMpegMediaScannerNotifier(context, path);
     }
 
     public void onMediaScannerConnected() {
