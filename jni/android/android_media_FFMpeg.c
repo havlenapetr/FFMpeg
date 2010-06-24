@@ -4352,6 +4352,39 @@ static int FFMpeg_setBitrate(JNIEnv *env, jobject obj, jstring opt, jstring arg)
     return opt_bitrate(_opt, _arg);
 }
 
+static void FFMpeg_setAudioRate(JNIEnv *env, jobject obj, jint rate)
+{
+    audio_sample_rate = rate;
+}
+
+static void FFMpeg_setAudioChannels(JNIEnv *env, jobject obj, jint channels)
+{
+    audio_channels = channels;
+}
+
+static void FFMpeg_setVideoChannel(JNIEnv *env, jobject obj, jint channel)
+{
+    video_channel = channel;
+}
+
+static void FFMpeg_setFrameRate(JNIEnv *env, jobject obj, jstring rate) {
+	if (av_parse_video_frame_rate(&frame_rate, rate) < 0) {
+		jniThrowException(env, 
+                          "java/lang/RuntimeException",
+                          "Incorrect value");
+        //av_exit(1);
+    }
+}
+
+static void FFMpeg_setFrameAspectRatio(JNIEnv *env, jobject obj, jint x, jint y) {
+	frame_aspect_ratio = (double)x / (double)y;
+}
+
+static void FFMpeg_setFrameSize(JNIEnv *env, jobject obj, jint width, jint height) {
+	frame_width = width;
+	frame_height = height;
+}
+
 static void FFMpeg_parseOptions(JNIEnv *env, jobject obj, jobjectArray args) {
 	int i = 0;
 	int argc = 0;
@@ -4447,6 +4480,12 @@ static JNINativeMethod methods[] = {
 	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpeg_setOutputFile},
 	{ "native_av_setBitrate", "(Ljava/lang/String;Ljava/lang/String;)I", (void*) FFMpeg_setBitrate },
 	{ "native_av_newVideoStream", "(I)V", (void*) FFMpeg_newVideoStream },
+	{ "native_av_setAudioRate", "(I)V", (void*) FFMpeg_setAudioRate },
+	{ "native_av_setAudioChannels", "(I)V", (void*) FFMpeg_setAudioChannels },
+	{ "native_av_setVideoChannel", "(I)V", (void*) FFMpeg_setVideoChannel },
+	{ "native_av_setFrameRate", "(Ljava/lang/String;)V", (void*) FFMpeg_setFrameRate },
+	{ "native_av_setFrameAspectRatio", "(II)V", (void*) FFMpeg_setFrameAspectRatio },
+	{ "native_av_setFrameSize", "(II)V", (void*) FFMpeg_setFrameSize },
 };
 
 int register_android_media_FFMpeg(JNIEnv *env) {

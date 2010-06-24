@@ -175,6 +175,18 @@ public class FFMpeg {
     
     private native void native_av_newVideoStream(int pointer);
 	
+	private native void native_av_setAudioRate(int rate);
+	
+	private native void native_av_setAudioChannels(int channels);
+	
+	private native void native_av_setVideoChannel(int channel);
+	
+	private native void native_av_setFrameRate(String rate) throws RuntimeException;
+	
+	private native void native_av_setFrameAspectRatio(int x, int y);
+	
+	private native void native_av_setFrameSize(int width, int height);
+	
 	private native void native_av_parse_options(String[] args) throws RuntimeException;
 	
 	private native void native_av_convert() throws RuntimeException;
