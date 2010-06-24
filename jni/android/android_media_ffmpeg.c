@@ -4527,11 +4527,9 @@ static jobject av_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	return newAVFormatContext(env, fileContext);
 }
 
-static jobject av_getFormatContext(JNIEnv *env, jobject obj) {
-    return newAVFormatContext(env, input_files[0]);
-}
-
-static void av_convert(JNIEnv *env, jobject obj) {
+static void av_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFile) {
+	//AVFormatContext *_inputFile = (AVFormatContext *) inputFile;
+	//AVFormatContext *_outputFile = (AVFormatContext *) outputFile;
     if (av_transcode(output_files,
                      nb_output_files,
                      input_files,
@@ -4567,7 +4565,6 @@ static JNINativeMethod methods[] = {
 	{ "native_av_parse_options", "([Ljava/lang/String;)V", (void*) av_parse_options },
 	{ "native_av_convert", "()V", (void*) av_convert },
 	{ "native_av_release", "(I)I", (void*) av_release },
-	{ "native_av_getFormatContext", "()Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_getFormatContext},
 	{ "native_av_setInputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setInputFile},
 	{ "native_av_setOutputFile", "(Ljava/lang/String;)Landroid/media/ffmpeg/FFMpegAVFormatContext;", (void*) av_setOutputFile}
 };

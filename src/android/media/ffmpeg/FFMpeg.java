@@ -7,16 +7,16 @@ public class FFMpeg {
 	
 	public static final String LIB_NAME = "ffmpeg_jni";
 	
-	private FFMpegAVFormatContext mContext;
-	private Thread mThread;
-	private IFFMpegListener mListener;
+	private Thread 						mThread;
+	private IFFMpegListener 			mListener;
 	
-	private String 	mResolution;
-	private String 	mCodec;
-	private String 	mBitrate;
-	private String 	mRatio;
-	private File 	mInputFile;
-	private File 	mOutputFile;
+	private String 						mResolution;
+	private String 						mCodec;
+	private String 						mBitrate;
+	private String 						mRatio;
+	
+	private FFMpegFile					mInputFile;
+	private FFMpegFile					mOutputFile;
 	
 	static {
 		System.loadLibrary(LIB_NAME);
@@ -31,11 +31,11 @@ public class FFMpeg {
 		mListener = listener;
 	}
 	
-	public File getOutputFile() {
+	public FFMpegFile getOutputFile() {
 		return mOutputFile;
 	}
 	
-	public File getInputFile() {
+	public FFMpegFile getInputFile() {
 		return mInputFile;
 	}
 	
@@ -46,8 +46,8 @@ public class FFMpeg {
     	mRatio = ratio;
 		native_av_init();
 		
-		setInputFile(inputFile);
-		setOutputFile(outputFile);
+		mInputFile = setInputFile(inputFile);
+		mOutputFile = setOutputFile(outputFile);
 		
 		native_av_parse_options(new String[] {
 				"ffmpeg",
@@ -65,28 +65,24 @@ public class FFMpeg {
 				mBitrate,
 				"-aspect", 
 				mRatio});
-		
-		mContext = native_av_getFormatContext();
 	}
     
-    public FFMpegAVFormatContext getFormatContext() {
-    	return mContext;
-    }
-    
-    public FFMpegAVFormatContext setInputFile(String filePath) throws FileNotFoundException {
-    	mInputFile = new File(filePath);
-    	if(!mInputFile.exists()) {
+    public FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
+    	File f = new File(filePath);
+    	if(!f.exists()) {
     		throw new FileNotFoundException("File: " + filePath + " doesn't exist");
     	}
-    	return native_av_setInputFile(filePath);
+    	FFMpegAVFormatContext c = native_av_setInputFile(filePath);
+    	return new FFMpegFile(f, c);
     }
     
-    public FFMpegAVFormatContext setOutputFile(String filePath) throws FileNotFoundException {
-    	mOutputFile = new File(filePath);
-    	if(mOutputFile.exists()) {
-    		mOutputFile.delete();
+    public FFMpegFile setOutputFile(String filePath) throws FileNotFoundException {
+    	File f = new File(filePath);
+    	if(f.exists()) {
+    		f.delete();
     	}
-    	return native_av_setOutputFile(filePath);
+    	FFMpegAVFormatContext c = native_av_setOutputFile(filePath);
+    	return new FFMpegFile(f, c);
     }
 	
 	public void convert() throws RuntimeException {
@@ -161,8 +157,6 @@ public class FFMpeg {
 	private native void native_av_register_all();
 	
     private native void native_av_init() throws RuntimeException;
-    
-    private native FFMpegAVFormatContext native_av_getFormatContext();
     
     private native FFMpegAVFormatContext native_av_setInputFile(String filePath);
     

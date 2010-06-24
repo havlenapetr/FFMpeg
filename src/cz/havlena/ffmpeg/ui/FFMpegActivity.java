@@ -1,5 +1,6 @@
 package cz.havlena.ffmpeg.ui;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import android.app.Activity;
@@ -173,24 +174,28 @@ public class FFMpegActivity extends Activity {
 		}
     	
     	private Handler mHanlder = new Handler() {
+    		private int mDuration;
+    		
     		@Override
     		public void handleMessage(Message msg) {
     			switch(msg.what) {
     			
     			case CONVERSION_STARTED:
     				mDialog.show();
+    				FFMpegAVFormatContext context = mFFMpegController.getInputFile().getContext();
+    				mDuration = context.getDurationInSeconds();
     				break;
     				
     			case CONVERSION_ENDED:
     				mDialog.dismiss();
-    				FFMpegMediaScannerNotifier.scan(mContext, 
-    											    mFFMpegController.getOutputFile().getAbsolutePath());
+				    File outFile = mFFMpegController.getOutputFile().getFile();
+    				FFMpegMediaScannerNotifier.scan(mContext, outFile.getAbsolutePath());
+    				mDuration = 0;
     				break;
     			
     			case CONVERSION_PROGRESS:
     				FFMpegReport report = (FFMpegReport) msg.obj;
-    				FFMpegAVFormatContext context = mFFMpegController.getFormatContext();
-    				int res = (int) ((report.time * 100) / context.getDurationInSeconds());
+    				int res = (int) ((report.time * 100) / mDuration);
     				mDialog.setProgress(res);
     				break;
     				
@@ -198,6 +203,7 @@ public class FFMpegActivity extends Activity {
     				Exception e = (Exception) msg.obj;
     				mDialog.dismiss();
     				showError(e.getMessage());
+    				mDuration = 0;
     				break;
     			}
     		}
