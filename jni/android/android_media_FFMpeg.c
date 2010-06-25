@@ -4344,7 +4344,7 @@ static void FFMpeg_init(JNIEnv *env, jobject obj) {
         avcodec_opts[i]= avcodec_alloc_context2(i);
     }
     avformat_opts = avformat_alloc_context();
-    sws_opts = sws_getContext(16,16,0, 16,16,0, sws_flags, NULL,NULL,NULL);
+    sws_opts = sws_getContext(16, 16, 0, 16, 16, 0, sws_flags, NULL, NULL, NULL);
 }
 
 static int FFMpeg_setBitrate(JNIEnv *env, jobject obj, jstring opt, jstring arg) {
