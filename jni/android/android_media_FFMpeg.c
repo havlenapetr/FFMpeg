@@ -4368,7 +4368,8 @@ static void FFMpeg_setVideoChannel(JNIEnv *env, jobject obj, jint channel)
 }
 
 static void FFMpeg_setFrameRate(JNIEnv *env, jobject obj, jstring rate) {
-	if (av_parse_video_frame_rate(&frame_rate, rate) < 0) {
+	const char *_rate = (*env)->GetStringUTFChars(env, rate, NULL);
+	if (av_parse_video_frame_rate(&frame_rate, _rate) < 0) {
 		jniThrowException(env, 
                           "java/lang/RuntimeException",
                           "Incorrect value");
@@ -4441,6 +4442,11 @@ static void FFMpeg_newVideoStream(JNIEnv *env, jobject obj, jint pointer) {
 	new_video_stream(context);
 }
 
+static void FFMpeg_setVideoCodec(JNIEnv *env, jobject obj, jstring codec) {
+	const char *_codec = (*env)->GetStringUTFChars(env, codec, NULL);
+	opt_codec(&video_stream_copy, &video_codec_name, AVMEDIA_TYPE_VIDEO, _codec);
+}
+
 static void FFMpeg_convert(JNIEnv *env, jobject obj, jlong outputFile, jlong inputFile) {
 	//AVFormatContext *_inputFile = (AVFormatContext *) inputFile;
 	//AVFormatContext *_outputFile = (AVFormatContext *) outputFile;
@@ -4486,6 +4492,7 @@ static JNINativeMethod methods[] = {
 	{ "native_av_setFrameRate", "(Ljava/lang/String;)V", (void*) FFMpeg_setFrameRate },
 	{ "native_av_setFrameAspectRatio", "(II)V", (void*) FFMpeg_setFrameAspectRatio },
 	{ "native_av_setFrameSize", "(II)V", (void*) FFMpeg_setFrameSize },
+	{ "native_av_setVideoCodec", "(Ljava/lang/String;)V", (void*) FFMpeg_setVideoCodec },
 };
 
 int register_android_media_FFMpeg(JNIEnv *env) {

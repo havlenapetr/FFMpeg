@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.media.ffmpeg.FFMpeg;
 import android.media.ffmpeg.FFMpegAVFormatContext;
 import android.media.ffmpeg.FFMpegConfig;
+import android.media.ffmpeg.FFMpegConfigAndroid;
 import android.media.ffmpeg.FFMpegMediaScannerNotifier;
 import android.media.ffmpeg.FFMpegReport;
 import android.media.ffmpeg.FFMpeg.IFFMpegListener;
@@ -60,7 +61,7 @@ public class FFMpegActivity extends Activity {
     
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
-        mEditText.setText("/sdcard/Videos/walle1.mp4");
+        mEditText.setText("/sdcard/Videos/pixar.flv");
     }
     
     /**
@@ -136,23 +137,14 @@ public class FFMpegActivity extends Activity {
         super.onPause();
     }
     
-    private String getScreenResolution() {
-    	Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay(); 
-    	String res = display.getHeight() + "x" + display.getWidth();
-    	Log.d(TAG, "Screen res: " + res);
-    	return res;
-    }
-    
     private void startConversion(String filePath, String bitrate) throws FileNotFoundException, RuntimeException {
-    	String resolution =  getScreenResolution();
-    	String codec = FFMpegConfig.CODEC_MPEG4;
-    	String ratio = FFMpegConfig.RATIO_3_2;
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);
     	String outputFile = before + ".android.mp4";
     	
-    	mFFMpegController.init(resolution, codec, bitrate, ratio, inputFile, outputFile);
+    	mFFMpegController.init(inputFile, outputFile);
+    	mFFMpegController.setConfig(new FFMpegConfigAndroid(this));
     	mFFMpegController.convertAsync();
     }
     

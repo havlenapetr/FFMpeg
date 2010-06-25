@@ -10,8 +10,6 @@ public class FFMpeg {
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
 	
-	private String 						mResolution;
-	private String 						mCodec;
 	private String 						mBitrate;
 	private String 						mRatio;
 	
@@ -39,40 +37,56 @@ public class FFMpeg {
 		return mInputFile;
 	}
 	
-    public void init(String res, String codec, String bitrate, String ratio, String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
-    	mResolution = res;
-    	mCodec = codec;
-    	mBitrate = bitrate;
-    	mRatio = ratio;
+    public void init(String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
 		native_av_init();
 		
 		mInputFile = setInputFile(inputFile);
 		mOutputFile = setOutputFile(outputFile);
-		
-		native_av_parse_options(new String[] {
-				"ffmpeg",
-				"-s",
-				mResolution, 
-				"-vcodec", 
-				mCodec, 
-				"-ac", 
-				"1", 
-				"-ar", 
-				"16000", 
-				"-r", 
-				"13", 
-				"-b", 
-				mBitrate,
-				"-aspect", 
-				mRatio,
-				mOutputFile.getFile().getAbsolutePath()});
 	}
     
-    private int setBitrate(String opt, String arg) {
-    	return native_av_setBitrate(opt, arg);
+    public void setConfig(FFMpegConfig config) {
+    	setFrameSize(config.resolution[0], config.resolution[1]);
+		setAudioChannels(config.audioChannels);
+		setAudioRate(config.audioRate);
+		setFrameRate(String.valueOf(config.frameRate));
+		setVideoCodec(config.codec);
+		setFrameAspectRatio(config.ratio[0], config.ratio[1]);
+		
+		/*native_av_setVideoCodec(mCodec);*/
+		
+		native_av_parse_options(new String[] {
+				"ffmpeg", 
+				"-b", 
+				config.bitrate,
+				mOutputFile.getFile().getAbsolutePath()});
+	
     }
     
-    private FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
+    public void setFrameAspectRatio(int x, int y) {
+    	native_av_setFrameAspectRatio(x, y);
+    }
+    
+    public void setVideoCodec(String codec) {
+    	native_av_setVideoCodec(codec);
+    }
+    
+    public void setAudioRate(int rate) {
+    	native_av_setAudioRate(rate);
+    }
+    
+    public void setAudioChannels(int channels) {
+    	native_av_setAudioChannels(channels);
+    }
+    
+    public void setFrameRate(String rate) {
+    	native_av_setFrameRate(rate);
+    }
+    
+    public void setFrameSize(int width, int height) {
+    	native_av_setFrameSize(width, height);
+    }
+    
+    public FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
     	File f = new File(filePath);
     	if(!f.exists()) {
     		throw new FileNotFoundException("File: " + filePath + " doesn't exist");
@@ -81,7 +95,7 @@ public class FFMpeg {
     	return new FFMpegFile(f, c);
     }
     
-    private FFMpegFile setOutputFile(String filePath) throws FileNotFoundException {
+    public FFMpegFile setOutputFile(String filePath) throws FileNotFoundException {
     	File f = new File(filePath);
     	if(f.exists()) {
     		f.delete();
@@ -90,7 +104,7 @@ public class FFMpeg {
     	return new FFMpegFile(f, null);
     }
     
-    private void newVideoStream(FFMpegAVFormatContext context) {
+    public void newVideoStream(FFMpegAVFormatContext context) {
     	native_av_newVideoStream(context.pointer);
     }
 	
@@ -175,16 +189,41 @@ public class FFMpeg {
     
     private native void native_av_newVideoStream(int pointer);
 	
+    /**
+     * ar
+     * @param rate
+     */
 	private native void native_av_setAudioRate(int rate);
 	
 	private native void native_av_setAudioChannels(int channels);
 	
 	private native void native_av_setVideoChannel(int channel);
 	
+	/**
+	 * r
+	 * @param rate
+	 * @throws RuntimeException
+	 */
 	private native void native_av_setFrameRate(String rate) throws RuntimeException;
 	
+	/**
+	 * ration
+	 * @param x
+	 * @param y
+	 */
 	private native void native_av_setFrameAspectRatio(int x, int y);
 	
+	/**
+	 * codec
+	 * @param codec
+	 */
+	private native void native_av_setVideoCodec(String codec);
+	
+	/**
+	 * resolution
+	 * @param width
+	 * @param height
+	 */
 	private native void native_av_setFrameSize(int width, int height);
 	
 	private native void native_av_parse_options(String[] args) throws RuntimeException;
