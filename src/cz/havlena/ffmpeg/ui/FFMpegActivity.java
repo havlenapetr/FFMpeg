@@ -9,6 +9,7 @@ import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
 import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
+import com.media.ffmpeg.config.FFMpegConfig;
 import com.media.ffmpeg.config.FFMpegConfigAndroid;
 
 import android.app.Activity;
@@ -28,7 +29,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 public class FFMpegActivity extends Activity {
 	
@@ -39,7 +39,15 @@ public class FFMpegActivity extends Activity {
 	private RadioButton mRadioButton1;
 	private RadioButton mRadioButton2;
 	private RadioButton mRadioButton3;
-	private RadioGroup  mRadioButtons;
+	
+	private RadioButton  mRadioButtonAudio16;
+	private RadioButton  mRadioButtonAudio32;
+	
+	private RadioButton  mRadioButtonAudioCH1;
+	private RadioButton  mRadioButtonAudioCH2;
+	
+	private EditText 	mEditTextFrames;
+	
 	private CheckBox    mCheckBox;
 	
 	private FFMpeg 		mFFMpegController;
@@ -68,12 +76,18 @@ public class FFMpegActivity extends Activity {
     private void initResourceRefs() {
     	//mOutput = (TextView) findViewById(R.id.textview_output);
     	mEditText = (EditText) findViewById(R.id.edittext_inputfile);
+    	mEditTextFrames = (EditText) findViewById(R.id.edittext_frames);
     	mButton = (Button) findViewById(R.id.button_convert);
-    	
-    	mRadioButtons = (RadioGroup) findViewById(R.id.radiogroup_radiobuttons);
+
     	mRadioButton1 = (RadioButton) findViewById(R.id.radiobutton_option1);
     	mRadioButton2 = (RadioButton) findViewById(R.id.radiobutton_option2);
     	mRadioButton3 = (RadioButton) findViewById(R.id.radiobutton_option3);
+    	
+    	mRadioButtonAudio16 = (RadioButton) findViewById(R.id.radiobutton_audio_option1);
+    	mRadioButtonAudio32 = (RadioButton) findViewById(R.id.radiobutton_audio_option2);
+    	
+    	mRadioButtonAudioCH1 = (RadioButton) findViewById(R.id.radiobutton_audio_channel1);
+    	mRadioButtonAudioCH2 = (RadioButton) findViewById(R.id.radiobutton_audio_channel2);
     	
     	mCheckBox = (CheckBox) findViewById(R.id.checkbox_delete_source);
     }
@@ -82,15 +96,9 @@ public class FFMpegActivity extends Activity {
     	mButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				String bitrate = FFMpegConfigAndroid.BITRATE_LOW;
-				if(mRadioButton2.isChecked()) {
-					bitrate = FFMpegConfigAndroid.BITRATE_MEDIUM;
-				}
-				else if(mRadioButton3.isChecked()) {
-					bitrate = FFMpegConfigAndroid.BITRATE_HIGH;
-				}
+				FFMpegConfigAndroid config = parseConfig();
 				try {
-					startConversion(mEditText.getText().toString(), bitrate);
+					startConversion(mEditText.getText().toString(), config);
 				} catch (FileNotFoundException e) {
 					showError(e.getMessage());
 				} catch (RuntimeException e) {
@@ -100,6 +108,47 @@ public class FFMpegActivity extends Activity {
 				}
 			}
 		});
+    }
+    
+    private FFMpegConfigAndroid parseConfig() {
+    	FFMpegConfigAndroid config = new FFMpegConfigAndroid(FFMpegActivity.this);
+		if(mRadioButton2.isChecked()) {
+			config.bitrate = FFMpegConfigAndroid.BITRATE_MEDIUM;
+		}
+		else if(mRadioButton3.isChecked()) {
+			config.bitrate = FFMpegConfigAndroid.BITRATE_HIGH;
+		}
+		
+		if(mRadioButtonAudio16.isChecked()) {
+			config.audioRate = 16000;
+		}
+		else if(mRadioButtonAudio32.isChecked()) {
+			config.audioRate = 32000;
+		}
+		
+		if(mRadioButtonAudioCH1.isChecked()) {
+			config.audioChannels = 1;
+		}
+		else if(mRadioButtonAudioCH2.isChecked()) {
+			config.audioChannels = 2;
+		}
+		
+		try
+		{
+			int frames = Integer.valueOf(mEditTextFrames.getText().toString());
+			if(frames > 0 && frames < 30)
+				config.frameRate = frames;
+		}
+		catch (NumberFormatException e) {
+			showError(e.getMessage());
+		}
+		
+		Log.d(TAG, "Audio ch: " + config.audioChannels);
+		Log.d(TAG, "Audio rate: " + config.audioRate);
+		Log.d(TAG, "Bit rate: " + config.bitrate);
+		Log.d(TAG, "Frame rate: " + config.frameRate);
+		
+		return config;
     }
     
     private void showError(String msg) {
@@ -137,14 +186,14 @@ public class FFMpegActivity extends Activity {
         super.onPause();
     }
     
-    private void startConversion(String filePath, String bitrate) throws RuntimeException, IOException {
+    private void startConversion(String filePath, FFMpegConfig config) throws RuntimeException, IOException {
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);
     	String outputFile = before + ".android.mp4";
     	
     	mFFMpegController.init(inputFile, outputFile);
-    	mFFMpegController.setConfig(new FFMpegConfigAndroid(this));
+    	mFFMpegController.setConfig(config);
     	mFFMpegController.convertAsync();
     }
     

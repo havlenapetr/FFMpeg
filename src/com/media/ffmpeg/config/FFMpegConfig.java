@@ -13,7 +13,7 @@ public class FFMpegConfig {
 	
 	public int[] 				resolution = new int[]{800, 600};
 	public String 				codec = CODEC_MPEG4;
-	public String 				bitrate = BITRATE_MEDIUM;
+	public String 				bitrate = BITRATE_LOW;
 	public int[]				ratio = RATIO_4_3;
 	public int 					audioRate = 44000;
 	public int 					frameRate = 24;

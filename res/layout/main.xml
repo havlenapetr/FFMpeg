@@ -5,6 +5,11 @@
     android:layout_height="fill_parent"
     android:background="@drawable/bottombar_landscape_565">
     
+    <ScrollView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/scrollview_result_container">
+		            	
     <LinearLayout
 		android:id="@+id/linearlayout_header"
         android:layout_width="fill_parent"
@@ -26,7 +31,6 @@
 	        android:maxLines="1"/>
         
         <RadioGroup
-        	android:id="@+id/radiogroup_radiobuttons"
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
 		   	android:orientation="vertical"
@@ -55,6 +59,67 @@
 		    	android:text="Bitrate 1024kb/s" />
 		 </RadioGroup>
 		 
+		 <RadioGroup
+		  	android:layout_width="fill_parent"
+		   	android:layout_height="wrap_content"
+		   	android:orientation="vertical"
+		   	android:background="#88000000">
+		   	
+		   	<TextView android:id="@+id/textview_label_bitrate"
+	           	android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:text="Audio rate:"/>
+	            
+		   	<RadioButton
+		    	android:id="@+id/radiobutton_audio_option1"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="Audiorate 16kHz"
+		    	android:checked="true"/>
+		   <RadioButton
+		    	android:id="@+id/radiobutton_audio_option2"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="Audiorate 32kHz"/>
+		 </RadioGroup>
+		 
+		 <RadioGroup
+		  	android:layout_width="fill_parent"
+		   	android:layout_height="wrap_content"
+		   	android:orientation="vertical"
+		   	android:background="#88000000">
+		   	
+		   	<TextView android:id="@+id/textview_label_bitrate"
+	           	android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:text="Audio channels:"/>
+	            
+		   	<RadioButton
+		    	android:id="@+id/radiobutton_audio_channel1"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="1 audio channel"/>
+		   <RadioButton
+		    	android:id="@+id/radiobutton_audio_channel2"
+		    	android:layout_width="wrap_content"
+		    	android:layout_height="wrap_content"
+		    	android:text="2 audio channels"
+		    	android:checked="true"/>
+		 </RadioGroup>
+		 
+		 <TextView android:id="@+id/textview_label_framerate"
+	      	android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/label_frames"
+	        android:textColor="#ffffff"/>
+		 <EditText
+	    	android:id="@+id/edittext_frames"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center_vertical"
+	        android:maxLines="1"
+	        android:text="13"/>
+		 
 		 <LinearLayout
 			android:id="@+id/linearlayout_bottom"
 	        android:layout_width="fill_parent"
@@ -77,5 +142,7 @@
 	      </LinearLayout>
 	        
     </LinearLayout>
+    
+    </ScrollView>
 		    
 </LinearLayout>
