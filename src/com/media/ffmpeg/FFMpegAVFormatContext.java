@@ -4,30 +4,32 @@ public class FFMpegAVFormatContext {
 	
 	public static final long AV_TIME_BASE = 1000000;
 	
-	protected int  	pointer;
-	private int 	nb_streams;
-	private String 	filename;
-	private long 	timestamp;
-	private String 	title;
-	private String 	author;
-	private String 	copyright;
-	private String 	comment;
-	private String 	album;
-	private int 	year; 
-	private int 	track; 
-	private String  genre; 
-	private int 	ctx_flags;
-	private long  	start_time; 
-	private long 	duration; 
-	private long 	file_size; 
-	private int 	bit_rate;
-	private int 	mux_rate;
-	private int 	packet_size;
-	private int 	preload;
-	private int 	max_delay;
-	private int 	loop_output; 
-	private int 	flags;
-	private int 	loop_input;
+	protected int  						pointer;
+	private int 						nb_streams;
+	private String 						filename;
+	private long 						timestamp;
+	private String 						title;
+	private String 						author;
+	private String 						copyright;
+	private String 						comment;
+	private String 						album;
+	private int 						year; 
+	private int 						track; 
+	private String  					genre; 
+	private int 						ctx_flags;
+	private long  						start_time; 
+	private long 						duration; 
+	private long 						file_size; 
+	private int 						bit_rate;
+	private int 						mux_rate;
+	private int 						packet_size;
+	private int 						preload;
+	private int 						max_delay;
+	private int 						loop_output; 
+	private int 						flags;
+	private int 						loop_input;
+	private FFMpegAVInputFormat 		mInFormat;
+	private FFMpegAVOutputFormat		mOutFormat;
 	
 	public int getNbStreams() {
 		return nb_streams;
