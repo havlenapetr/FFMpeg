@@ -2,6 +2,7 @@ package cz.havlena.ffmpeg.ui;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegAVFormatContext;
@@ -94,6 +95,8 @@ public class FFMpegActivity extends Activity {
 					showError(e.getMessage());
 				} catch (RuntimeException e) {
 					showError(e.getMessage());
+				} catch (IOException e) {
+					showError(e.getMessage());
 				}
 			}
 		});
@@ -134,7 +137,7 @@ public class FFMpegActivity extends Activity {
         super.onPause();
     }
     
-    private void startConversion(String filePath, String bitrate) throws FileNotFoundException, RuntimeException {
+    private void startConversion(String filePath, String bitrate) throws RuntimeException, IOException {
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);

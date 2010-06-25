@@ -2757,8 +2757,6 @@ static int opt_frame_rate(const char *opt, const char *arg)
 
 static int opt_bitrate(const char *opt, const char *arg)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG,  "opt: %s, arg: %s", opt, arg);
-
     int codec_type = opt[0]=='a' ? AVMEDIA_TYPE_AUDIO : AVMEDIA_TYPE_VIDEO;
 
     opt_default(opt, arg);
@@ -4425,12 +4423,22 @@ static void FFMpeg_parseOptions(JNIEnv *env, jobject obj, jobjectArray args) {
 static jobject FFMpeg_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
 	AVFormatContext *fileContext = opt_input_file(_filePath);
+	if(fileContext == NULL) {
+			jniThrowException(env,
+							  "java/io/IOException",
+			                  "Can't create input file");
+		}
 	return AVFormatContext_create(env, fileContext);
 }
 
 static jobject FFMpeg_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {
 	const char *_filePath = (*env)->GetStringUTFChars(env, filePath, NULL);
 	AVFormatContext *fileContext = opt_output_file(_filePath);
+	if(fileContext == NULL) {
+		jniThrowException(env,
+						  "java/io/IOException",
+		                  "Can't create output file");
+	}
 	return AVFormatContext_create(env, fileContext);
 }
 

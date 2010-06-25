@@ -2,6 +2,7 @@ package com.media.ffmpeg;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import com.media.ffmpeg.config.FFMpegConfig;
 
@@ -37,7 +38,7 @@ public class FFMpeg {
 		return mInputFile;
 	}
 	
-    public void init(String inputFile, String outputFile) throws RuntimeException, FileNotFoundException {
+    public void init(String inputFile, String outputFile) throws RuntimeException, IOException {
 		native_av_init();
 		
 		mInputFile = setInputFile(inputFile);
@@ -51,15 +52,13 @@ public class FFMpeg {
 		setFrameRate(config.frameRate);
 		setVideoCodec(config.codec);
 		setFrameAspectRatio(config.ratio[0], config.ratio[1]);
+		setBitrate(config.bitrate);
 		
-		/*native_av_setVideoCodec(mCodec);*/
-		
-		native_av_parse_options(new String[] {
-				"ffmpeg", 
-				"-b", 
-				config.bitrate,
-				mOutputFile.getFile().getAbsolutePath()});
-	
+		native_av_parse_options(new String[] {"ffmpeg", mOutputFile.getFile().getAbsolutePath()});
+    }
+    
+    public void setBitrate(String bitrate) {
+    	native_av_setBitrate("b", bitrate);
     }
     
     public void setFrameAspectRatio(int x, int y) {
@@ -86,7 +85,7 @@ public class FFMpeg {
     	native_av_setFrameSize(width, height);
     }
     
-    public FFMpegFile setInputFile(String filePath) throws FileNotFoundException {
+    public FFMpegFile setInputFile(String filePath) throws IOException {
     	File f = new File(filePath);
     	if(!f.exists()) {
     		throw new FileNotFoundException("File: " + filePath + " doesn't exist");
@@ -181,9 +180,9 @@ public class FFMpeg {
 	
     private native void native_av_init() throws RuntimeException;
     
-    private native FFMpegAVFormatContext native_av_setInputFile(String filePath);
+    private native FFMpegAVFormatContext native_av_setInputFile(String filePath) throws IOException;
     
-    private native FFMpegAVFormatContext native_av_setOutputFile(String filePath);
+    private native FFMpegAVFormatContext native_av_setOutputFile(String filePath) throws IOException;
     
     private native int native_av_setBitrate(String opt, String arg);
     
