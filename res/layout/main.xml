@@ -3,32 +3,40 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    >
+    android:background="@drawable/bottombar_landscape_565">
     
     <LinearLayout
 		android:id="@+id/linearlayout_header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingTop="5dip">
         
+       	<TextView android:id="@+id/textview_label_bitrate"
+	      	android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:text="@string/label_input"
+	        android:textColor="#ffffff"/>
+	            
 	    <EditText
 	    	android:id="@+id/edittext_inputfile"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="center_vertical"
 	        android:maxLines="1"/>
-	        
-	  	<Button android:id="@+id/button_convert"
-           	android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/convert"
-            android:layout_gravity="center_horizontal"/>
-            
+        
         <RadioGroup
         	android:id="@+id/radiogroup_radiobuttons"
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
-		   	android:orientation="vertical">
+		   	android:orientation="vertical"
+		   	android:background="#88000000">
+		   	
+		   	<TextView android:id="@+id/textview_label_bitrate"
+	           	android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:text="@string/label_bitrate"/>
+	            
 		   	<RadioButton
 		    	android:id="@+id/radiobutton_option1"
 		    	android:layout_width="wrap_content"
@@ -47,12 +55,26 @@
 		    	android:text="Bitrate 1024kb/s" />
 		 </RadioGroup>
 		 
-		 <CheckBox
-		 	android:id="@+id/checkbox_delete_source"
-		  	android:layout_width="fill_parent"
-		   	android:layout_height="wrap_content"
-		   	android:text="@string/delete_src_movie"
-		   	android:checked="false"/>
+		 <LinearLayout
+			android:id="@+id/linearlayout_bottom"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical"
+	        android:background="@android:drawable/editbox_dropdown_light_frame">
+	        
+			 <CheckBox
+			 	android:id="@+id/checkbox_delete_source"
+			  	android:layout_width="fill_parent"
+			   	android:layout_height="wrap_content"
+			   	android:text="@string/delete_src_movie"
+			   	android:checked="false"
+			   	android:textColor="#88000000"/>
+			   	
+			 <Button android:id="@+id/button_convert"
+	           	android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:text="@string/convert"/>
+	      </LinearLayout>
 	        
     </LinearLayout>
 		    
