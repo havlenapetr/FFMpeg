@@ -1,4 +1,4 @@
-package android.media.ffmpeg;
+package com.media.ffmpeg.config;
 
 public class FFMpegConfig {
 	

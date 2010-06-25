@@ -3,28 +3,25 @@ package cz.havlena.ffmpeg.ui;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import com.media.ffmpeg.FFMpeg;
+import com.media.ffmpeg.FFMpegAVFormatContext;
+import com.media.ffmpeg.FFMpegMediaScannerNotifier;
+import com.media.ffmpeg.FFMpegReport;
+import com.media.ffmpeg.FFMpeg.IFFMpegListener;
+import com.media.ffmpeg.config.FFMpegConfigAndroid;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-import android.media.ffmpeg.FFMpeg;
-import android.media.ffmpeg.FFMpegAVFormatContext;
-import android.media.ffmpeg.FFMpegConfig;
-import android.media.ffmpeg.FFMpegConfigAndroid;
-import android.media.ffmpeg.FFMpegMediaScannerNotifier;
-import android.media.ffmpeg.FFMpegReport;
-import android.media.ffmpeg.FFMpeg.IFFMpegListener;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -84,12 +81,12 @@ public class FFMpegActivity extends Activity {
     	mButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				String bitrate = FFMpegConfig.BITRATE_LOW;
+				String bitrate = FFMpegConfigAndroid.BITRATE_LOW;
 				if(mRadioButton2.isChecked()) {
-					bitrate = FFMpegConfig.BITRATE_MEDIUM;
+					bitrate = FFMpegConfigAndroid.BITRATE_MEDIUM;
 				}
 				else if(mRadioButton3.isChecked()) {
-					bitrate = FFMpegConfig.BITRATE_HIGH;
+					bitrate = FFMpegConfigAndroid.BITRATE_HIGH;
 				}
 				try {
 					startConversion(mEditText.getText().toString(), bitrate);

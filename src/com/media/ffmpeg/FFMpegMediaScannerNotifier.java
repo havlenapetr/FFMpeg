@@ -1,4 +1,4 @@
-package android.media.ffmpeg;
+package com.media.ffmpeg;
 
 import android.content.Context;
 import android.media.MediaScannerConnection;

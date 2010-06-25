@@ -14,6 +14,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
 		android/onLoad.c \
+		android/android_media_FFMpegAVRational.c \
 		android/android_media_FFMpegAVFormatContext.c \
 		android/android_media_FFMpeg.c \
 		cmdutils.c

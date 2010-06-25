@@ -1,7 +1,10 @@
-package android.media.ffmpeg;
+package com.media.ffmpeg;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
+import com.media.ffmpeg.config.FFMpegConfig;
+
 
 public class FFMpeg {
 	
@@ -9,9 +12,6 @@ public class FFMpeg {
 	
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
-	
-	private String 						mBitrate;
-	private String 						mRatio;
 	
 	private FFMpegFile					mInputFile;
 	private FFMpegFile					mOutputFile;
@@ -48,7 +48,7 @@ public class FFMpeg {
     	setFrameSize(config.resolution[0], config.resolution[1]);
 		setAudioChannels(config.audioChannels);
 		setAudioRate(config.audioRate);
-		setFrameRate(String.valueOf(config.frameRate));
+		setFrameRate(config.frameRate);
 		setVideoCodec(config.codec);
 		setFrameAspectRatio(config.ratio[0], config.ratio[1]);
 		
@@ -78,7 +78,7 @@ public class FFMpeg {
     	native_av_setAudioChannels(channels);
     }
     
-    public void setFrameRate(String rate) {
+    public void setFrameRate(int rate) {
     	native_av_setFrameRate(rate);
     }
     
@@ -204,7 +204,7 @@ public class FFMpeg {
 	 * @param rate
 	 * @throws RuntimeException
 	 */
-	private native void native_av_setFrameRate(String rate) throws RuntimeException;
+	private native FFMpegAVRational native_av_setFrameRate(int rate) throws RuntimeException;
 	
 	/**
 	 * ration
