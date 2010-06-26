@@ -4308,6 +4308,10 @@ static jobject sObject;
 
 extern jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext);
 extern jobject *AVRational_create(JNIEnv *env, AVRational *rational);
+extern jobject *AVInputFormat_create(JNIEnv *env, AVInputFormat *format);
+
+extern jclass *AVFormatContext_getClass(JNIEnv *env);
+extern const char *AVInputFormat_getClassSignature();
 
 void FFMpeg_handleReport(double total_size, double time, double bitrate) {
     JNIEnv *env = getJNIEnv();
@@ -4428,7 +4432,14 @@ static jobject FFMpeg_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
 							  "java/io/IOException",
 			                  "Can't create input file");
 		}
-	return AVFormatContext_create(env, fileContext);
+	jobject *file = AVFormatContext_create(env, fileContext);
+	jobject *inFormat = AVInputFormat_create(env, fileContext->iformat);
+	jfieldID f = (*env)->GetFieldID(env, 
+									AVFormatContext_getClass(env), 
+									"mInFormat", 
+									AVInputFormat_getClassSignature());
+	(*env)->SetObjectField(env, file, f, inFormat);
+	return file;
 }
 
 static jobject FFMpeg_setOutputFile(JNIEnv *env, jobject obj, jstring filePath) {

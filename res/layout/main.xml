@@ -36,24 +36,24 @@
 		   	android:orientation="vertical"
 		   	android:background="#88000000">
 		   	
-		   	<TextView android:id="@+id/textview_label_bitrate"
+		   	<TextView
 	           	android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:text="@string/label_bitrate"/>
 	            
 		   	<RadioButton
-		    	android:id="@+id/radiobutton_option1"
+		    	android:id="@+id/radiobutton_video_option1"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
 		    	android:text="Bitrate 128kb/s"/>
 		   <RadioButton
-		    	android:id="@+id/radiobutton_option2"
+		    	android:id="@+id/radiobutton_video_option2"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
 		    	android:text="Bitrate 512kb/s" 
 		    	android:checked="true"/>
 		   <RadioButton
-		    	android:id="@+id/radiobutton_option3"
+		    	android:id="@+id/radiobutton_video_option3"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
 		    	android:text="Bitrate 1024kb/s" />
@@ -65,7 +65,7 @@
 		   	android:orientation="vertical"
 		   	android:background="#88000000">
 		   	
-		   	<TextView android:id="@+id/textview_label_bitrate"
+		   	<TextView
 	           	android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
 	            android:text="Audio rate:"/>

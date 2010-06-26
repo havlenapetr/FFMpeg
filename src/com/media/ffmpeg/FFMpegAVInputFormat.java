@@ -37,5 +37,5 @@ public class FFMpegAVInputFormat {
 		return mNext;
 	}
 	
-	
+	private native void nativeRelease(int pointer);
 }

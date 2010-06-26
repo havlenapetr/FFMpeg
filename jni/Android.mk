@@ -14,9 +14,10 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
 		android/onLoad.c \
-		android/android_media_FFMpegAVRational.c \
-		android/android_media_FFMpegAVFormatContext.c \
-		android/android_media_FFMpeg.c \
+		android/com_media_FFMpegAVInputFormat.c \
+		android/com_media_FFMpegAVRational.c \
+		android/com_media_FFMpegAVFormatContext.c \
+		android/com_media_FFMpeg.c \
 		cmdutils.c
 
 LOCAL_LDLIBS := -llog

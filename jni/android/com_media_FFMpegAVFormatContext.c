@@ -7,13 +7,21 @@
 
 struct fields_t
 {
-    jmethodID formatContext;
+    jmethodID constructor;
 };
 static struct fields_t fields;
 
+jclass *AVFormatContext_getClass(JNIEnv *env) {
+	return (*env)->FindClass(env, "com/media/ffmpeg/FFMpegAVFormatContext");
+}
+
+const char *AVFormatContext_getClassSignature() {
+	return "Lcom/media/ffmpeg/FFMpegAVFormatContext;";
+}
+
 jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext) {
-	jclass clazz = (*env)->FindClass(env, "com/media/ffmpeg/FFMpegAVFormatContext");
-	jobject result = (*env)->NewObject(env, clazz, fields.formatContext);
+	jclass *clazz = AVFormatContext_getClass(env);
+	jobject result = (*env)->NewObject(env, clazz, fields.constructor);
 
 	// set native pointer to java class for later use
 	(*env)->SetIntField(env, result, (*env)->GetFieldID(env, clazz, "pointer", "I"), (jint)fileContext);
@@ -88,8 +96,8 @@ static JNINativeMethod methods[] = {
 
 int register_android_media_FFMpegAVFormatContext(JNIEnv *env) {
 	jclass clazz = (*env)->FindClass(env, "com/media/ffmpeg/FFMpegAVFormatContext");
-	fields.formatContext = (*env)->GetMethodID(env, clazz, "<init>", "()V");
-	if (fields.formatContext == NULL) {
+	fields.constructor = (*env)->GetMethodID(env, clazz, "<init>", "()V");
+	if (fields.constructor == NULL) {
 		jniThrowException(env,
 	                      "java/lang/RuntimeException",
 	                      "can't load clb_onReport callback");

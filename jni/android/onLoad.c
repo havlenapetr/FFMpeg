@@ -7,6 +7,7 @@
 extern int register_android_media_FFMpegAVRational(JNIEnv *env);
 extern int register_android_media_FFMpeg(JNIEnv *env);
 extern int register_android_media_FFMpegAVFormatContext(JNIEnv *env);
+extern int register_android_media_FFMpegAVInputFormat(JNIEnv *env);
 
 static JavaVM *sVm;
 
@@ -94,6 +95,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegAVRational");
     	goto end;
     }
+	
+	if(register_android_media_FFMpegAVInputFormat(env) != JNI_OK) {
+    	__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegAVInputFormat");
+    	goto end;
+    }
+	
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "loaded");
 

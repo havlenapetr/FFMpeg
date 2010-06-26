@@ -34,24 +34,24 @@ public class FFMpegActivity extends Activity {
 	
 	private static final String TAG = "FFMpegActivity";
 
-	private EditText 	mEditText;
-	private Button		mButton;
-	private RadioButton mRadioButton1;
-	private RadioButton mRadioButton2;
-	private RadioButton mRadioButton3;
+	private EditText 				mEditText;
+	private Button					mButton;
+	private RadioButton 			mRadioButtonVideo128;
+	private RadioButton 			mRadioButtonVideo512;
+	private RadioButton 			mRadioButtonVideo1024;
 	
-	private RadioButton  mRadioButtonAudio16;
-	private RadioButton  mRadioButtonAudio32;
+	private RadioButton  			mRadioButtonAudio16;
+	private RadioButton  			mRadioButtonAudio32;
 	
-	private RadioButton  mRadioButtonAudioCH1;
-	private RadioButton  mRadioButtonAudioCH2;
+	private RadioButton  			mRadioButtonAudioCH1;
+	private RadioButton  			mRadioButtonAudioCH2;
 	
-	private EditText 	mEditTextFrames;
+	private EditText 				mEditTextFrames;
 	
-	private CheckBox    mCheckBox;
+	private CheckBox    			mCheckBox;
 	
-	private FFMpeg 		mFFMpegController;
-	private PowerManager.WakeLock mWakeLock = null;
+	private FFMpeg 					mFFMpegController;
+	private PowerManager.WakeLock 	mWakeLock = null;
 	
     /** Called when the activity is first created. */
     @Override
@@ -79,9 +79,9 @@ public class FFMpegActivity extends Activity {
     	mEditTextFrames = (EditText) findViewById(R.id.edittext_frames);
     	mButton = (Button) findViewById(R.id.button_convert);
 
-    	mRadioButton1 = (RadioButton) findViewById(R.id.radiobutton_option1);
-    	mRadioButton2 = (RadioButton) findViewById(R.id.radiobutton_option2);
-    	mRadioButton3 = (RadioButton) findViewById(R.id.radiobutton_option3);
+    	mRadioButtonVideo128 = (RadioButton) findViewById(R.id.radiobutton_video_option1);
+    	mRadioButtonVideo512 = (RadioButton) findViewById(R.id.radiobutton_video_option2);
+    	mRadioButtonVideo1024 = (RadioButton) findViewById(R.id.radiobutton_video_option3);
     	
     	mRadioButtonAudio16 = (RadioButton) findViewById(R.id.radiobutton_audio_option1);
     	mRadioButtonAudio32 = (RadioButton) findViewById(R.id.radiobutton_audio_option2);
@@ -97,8 +97,9 @@ public class FFMpegActivity extends Activity {
 			
 			public void onClick(View v) {
 				FFMpegConfigAndroid config = parseConfig();
+				if(config == null) return;
 				try {
-					startConversion(mEditText.getText().toString(), config);
+					startConversion(mEditText.getText().toString().trim(), config);
 				} catch (FileNotFoundException e) {
 					showError(e.getMessage());
 				} catch (RuntimeException e) {
@@ -112,10 +113,10 @@ public class FFMpegActivity extends Activity {
     
     private FFMpegConfigAndroid parseConfig() {
     	FFMpegConfigAndroid config = new FFMpegConfigAndroid(FFMpegActivity.this);
-		if(mRadioButton2.isChecked()) {
+		if(mRadioButtonVideo512.isChecked()) {
 			config.bitrate = FFMpegConfigAndroid.BITRATE_MEDIUM;
 		}
-		else if(mRadioButton3.isChecked()) {
+		else if(mRadioButtonVideo1024.isChecked()) {
 			config.bitrate = FFMpegConfigAndroid.BITRATE_HIGH;
 		}
 		
@@ -141,6 +142,7 @@ public class FFMpegActivity extends Activity {
 		}
 		catch (NumberFormatException e) {
 			showError(e.getMessage());
+			return null;
 		}
 		
 		Log.d(TAG, "Audio ch: " + config.audioChannels);
