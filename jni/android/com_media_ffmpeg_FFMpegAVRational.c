@@ -2,8 +2,7 @@
 
 #include <android/log.h>
 #include "jniUtils.h"
-
-#include "../libavformat/avformat.h"
+#include "methods.h"
 
 struct fields_t
 {

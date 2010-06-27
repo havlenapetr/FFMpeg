@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/bottombar_landscape_565">
+    android:background="#fafafa">
     
     <ScrollView
 		android:layout_width="fill_parent"
@@ -20,8 +20,8 @@
        	<TextView android:id="@+id/textview_label_bitrate"
 	      	android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
-	        android:text="@string/label_input"
-	        android:textColor="#ffffff"/>
+	        android:textColor="#000000"
+	        android:text="@string/label_input"/>
 	            
 	    <EditText
 	    	android:id="@+id/edittext_inputfile"
@@ -33,85 +33,110 @@
         <RadioGroup
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
-		   	android:orientation="vertical"
-		   	android:background="#88000000">
+		   	android:orientation="vertical">
 		   	
 		   	<TextView
 	           	android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
+	            android:textColor="#000000"
 	            android:text="@string/label_bitrate"/>
 	            
 		   	<RadioButton
 		    	android:id="@+id/radiobutton_video_option1"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
-		    	android:text="Bitrate 128kb/s"/>
+		    	android:text="Bitrate 128kb/s"
+		    	android:textColor="#88000000"/>
+		    	
 		   <RadioButton
 		    	android:id="@+id/radiobutton_video_option2"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
-		    	android:text="Bitrate 512kb/s" 
+		    	android:text="Bitrate 512kb/s"
+		    	android:textColor="#88000000" 
 		    	android:checked="true"/>
+		    	
 		   <RadioButton
 		    	android:id="@+id/radiobutton_video_option3"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
+		    	android:textColor="#88000000"
 		    	android:text="Bitrate 1024kb/s" />
+		    	
 		 </RadioGroup>
+		 
+		 <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="@android:drawable/divider_horizontal_dark"/>
 		 
 		 <RadioGroup
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
-		   	android:orientation="vertical"
-		   	android:background="#88000000">
-		   	
+		   	android:orientation="vertical">
 		   	<TextView
 	           	android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
+	            android:textColor="#000000"
 	            android:text="Audio rate:"/>
 	            
 		   	<RadioButton
 		    	android:id="@+id/radiobutton_audio_option1"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
+		    	android:textColor="#88000000"
 		    	android:text="Audiorate 16kHz"
 		    	android:checked="true"/>
+		    	
 		   <RadioButton
 		    	android:id="@+id/radiobutton_audio_option2"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
+		    	android:textColor="#88000000"
 		    	android:text="Audiorate 32kHz"/>
 		 </RadioGroup>
 		 
+		 <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="@android:drawable/divider_horizontal_dark"/>
+            
 		 <RadioGroup
 		  	android:layout_width="fill_parent"
 		   	android:layout_height="wrap_content"
-		   	android:orientation="vertical"
-		   	android:background="#88000000">
+		   	android:orientation="vertical">
 		   	
 		   	<TextView android:id="@+id/textview_label_bitrate"
 	           	android:layout_width="fill_parent"
 	            android:layout_height="wrap_content"
+	            android:textColor="#000000"
 	            android:text="Audio channels:"/>
 	            
 		   	<RadioButton
 		    	android:id="@+id/radiobutton_audio_channel1"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
+		    	android:textColor="#88000000"
 		    	android:text="1 audio channel"/>
 		   <RadioButton
 		    	android:id="@+id/radiobutton_audio_channel2"
 		    	android:layout_width="wrap_content"
 		    	android:layout_height="wrap_content"
+		    	android:textColor="#88000000"
 		    	android:text="2 audio channels"
 		    	android:checked="true"/>
 		 </RadioGroup>
+		 
+		 <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="@android:drawable/divider_horizontal_dark"/>
 		 
 		 <TextView android:id="@+id/textview_label_framerate"
 	      	android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        android:text="@string/label_frames"
-	        android:textColor="#ffffff"/>
+	        android:textColor="#000000"/>
 		 <EditText
 	    	android:id="@+id/edittext_frames"
 	        android:layout_width="fill_parent"

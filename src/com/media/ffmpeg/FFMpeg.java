@@ -18,6 +18,8 @@ public class FFMpeg {
 	private FFMpegFile					mOutputFile;
 	
 	static {
+		//System.loadLibrary("sdl");
+		//System.loadLibrary("sdl_jni");
 		System.loadLibrary(LIB_NAME);
 	}
 	

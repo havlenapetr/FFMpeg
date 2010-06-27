@@ -1,4 +1,6 @@
-package com.media.ffmpeg.config;
+package com.media.ffmpeg.android;
+
+import com.media.ffmpeg.config.FFMpegConfig;
 
 import android.content.Context;
 import android.view.Display;

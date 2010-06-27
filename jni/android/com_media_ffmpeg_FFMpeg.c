@@ -25,6 +25,7 @@
 
 #include <android/log.h>
 #include "jniUtils.h"
+#include "methods.h"
 
 #include "config.h"
 #include <ctype.h>
@@ -4305,13 +4306,6 @@ struct fields_t
 };
 static struct fields_t fields;
 static jobject sObject;
-
-extern jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext);
-extern jobject *AVRational_create(JNIEnv *env, AVRational *rational);
-extern jobject *AVInputFormat_create(JNIEnv *env, AVInputFormat *format);
-
-extern jclass *AVFormatContext_getClass(JNIEnv *env);
-extern const char *AVInputFormat_getClassSignature();
 
 void FFMpeg_handleReport(double total_size, double time, double bitrate) {
     JNIEnv *env = getJNIEnv();

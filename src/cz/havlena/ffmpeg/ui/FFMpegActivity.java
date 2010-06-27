@@ -7,16 +7,17 @@ import java.io.IOException;
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
+import com.media.ffmpeg.FFMpegPlayerAndroid;
 import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
-import com.media.ffmpeg.config.FFMpegConfig;
-import com.media.ffmpeg.config.FFMpegConfigAndroid;
+import com.media.ffmpeg.android.FFMpegConfigAndroid;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -96,6 +97,10 @@ public class FFMpegActivity extends Activity {
     	mButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
+				//FFMpegPlayerAndroid mVideoContainer = new FFMpegPlayerAndroid();
+				//mVideoContainer.run(new String[] {"ffplay", "/sdcard/Videos/pixar.flv"});
+				//Intent i = new Intent(FFMpegActivity.this, FFMpegPlayerActivity.class);
+			    //startActivity(i);
 				FFMpegConfigAndroid config = parseConfig();
 				if(config == null) return;
 				try {
@@ -188,7 +193,7 @@ public class FFMpegActivity extends Activity {
         super.onPause();
     }
     
-    private void startConversion(String filePath, FFMpegConfig config) throws RuntimeException, IOException {
+    private void startConversion(String filePath, FFMpegConfigAndroid config) throws RuntimeException, IOException {
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);
