@@ -40,8 +40,7 @@ static void FFMpegPlayerAndroid_runPlayer(JNIEnv *env, jobject obj, jobjectArray
 		argc = (*env)->GetArrayLength(env, args);
 		argv = (char **) malloc(sizeof(char *) * argc);
 		
-		for(i=0;i<argc;i++)
-		{
+		for(i=0;i<argc;i++) {
 			jstring str = (jstring)(*env)->GetObjectArrayElement(env, args, i);
 			argv[i] = (char *)(*env)->GetStringUTFChars(env, str, NULL);   
 		}
