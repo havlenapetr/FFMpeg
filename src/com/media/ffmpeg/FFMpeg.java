@@ -4,13 +4,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import android.content.Context;
+
+import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 import com.media.ffmpeg.config.FFMpegConfig;
 
 
 public class FFMpeg {
 	
 	public static final String LIB_NAME = "ffmpeg_jni";
+	public static final String[] EXTENSIONS = new String[] {".mp4", ".flv", ".avi", ".wmv"};
 	
+	private static FFMpeg				sInstance;
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
 	
@@ -18,15 +23,21 @@ public class FFMpeg {
 	private FFMpegFile					mOutputFile;
 	
 	static {
-		//System.loadLibrary("sdl");
-		//System.loadLibrary("sdl_jni");
 		System.loadLibrary(LIB_NAME);
 	}
 	
     public FFMpeg() {
     	native_avcodec_register_all();
 		native_av_register_all();
+		sInstance = this;
     }
+    
+    /*
+    public static FFMpeg getInstance() {
+    	if(sInstance == null) sInstance = new FFMpeg();
+    	return sInstance;
+    }
+    */
 	
 	public void setListener(IFFMpegListener listener) {
 		mListener = listener;
@@ -57,6 +68,10 @@ public class FFMpeg {
 		setBitrate(config.bitrate);
 		
 		native_av_parse_options(new String[] {"ffmpeg", mOutputFile.getFile().getAbsolutePath()});
+    }
+    
+    private FFMpegPlayerAndroid getPlayer(Context context) {
+    	return new FFMpegPlayerAndroid(context);
     }
     
     public void setBitrate(String bitrate) {

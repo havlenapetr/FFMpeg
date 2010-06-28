@@ -7,7 +7,6 @@ import java.io.IOException;
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
-import com.media.ffmpeg.FFMpegPlayerAndroid;
 import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
 import com.media.ffmpeg.android.FFMpegConfigAndroid;
@@ -25,17 +24,23 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.TextView;
 
 public class FFMpegActivity extends Activity {
 	
 	private static final String TAG = "FFMpegActivity";
+	
+	private static final int		FILE_SELECT = 0;
+	public static final String		FILE_INPUT = "FFMpeg file";
 
-	private EditText 				mEditText;
+	private TextView 				mTextViewInputVideo;
+	private Button					mSelectButton;
 	private Button					mButton;
 	private RadioButton 			mRadioButtonVideo128;
 	private RadioButton 			mRadioButtonVideo512;
@@ -51,32 +56,45 @@ public class FFMpegActivity extends Activity {
 	
 	private CheckBox    			mCheckBox;
 	
-	private FFMpeg 					mFFMpegController;
+	private FFMpeg					mFFMpegController;
 	private PowerManager.WakeLock 	mWakeLock = null;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        setContentView(R.layout.ffmpeg_main);
     
-        initResourceRefs();
-        setListeners();
-        
-        mFFMpegController = new FFMpeg();
-    	mFFMpegController.setListener(new FFMpegHandler(this));
+	    initResourceRefs();
+	    setListeners();
+	        
+	    mFFMpegController = new FFMpeg();
+	  	mFFMpegController.setListener(new FFMpegHandler(this));
+	    
+	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+	
+	    Intent i = getIntent();
+	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
+	    	startFileExplorer();
+	    } else {
+	    	mTextViewInputVideo.setText(i.getStringExtra(FILE_INPUT));
+	    }
+	}
     
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
-        mEditText.setText("/sdcard/Videos/pixar.flv");
+    private void startFileExplorer() {
+    	Intent i = new Intent(FFMpegActivity.this, FFMpegFileExplorer.class);
+    	startActivityForResult(i, FILE_SELECT);
     }
-    
+        
     /**
      * Initialize all UI elements from resources.
      */
     private void initResourceRefs() {
-    	//mOutput = (TextView) findViewById(R.id.textview_output);
-    	mEditText = (EditText) findViewById(R.id.edittext_inputfile);
+    	mTextViewInputVideo = (TextView) findViewById(R.id.textview_inputfile);
+    	mSelectButton = (Button) findViewById(R.id.button_selectfile);
+    	
     	mEditTextFrames = (EditText) findViewById(R.id.edittext_frames);
     	mButton = (Button) findViewById(R.id.button_convert);
 
@@ -94,23 +112,28 @@ public class FFMpegActivity extends Activity {
     }
     
     private void setListeners() {
+    	mSelectButton.setOnClickListener(new OnClickListener() {
+			
+			public void onClick(View v) {
+				startFileExplorer();
+			}
+		});
+    	
     	mButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				//FFMpegPlayerAndroid mVideoContainer = new FFMpegPlayerAndroid();
-				//mVideoContainer.run(new String[] {"ffplay", "/sdcard/Videos/pixar.flv"});
 				//Intent i = new Intent(FFMpegActivity.this, FFMpegPlayerActivity.class);
 			    //startActivity(i);
 				FFMpegConfigAndroid config = parseConfig();
 				if(config == null) return;
 				try {
-					startConversion(mEditText.getText().toString().trim(), config);
+					startConversion(mTextViewInputVideo.getText().toString().trim(), config);
 				} catch (FileNotFoundException e) {
-					showError(e.getMessage());
+					showError(FFMpegActivity.this, e.getMessage());
 				} catch (RuntimeException e) {
-					showError(e.getMessage());
+					showError(FFMpegActivity.this, e.getMessage());
 				} catch (IOException e) {
-					showError(e.getMessage());
+					showError(FFMpegActivity.this, e.getMessage());
 				}
 			}
 		});
@@ -146,7 +169,7 @@ public class FFMpegActivity extends Activity {
 				config.frameRate = frames;
 		}
 		catch (NumberFormatException e) {
-			showError(e.getMessage());
+			showError(this, e.getMessage());
 			return null;
 		}
 		
@@ -158,8 +181,8 @@ public class FFMpegActivity extends Activity {
 		return config;
     }
     
-    private void showError(String msg) {
-    	new AlertDialog.Builder(this)  
+    protected static void showError(Context context, String msg) {
+    	new AlertDialog.Builder(context)  
         .setMessage(msg)  
         .setTitle("Error")  
         .setCancelable(true)  
@@ -235,6 +258,8 @@ public class FFMpegActivity extends Activity {
     				mDialog.show();
     				FFMpegAVFormatContext context = mFFMpegController.getInputFile().getContext();
     				mDuration = context.getDurationInSeconds();
+    				setTitle(getString(R.string.processing));
+        			setProgressBarIndeterminateVisibility(true);
     				break;
     				
     			case CONVERSION_ENDED:
@@ -245,6 +270,8 @@ public class FFMpegActivity extends Activity {
     				if(mCheckBox.isChecked()) {
     					mFFMpegController.getInputFile().delete();
     				}
+    				setTitle(getString(R.string.app_name));
+        			setProgressBarIndeterminateVisibility(false);
     				break;
     			
     			case CONVERSION_PROGRESS:
@@ -256,7 +283,9 @@ public class FFMpegActivity extends Activity {
     			case CONVERSION_ERROR:
     				Exception e = (Exception) msg.obj;
     				mDialog.dismiss();
-    				showError(e.getMessage());
+    				setTitle(getString(R.string.app_name));
+    				setProgressBarIndeterminateVisibility(false);
+    				showError(FFMpegActivity.this, e.getMessage());
     				mDuration = 0;
     				break;
     			}

@@ -17,18 +17,40 @@
         android:orientation="vertical"
         android:paddingTop="5dip">
         
-       	<TextView android:id="@+id/textview_label_bitrate"
-	      	android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:textColor="#000000"
-	        android:text="@string/label_input"/>
-	            
-	    <EditText
-	    	android:id="@+id/edittext_inputfile"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_gravity="center_vertical"
-	        android:maxLines="1"/>
+        <TextView android:id="@+id/textview_label_bitrate"
+		      	android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:textColor="#000000"
+		        android:text="@string/label_input"/>
+	        
+	    <LinearLayout
+		        	android:id="@+id/linearlayout_header"
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="5dip"
+                    android:paddingBottom="5dip"
+                    android:paddingLeft="5dip"
+                    android:paddingRight="5dip">
+                    
+            <TextView android:id="@+id/textview_inputfile"
+		      	android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_gravity="center_vertical"
+		        android:textColor="#000000"
+		        android:text="@string/label_input"/>
+                    
+           	<Button android:id="@+id/button_selectfile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="..."/>
+        </LinearLayout>
+        
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="@android:drawable/divider_horizontal_dark"/>
         
         <RadioGroup
 		  	android:layout_width="fill_parent"

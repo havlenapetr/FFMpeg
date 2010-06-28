@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <string name="app_name">ffAndy (ffmpeg tool for android)</string>
+    <string name="app_name">FFMpeg</string>
+    <string name="select_input_file">FFMpeg - please select input file</string>
+    <string name="processing">Converting . . .</string>
     <string name="type_file">input file</string>
     <string name="convert">Convert</string>
     <string name="delete_src_movie">Delete src movie</string>
