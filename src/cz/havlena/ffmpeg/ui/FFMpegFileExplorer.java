@@ -91,8 +91,8 @@ public class FFMpegFileExplorer extends ListActivity {
 			i.putExtra(FFMpegActivity.FILE_INPUT, file.getAbsolutePath());
 			setResult(RESULT_OK);
 			i.setAction(Intent.ACTION_INPUT_METHOD_CHANGED);
-			startActivity(i);
 			finish();
+			startActivity(i);
 		}
 	}
 	

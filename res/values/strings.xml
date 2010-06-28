@@ -8,7 +8,7 @@
     <string name="convert">Convert</string>
     <string name="delete_src_movie">Delete src movie</string>
     <string name="label_bitrate">Select bitrate:</string>
-    <string name="label_input">Input video:</string>
+    <string name="label_input">No video selected</string>
     <string name="label_frames">Frame rate:</string>
     
 </resources>

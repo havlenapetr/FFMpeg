@@ -15,12 +15,13 @@ public class FFMpeg {
 	public static final String LIB_NAME = "ffmpeg_jni";
 	public static final String[] EXTENSIONS = new String[] {".mp4", ".flv", ".avi", ".wmv"};
 	
-	private static FFMpeg				sInstance;
+	//private static FFMpeg				sInstance;
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
 	
 	private FFMpegFile					mInputFile;
 	private FFMpegFile					mOutputFile;
+	private boolean 					mConverting;
 	
 	static {
 		System.loadLibrary(LIB_NAME);
@@ -29,7 +30,8 @@ public class FFMpeg {
     public FFMpeg() {
     	native_avcodec_register_all();
 		native_av_register_all();
-		sInstance = this;
+		mConverting = false;
+		//sInstance = this;
     }
     
     /*
@@ -38,6 +40,10 @@ public class FFMpeg {
     	return sInstance;
     }
     */
+    
+    public boolean isConverting() {
+    	return mConverting;
+    }
 	
 	public void setListener(IFFMpegListener listener) {
 		mListener = listener;
@@ -125,13 +131,14 @@ public class FFMpeg {
     }
 	
 	public void convert() throws RuntimeException {
-		
+		mConverting = true;
 		if(mListener != null) {
 			mListener.onConversionStarted();
 		}
 		
 		native_av_convert();
 		
+		mConverting = false;
 		if(mListener != null) {
 			mListener.onConversionCompleted();
 		}
@@ -155,7 +162,7 @@ public class FFMpeg {
 	
 	public void waitOnEnd() throws InterruptedException {
 		if(mThread == null) {
-			throw new RuntimeException("You didn't call convertAsync method first");
+			return;
 		}
 		mThread.join();
 	}

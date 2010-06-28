@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegAVFormatContext;
+import com.media.ffmpeg.FFMpegFile;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
 import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
@@ -37,9 +38,10 @@ public class FFMpegActivity extends Activity {
 	private static final String TAG = "FFMpegActivity";
 	
 	private static final int		FILE_SELECT = 0;
-	public static final String		FILE_INPUT = "FFMpeg file";
+	public static final String		FILE_INPUT = "FFMpeg_file";
 
 	private TextView 				mTextViewInputVideo;
+	private TextView				mTextViewInputVideoLength;
 	private Button					mSelectButton;
 	private Button					mButton;
 	private RadioButton 			mRadioButtonVideo128;
@@ -64,13 +66,11 @@ public class FFMpegActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.ffmpeg_main);
     
 	    initResourceRefs();
 	    setListeners();
-	        
-	    mFFMpegController = new FFMpeg();
-	  	mFFMpegController.setListener(new FFMpegHandler(this));
 	    
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
@@ -79,9 +79,31 @@ public class FFMpegActivity extends Activity {
 	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
 	    } else {
-	    	mTextViewInputVideo.setText(i.getStringExtra(FILE_INPUT));
+	    	String filePath = i.getStringExtra(FILE_INPUT);
+	    	mTextViewInputVideo.setText(filePath);
+	    	try {
+	    		initFFMpeg(filePath);
+	    		FFMpegFile input = mFFMpegController.getInputFile();
+	    		FFMpegAVFormatContext.Duration duration = input.getContext().getDuration();
+	    		mTextViewInputVideoLength.setText("File length: " + 
+	    				duration.hours + "h " + duration.mins + "min " + duration.secs + "sec");
+	    	}
+	    	catch (Exception e) {
+	    		showError(this, e.getMessage());
+			}
 	    }
 	}
+    
+    private void initFFMpeg(String filePath) throws RuntimeException, IOException {
+    	String inputFile = filePath;
+    	int index = filePath.lastIndexOf(".");
+    	String before = filePath.substring(0, index);
+    	String outputFile = before + ".android.mp4";
+    	
+    	mFFMpegController = new FFMpeg();
+  		mFFMpegController.setListener(new FFMpegHandler(this));
+    	mFFMpegController.init(inputFile, outputFile);
+    }
     
     private void startFileExplorer() {
     	Intent i = new Intent(FFMpegActivity.this, FFMpegFileExplorer.class);
@@ -93,6 +115,7 @@ public class FFMpegActivity extends Activity {
      */
     private void initResourceRefs() {
     	mTextViewInputVideo = (TextView) findViewById(R.id.textview_inputfile);
+    	mTextViewInputVideoLength = (TextView) findViewById(R.id.textview_inputfile_length);
     	mSelectButton = (Button) findViewById(R.id.button_selectfile);
     	
     	mEditTextFrames = (EditText) findViewById(R.id.edittext_frames);
@@ -122,12 +145,10 @@ public class FFMpegActivity extends Activity {
     	mButton.setOnClickListener(new OnClickListener() {
 			
 			public void onClick(View v) {
-				//Intent i = new Intent(FFMpegActivity.this, FFMpegPlayerActivity.class);
-			    //startActivity(i);
 				FFMpegConfigAndroid config = parseConfig();
 				if(config == null) return;
 				try {
-					startConversion(mTextViewInputVideo.getText().toString().trim(), config);
+					startConversion(config);
 				} catch (FileNotFoundException e) {
 					showError(FFMpegActivity.this, e.getMessage());
 				} catch (RuntimeException e) {
@@ -211,18 +232,18 @@ public class FFMpegActivity extends Activity {
         	mWakeLock.release();
         }
         if(mFFMpegController != null) {
+        	Log.d(TAG, "Releasing ffmpeg");
+			if(mFFMpegController.isConverting()) {
+				Log.d(TAG, "Deleting outputfile because conversion wasn't completed");
+				mFFMpegController.getOutputFile().delete();
+			}
         	mFFMpegController.release();
         }
+        finish();
         super.onPause();
     }
     
-    private void startConversion(String filePath, FFMpegConfigAndroid config) throws RuntimeException, IOException {
-    	String inputFile = filePath;
-    	int index = filePath.lastIndexOf(".");
-    	String before = filePath.substring(0, index);
-    	String outputFile = before + ".android.mp4";
-    	
-    	mFFMpegController.init(inputFile, outputFile);
+    private void startConversion(FFMpegConfigAndroid config) throws RuntimeException, IOException {
     	mFFMpegController.setConfig(config);
     	mFFMpegController.convertAsync();
     }
@@ -255,6 +276,7 @@ public class FFMpegActivity extends Activity {
     			switch(msg.what) {
     			
     			case CONVERSION_STARTED:
+    				Log.d(TAG, "Conversion started");
     				mDialog.show();
     				FFMpegAVFormatContext context = mFFMpegController.getInputFile().getContext();
     				mDuration = context.getDurationInSeconds();
@@ -263,6 +285,7 @@ public class FFMpegActivity extends Activity {
     				break;
     				
     			case CONVERSION_ENDED:
+    				Log.d(TAG, "Conversion ended");
     				mDialog.dismiss();
 				    File outFile = mFFMpegController.getOutputFile().getFile();
     				FFMpegMediaScannerNotifier.scan(mContext, outFile.getAbsolutePath());
