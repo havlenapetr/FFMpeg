@@ -12,4 +12,20 @@
     <string name="label_input">No video selected</string>
     <string name="label_frames">Frame rate:</string>
     
+    <string name="label_no_data">No data</string>
+    
+    <string name="bitrate_128">Bitrate 128kb/s</string>
+    <string name="bitrate_512">Bitrate 512kb/s</string>
+    <string name="bitrate_1024">Bitrate 1024kb/s</string>
+    
+    <string name="label_audio_rate">Audio rate:</string>
+    <string name="audiorate_16">Audiorate 16kb/s</string>
+    <string name="audiorate_32">Audiorate 32kb/s</string>
+    
+    <string name="label_audio_chanels">Audio channels:</string>
+    <string name="audio_channels_1">1 audio channel</string>
+    <string name="audio_channels_2">2 audio channels</string>
+    
+    <string name="framerate">13</string>
+    
 </resources>
