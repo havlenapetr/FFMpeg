@@ -15,7 +15,6 @@ public class FFMpeg {
 	public static final String LIB_NAME = "ffmpeg_jni";
 	public static final String[] EXTENSIONS = new String[] {".mp4", ".flv", ".avi", ".wmv"};
 	
-	//private static FFMpeg				sInstance;
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
 	
@@ -31,15 +30,7 @@ public class FFMpeg {
     	native_avcodec_register_all();
 		native_av_register_all();
 		mConverting = false;
-		//sInstance = this;
     }
-    
-    /*
-    public static FFMpeg getInstance() {
-    	if(sInstance == null) sInstance = new FFMpeg();
-    	return sInstance;
-    }
-    */
     
     public boolean isConverting() {
     	return mConverting;
@@ -76,7 +67,7 @@ public class FFMpeg {
 		native_av_parse_options(new String[] {"ffmpeg", mOutputFile.getFile().getAbsolutePath()});
     }
     
-    private FFMpegPlayerAndroid getPlayer(Context context) {
+    public FFMpegPlayerAndroid getPlayer(Context context) {
     	return new FFMpegPlayerAndroid(context);
     }
     

@@ -4,10 +4,15 @@
 #include <android/log.h>
 #include "jniUtils.h"
 
+extern "C" {
+
 extern int register_android_media_FFMpegAVRational(JNIEnv *env);
 extern int register_android_media_FFMpeg(JNIEnv *env);
 extern int register_android_media_FFMpegAVFormatContext(JNIEnv *env);
 extern int register_android_media_FFMpegAVInputFormat(JNIEnv *env);
+
+}
+
 #ifdef BUILD_WITH_PLAYER
 extern int register_android_media_FFMpegPlayerAndroid(JNIEnv *env);
 #endif
@@ -18,7 +23,7 @@ static JavaVM *sVm;
  * Throw an exception with the specified class and an optional message.
  */
 int jniThrowException(JNIEnv* env, const char* className, const char* msg) {
-    jclass exceptionClass = (*env)->FindClass(env, className);
+    jclass exceptionClass = env->FindClass(className);
     if (exceptionClass == NULL) {
         __android_log_print(ANDROID_LOG_ERROR,
 			    TAG,
@@ -27,7 +32,7 @@ int jniThrowException(JNIEnv* env, const char* className, const char* msg) {
         return -1;
     }
 
-    if ((*env)->ThrowNew(env, exceptionClass, msg) != JNI_OK) {
+    if (env->ThrowNew(exceptionClass, msg) != JNI_OK) {
         __android_log_print(ANDROID_LOG_ERROR,
 			    TAG,
 			    "Failed throwing '%s' '%s'",
@@ -38,7 +43,7 @@ int jniThrowException(JNIEnv* env, const char* className, const char* msg) {
 
 JNIEnv* getJNIEnv() {
     JNIEnv* env = NULL;
-    if ((*sVm)->GetEnv(sVm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+    if (sVm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
 	__android_log_print(ANDROID_LOG_ERROR,
 			    TAG,
 			    "Failed to obtain JNIEnv");
@@ -60,12 +65,12 @@ int jniRegisterNativeMethods(JNIEnv* env,
     jclass clazz;
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "Registering %s natives\n", className);
-    clazz = (*env)->FindClass(env, className);
+    clazz = env->FindClass(className);
     if (clazz == NULL) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Native registration unable to find class '%s'\n", className);
         return -1;
     }
-    if ((*env)->RegisterNatives(env, clazz, gMethods, numMethods) < 0) {
+    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "RegisterNatives failed for '%s'\n", className);
         return -1;
     }
@@ -77,7 +82,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     jint result = JNI_ERR;
 	sVm = vm;
 
-    if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK) {
+    if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "GetEnv failed!");
         return result;
     }

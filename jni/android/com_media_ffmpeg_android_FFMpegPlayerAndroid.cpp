@@ -1,10 +1,14 @@
+#include <android/log.h>
+#include "jniUtils.h"
+#include "methods.h"
+
+extern "C" {
+
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 
-#include <android/log.h>
-#include "jniUtils.h"
-#include "methods.h"
+} // end of extern C
 
 #define TAG "FFMpegPlayerAndroid"
 
@@ -12,6 +16,8 @@ struct fields_t {
 	jfieldID    surface;
 };
 static struct fields_t fields;
+
+extern "C" {
 
 void FFMpegPlayerAndroid_saveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
 	FILE *pFile;
@@ -42,7 +48,6 @@ void FFMpegPlayerAndroid_play(int argc, char **argv) {
 		AVCodec *pCodec;
 		AVFormatContext *pFormatCtx;
 		struct SwsContext *img_convert_ctx;
-
 
 		__android_log_print(ANDROID_LOG_INFO, TAG, "playing");
 
@@ -153,6 +158,8 @@ void FFMpegPlayerAndroid_play(int argc, char **argv) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 }
 
+} // end of extern C
+
 static int FFMpegPlayerAndroid_drawFrame(AVFrame *pFrame, int width, int height) {
 
 }
@@ -164,12 +171,12 @@ static void FFMpegPlayerAndroid_runPlayer(JNIEnv *env, jobject obj, jobjectArray
 	__android_log_print(ANDROID_LOG_INFO, TAG, "parsing args");
 
 	if (args != NULL) {
-		argc = (*env)->GetArrayLength(env, args);
+		argc = env->GetArrayLength(args);
 		argv = (char **) malloc(sizeof(char *) * argc);
 		int i=0;
 		for(i=0;i<argc;i++) {
-			jstring str = (jstring)(*env)->GetObjectArrayElement(env, args, i);
-			argv[i] = (char *)(*env)->GetStringUTFChars(env, str, NULL);
+			jstring str = (jstring)env->GetObjectArrayElement(args, i);
+			argv[i] = (char *)env->GetStringUTFChars(str, NULL);
 		}
 	}
 	
@@ -179,7 +186,7 @@ static void FFMpegPlayerAndroid_runPlayer(JNIEnv *env, jobject obj, jobjectArray
 static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject surface) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	int surface_ptr = (*env)->GetIntField(env, surface, fields.surface);
+	int surface_ptr = env->GetIntField(surface, fields.surface);
 	/*if(sSurface == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Native surface is NULL");
 	    return;
@@ -200,12 +207,12 @@ static JNINativeMethod methods[] = {
 };
 	
 int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
-	jclass clazz = (*env)->FindClass(env, "android/view/Surface");
+	jclass clazz = env->FindClass("android/view/Surface");
 	if(clazz == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native surface");
 	    return JNI_ERR;
 	}
-	fields.surface = (*env)->GetFieldID(env, clazz, "mSurface", "I");
+	fields.surface = env->GetFieldID(clazz, "mSurface", "I");
 	if(fields.surface == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native mSurface");
 	    return JNI_ERR;

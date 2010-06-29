@@ -1,14 +1,16 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-WITH_PLAYER := false
+WITH_PLAYER := true
+
+LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS
 
 ifeq ($(WITH_PLAYER),true)
-LOCAL_CFLAGS := -DBUILD_WITH_PLAYER
+LOCAL_CFLAGS += -DBUILD_WITH_PLAYER
 endif
 
 LOCAL_SRC_FILES := \
-		android/onLoad.c \
+		android/onLoad.cpp \
 		android/com_media_ffmpeg_FFMpegAVInputFormat.c \
 		android/com_media_ffmpeg_FFMpegAVRational.c \
 		android/com_media_ffmpeg_FFMpegAVFormatContext.c \
@@ -17,7 +19,7 @@ LOCAL_SRC_FILES := \
 		
 ifeq ($(WITH_PLAYER),true)
 LOCAL_SRC_FILES += \
-	android/com_media_ffmpeg_android_FFMpegPlayerAndroid.c
+	android/com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
 endif
 		
 LOCAL_LDLIBS := -llog
