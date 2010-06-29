@@ -34,6 +34,12 @@ import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+/**
+ * Main android activity which handles all ffmpeg operations
+ * 
+ * @author petr
+ *
+ */
 public class FFMpegActivity extends Activity {
 	
 	private static final String TAG = "FFMpegActivity";
@@ -241,6 +247,12 @@ public class FFMpegActivity extends Activity {
     	mFFMpegController.convertAsync();
     }
     
+    /**
+     * Listener for handling ffmpeg events a process them on android gui
+     * 
+     * @author petr
+     *
+     */
     private class FFMpegHandler implements IFFMpegListener {
     	
     	private static final int CONVERSION_ERROR = -1;
@@ -267,12 +279,34 @@ public class FFMpegActivity extends Activity {
     	
     	private void runAnimation() {
     		mAnimating = true;
+    		Log.d(TAG, "Starting animation");
     		mDrawerThread = new Thread() {
     			@Override
     			public void run() {
     	    		int imageIndex = 0;
     				while(mAnimating) {
-    					Message msg = mHanlder.obtainMessage(CHANGE_BUTTON_IMAGE, imageIndex, 0);
+    					int id = 0;
+    					switch(imageIndex) {
+    					case 0:
+    						id = R.drawable.ic_popup_sync_1;
+    						break;
+    					case 1:
+    						id = R.drawable.ic_popup_sync_2;
+    						break;
+    					case 2:
+    						id = R.drawable.ic_popup_sync_3;
+    						break;
+    					case 3:
+    						id = R.drawable.ic_popup_sync_4;
+    						break;
+    					case 4:
+    						id = R.drawable.ic_popup_sync_5;
+    						break;
+    					case 5:
+    						id = R.drawable.ic_popup_sync_6;
+    						break;
+    					}
+    					Message msg = mHanlder.obtainMessage(CHANGE_BUTTON_IMAGE, id, 0);
     					mHanlder.sendMessage(msg);
     					
     					imageIndex++;
@@ -284,6 +318,9 @@ public class FFMpegActivity extends Activity {
 							sleep(200);
 						} catch (InterruptedException e) {}
     				}
+    				
+    				Message msg = mHanlder.obtainMessage(CHANGE_BUTTON_IMAGE, R.drawable.ic_menu_movie, 0);
+    				mHanlder.sendMessage(msg);
     			}
     		};
     		mDrawerThread.start();
@@ -291,13 +328,13 @@ public class FFMpegActivity extends Activity {
     	
     	private void stopAnimation() {
     		mAnimating = false;
+    		Log.d(TAG, "Stopping animation");
     		try {
 				mDrawerThread.join();
 				mDrawerThread = null;
 			} catch (InterruptedException e) {
 				Log.d(TAG, "Can't wait no more for mDrawerThread");
 			}
-			mSelectButton.setImageResource(R.drawable.ic_menu_movie);
     	}
     	
     	private Handler mHanlder = new Handler() {
@@ -348,26 +385,7 @@ public class FFMpegActivity extends Activity {
     				break;
     				
     			case CHANGE_BUTTON_IMAGE:
-    				switch(msg.arg1) {
-					case 0:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_1);
-						break;
-					case 1:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_2);
-						break;
-					case 2:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_3);
-						break;
-					case 3:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_4);
-						break;
-					case 4:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_5);
-						break;
-					case 5:
-						mSelectButton.setImageResource(R.drawable.ic_popup_sync_6);
-						break;
-					}
+    				mSelectButton.setImageResource(msg.arg1);
     				break;
     			}
     		}

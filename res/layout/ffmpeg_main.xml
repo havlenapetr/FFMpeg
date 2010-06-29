@@ -30,7 +30,8 @@
 				android:orientation="vertical" 
 				android:layout_width="fill_parent"
 				android:layout_height="wrap_content"
-				android:layout_gravity="center_vertical">
+				android:layout_gravity="center_vertical"
+				android:paddingLeft="5dip">
 				
 				<TextView 
 					android:id="@+id/textview_inputfile"
@@ -44,7 +45,8 @@
 					android:id="@+id/textview_inputfile_length"
 					android:layout_width="wrap_content" 
 					android:layout_height="wrap_content" 
-					android:text="@string/input_file_info"/>
+					android:text="@string/input_file_info"
+					android:textSize="12sp"/>
 			</LinearLayout>
 		</LinearLayout>
 	</LinearLayout>
