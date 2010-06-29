@@ -1,17 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := test/ffplayer.c
-
-LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale
-
-LOCAL_MODULE := ffplayer
-
-include $(BUILD_EXECUTABLE)
-
-# build android native lib
-include $(CLEAR_VARS)
-
 WITH_PLAYER := false
 
 ifeq ($(WITH_PLAYER),true)
