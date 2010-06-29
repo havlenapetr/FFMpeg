@@ -12,11 +12,11 @@ import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
 import com.media.ffmpeg.android.FFMpegConfigAndroid;
 
+import cz.havlena.android.ui.MessageBox;
+
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.os.Bundle;
@@ -30,6 +30,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
@@ -42,7 +43,7 @@ public class FFMpegActivity extends Activity {
 
 	private TextView 				mTextViewInputVideo;
 	private TextView				mTextViewInputVideoLength;
-	private Button					mSelectButton;
+	private ImageButton				mSelectButton;
 	private Button					mButton;
 	private RadioButton 			mRadioButtonVideo128;
 	private RadioButton 			mRadioButtonVideo512;
@@ -75,6 +76,7 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 	
+	    /*
 	    Intent i = getIntent();
 	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
@@ -85,13 +87,13 @@ public class FFMpegActivity extends Activity {
 	    		initFFMpeg(filePath);
 	    		FFMpegFile input = mFFMpegController.getInputFile();
 	    		FFMpegAVFormatContext.Duration duration = input.getContext().getDuration();
-	    		mTextViewInputVideoLength.setText("File length: " + 
+	    		mTextViewInputVideoLength.setText(getString(R.string.input_file_info) + " " + 
 	    				duration.hours + "h " + duration.mins + "min " + duration.secs + "sec");
 	    	}
 	    	catch (Exception e) {
-	    		showError(this, e.getMessage());
+	    		showError(this, e);
 			}
-	    }
+	    }*/
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {
@@ -116,7 +118,7 @@ public class FFMpegActivity extends Activity {
     private void initResourceRefs() {
     	mTextViewInputVideo = (TextView) findViewById(R.id.textview_inputfile);
     	mTextViewInputVideoLength = (TextView) findViewById(R.id.textview_inputfile_length);
-    	mSelectButton = (Button) findViewById(R.id.button_selectfile);
+    	mSelectButton = (ImageButton) findViewById(R.id.button_selectfile);
     	
     	mEditTextFrames = (EditText) findViewById(R.id.edittext_frames);
     	mButton = (Button) findViewById(R.id.button_convert);
@@ -150,11 +152,11 @@ public class FFMpegActivity extends Activity {
 				try {
 					startConversion(config);
 				} catch (FileNotFoundException e) {
-					showError(FFMpegActivity.this, e.getMessage());
+					showError(FFMpegActivity.this, e);
 				} catch (RuntimeException e) {
-					showError(FFMpegActivity.this, e.getMessage());
+					showError(FFMpegActivity.this, e);
 				} catch (IOException e) {
-					showError(FFMpegActivity.this, e.getMessage());
+					showError(FFMpegActivity.this, e);
 				}
 			}
 		});
@@ -190,7 +192,7 @@ public class FFMpegActivity extends Activity {
 				config.frameRate = frames;
 		}
 		catch (NumberFormatException e) {
-			showError(this, e.getMessage());
+			showError(this, e);
 			return null;
 		}
 		
@@ -202,16 +204,8 @@ public class FFMpegActivity extends Activity {
 		return config;
     }
     
-    protected static void showError(Context context, String msg) {
-    	new AlertDialog.Builder(context)  
-        .setMessage(msg)  
-        .setTitle("Error")  
-        .setCancelable(true)  
-        .setNeutralButton(android.R.string.cancel,  
-           new DialogInterface.OnClickListener() {  
-           public void onClick(DialogInterface dialog, int whichButton){}  
-           })  
-        .show();
+    protected void showError(Context context, Exception ex) {
+    	MessageBox.show(context, ex);
     }
     
     @Override
@@ -254,12 +248,16 @@ public class FFMpegActivity extends Activity {
     	private static final int CONVERSION_PROGRESS = 1;
     	private static final int CONVERSION_STARTED = 3;
     	private static final int CONVERSION_ENDED = 4;
+    	private static final int CHANGE_BUTTON_IMAGE = 5;
     	
     	private ProgressDialog 	mDialog;
     	private Context 		mContext;
+    	private Thread			mDrawerThread;
+    	private boolean 		mAnimating;
     	
     	public FFMpegHandler(Context context) {
     		mContext = context;
+    		mAnimating = false;
     		mDialog = new ProgressDialog(context);
     		mDialog.setMax(100);
     		mDialog.setMessage("Converting video to mp4 ...");
@@ -267,6 +265,41 @@ public class FFMpegActivity extends Activity {
     		mDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     		mDialog.setCancelable(false);
 		}
+    	
+    	private void runAnimation() {
+    		mAnimating = true;
+    		mDrawerThread = new Thread() {
+    			@Override
+    			public void run() {
+    	    		int imageIndex = 0;
+    				while(mAnimating) {
+    					Message msg = mHanlder.obtainMessage(CHANGE_BUTTON_IMAGE, imageIndex, 0);
+    					mHanlder.sendMessage(msg);
+    					
+    					imageIndex++;
+						if(imageIndex > 5) {
+							imageIndex = 0;
+						}
+						
+    					try {
+							sleep(200);
+						} catch (InterruptedException e) {}
+    				}
+    			}
+    		};
+    		mDrawerThread.start();
+    	}
+    	
+    	private void stopAnimation() {
+    		mAnimating = false;
+    		try {
+				mDrawerThread.join();
+				mDrawerThread = null;
+			} catch (InterruptedException e) {
+				Log.d(TAG, "Can't wait no more for mDrawerThread");
+			}
+			mSelectButton.setImageResource(R.drawable.ic_menu_movie);
+    	}
     	
     	private Handler mHanlder = new Handler() {
     		private int mDuration;
@@ -282,6 +315,7 @@ public class FFMpegActivity extends Activity {
     				mDuration = context.getDurationInSeconds();
     				setTitle(getString(R.string.processing));
         			setProgressBarIndeterminateVisibility(true);
+        			runAnimation();
     				break;
     				
     			case CONVERSION_ENDED:
@@ -295,6 +329,7 @@ public class FFMpegActivity extends Activity {
     				}
     				setTitle(getString(R.string.app_name));
         			setProgressBarIndeterminateVisibility(false);
+        			stopAnimation();
     				break;
     			
     			case CONVERSION_PROGRESS:
@@ -308,8 +343,32 @@ public class FFMpegActivity extends Activity {
     				mDialog.dismiss();
     				setTitle(getString(R.string.app_name));
     				setProgressBarIndeterminateVisibility(false);
-    				showError(FFMpegActivity.this, e.getMessage());
+    				showError(FFMpegActivity.this, e);
     				mDuration = 0;
+    				stopAnimation();
+    				break;
+    				
+    			case CHANGE_BUTTON_IMAGE:
+    				switch(msg.arg1) {
+					case 0:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_1);
+						break;
+					case 1:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_2);
+						break;
+					case 2:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_3);
+						break;
+					case 3:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_4);
+						break;
+					case 4:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_5);
+						break;
+					case 5:
+						mSelectButton.setImageResource(R.drawable.ic_popup_sync_6);
+						break;
+					}
     				break;
     			}
     		}

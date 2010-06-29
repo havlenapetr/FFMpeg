@@ -20,6 +20,10 @@ public class FFMpegFile {
 		return mContext;
 	}
 	
+	public boolean exists() {
+		return mFile.exists();
+	}
+	
 	public void delete() {
 		mFile.delete();
 		mFile = null;

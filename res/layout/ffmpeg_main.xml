@@ -5,29 +5,48 @@
     android:layout_height="fill_parent"
     android:background="#fafafa">
     
-    <LinearLayout android:id="@+id/linearlayout_header"
-		android:orientation="vertical" android:layout_width="fill_parent"
-		android:layout_height="wrap_content" android:background="@drawable/bottombar_landscape_565">
+    <LinearLayout 
+    	android:id="@+id/linearlayout_header"
+		android:orientation="vertical" 
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:background="@drawable/bottombar_landscape_565">
 	
-		<LinearLayout android:id="@+id/linearlayout_header"
-			android:orientation="horizontal" android:layout_width="fill_parent"
+		<LinearLayout 
+			android:id="@+id/linearlayout_header"
+			android:orientation="horizontal" 
+			android:layout_width="fill_parent"
 			android:layout_height="wrap_content">
 	
-			<Button android:id="@+id/button_selectfile"
-				android:layout_width="wrap_content" android:layout_height="wrap_content"
-				android:layout_gravity="center_vertical" android:background="@drawable/ic_menu_movie" />
+			<ImageButton 
+				android:id="@+id/button_selectfile"
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_vertical" 
+				android:src="@drawable/ic_menu_movie" />
 	
-			<TextView android:id="@+id/textview_inputfile"
-				android:layout_width="wrap_content" android:layout_height="wrap_content"
-				android:layout_gravity="center_vertical" android:textColor="#000000"
-				android:text="@string/label_input" android:textSize="18sp" />
-	
+			<LinearLayout 
+		    	android:id="@+id/linearlayout_header"
+				android:orientation="vertical" 
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_vertical">
+				
+				<TextView 
+					android:id="@+id/textview_inputfile"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content" 
+					android:textColor="#000000"
+					android:text="@string/label_input" 
+					android:textSize="18sp" />
+					
+				<TextView 
+					android:id="@+id/textview_inputfile_length"
+					android:layout_width="wrap_content" 
+					android:layout_height="wrap_content" 
+					android:text="@string/input_file_info"/>
+			</LinearLayout>
 		</LinearLayout>
-	
-		<TextView android:id="@+id/textview_inputfile_length"
-			android:layout_width="wrap_content" android:layout_height="wrap_content"
-			android:layout_gravity="center_vertical" android:text="00:00:00"/>
-	
 	</LinearLayout>
     
     <ScrollView
@@ -158,27 +177,29 @@
 	        android:layout_gravity="center_vertical"
 	        android:maxLines="1"
 	        android:text="13"/>
-		 
-		 <LinearLayout
+
+	     <LinearLayout
 			android:id="@+id/linearlayout_bottom"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="vertical"
-	        android:background="@drawable/bottombar_landscape_565">
-	        
-			 <CheckBox
-			 	android:id="@+id/checkbox_delete_source"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="vertical"
+		    android:gravity="bottom"
+		    android:background="@drawable/bottombar_landscape_565">
+		        
+			<CheckBox
+				android:id="@+id/checkbox_delete_source"
 			  	android:layout_width="fill_parent"
 			   	android:layout_height="wrap_content"
 			   	android:text="@string/delete_src_movie"
 			   	android:checked="false"
 			   	android:textColor="#88000000"/>
-			   	
-			 <Button android:id="@+id/button_convert"
-	           	android:layout_width="fill_parent"
-	            android:layout_height="wrap_content"
-	            android:text="@string/convert"/>
-	      </LinearLayout>
+				   	
+			<Button 
+				android:id="@+id/button_convert"
+		       	android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:text="@string/convert"/>
+		</LinearLayout>
 	        
     </LinearLayout>
     

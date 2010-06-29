@@ -6,6 +6,8 @@ import java.util.Comparator;
 
 import com.media.ffmpeg.FFMpeg;
 
+import cz.havlena.android.ui.MessageBox;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +17,8 @@ import android.widget.TextView;
 
 public class FFMpegFileExplorer extends ListActivity {
 
+	private static final String TAG = "FFMpegFileExplorer";
+	
 	private String 			mRoot = "/sdcard";
 	private TextView 		mTextViewLocation;
 	private File[]			mFiles;
@@ -49,24 +53,28 @@ public class FFMpegFileExplorer extends ListActivity {
 	}
 
 	private void getDirectory(String dirPath) {
-		mTextViewLocation.setText("Location: " + dirPath);
-
-		File f = new File(dirPath);
-		File[] temp = f.listFiles();
-		
-		sortFilesByDirectory(temp);
-		
-		File[] files = null;
-		if(!dirPath.equals(mRoot)) {
-			files = new File[temp.length + 1];
-			System.arraycopy(temp, 0, files, 1, temp.length);
-			files[0] = new File(f.getParent());
-		} else {
-			files = temp;
+		try {
+			mTextViewLocation.setText("Location: " + dirPath);
+	
+			File f = new File(dirPath);
+			File[] temp = f.listFiles();
+			
+			sortFilesByDirectory(temp);
+			
+			File[] files = null;
+			if(!dirPath.equals(mRoot)) {
+				files = new File[temp.length + 1];
+				System.arraycopy(temp, 0, files, 1, temp.length);
+				files[0] = new File(f.getParent());
+			} else {
+				files = temp;
+			}
+			
+			mFiles = files;
+			setListAdapter(new FileExplorerAdapter(this, files, temp.length == files.length));
+		} catch(Exception ex) {
+			MessageBox.show(this, "Error", ex.getMessage());
 		}
-		
-		mFiles = files;
-		setListAdapter(new FileExplorerAdapter(this, files, temp.length == files.length));
 	}
 	
 	@Override
@@ -77,14 +85,14 @@ public class FFMpegFileExplorer extends ListActivity {
 			if (file.canRead())
 				getDirectory(file.getAbsolutePath());
 			else {
-				FFMpegActivity.showError(this, "[" + file.getName() + "] folder can't be read!");
+				MessageBox.show(this, "Error", "[" + file.getName() + "] folder can't be read!");
 			}
 		} else {
 			if(!checkExtension(file)) {
 				StringBuilder strBuilder = new StringBuilder();
 				for(int i=0;i<FFMpeg.EXTENSIONS.length;i++)
 					strBuilder.append(FFMpeg.EXTENSIONS[i] + " ");
-				FFMpegActivity.showError(this, "File must have this extensions: " + strBuilder.toString());
+				MessageBox.show(this, "Error", "File must have this extensions: " + strBuilder.toString());
 				return;
 			}
 			Intent i = new Intent(FFMpegFileExplorer.this, FFMpegActivity.class);

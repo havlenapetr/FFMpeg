@@ -5,6 +5,7 @@
     <string name="select_input_file">FFMpeg - please select input file</string>
     <string name="processing">Converting . . .</string>
     <string name="type_file">input file</string>
+    <string name="input_file_info">File info:</string>
     <string name="convert">Convert</string>
     <string name="delete_src_movie">Delete src movie</string>
     <string name="label_bitrate">Select bitrate:</string>
