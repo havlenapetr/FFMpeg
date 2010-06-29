@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 WITH_PLAYER := true
-IN_NDK := false
+IN_NDK := true
 
 LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS
 
