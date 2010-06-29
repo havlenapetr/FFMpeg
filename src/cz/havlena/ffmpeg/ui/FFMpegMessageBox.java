@@ -1,10 +1,10 @@
-package cz.havlena.android.ui;
+package cz.havlena.ffmpeg.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 
-public class MessageBox {
+public class FFMpegMessageBox {
 	
 	public static void show(Context context, String title, String msg) {
 		new AlertDialog.Builder(context)  

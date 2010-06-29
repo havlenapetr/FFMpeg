@@ -12,8 +12,6 @@ import com.media.ffmpeg.FFMpegReport;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
 import com.media.ffmpeg.android.FFMpegConfigAndroid;
 
-import cz.havlena.android.ui.MessageBox;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -210,7 +208,7 @@ public class FFMpegActivity extends Activity {
     }
     
     protected void showError(Context context, Exception ex) {
-    	MessageBox.show(context, ex);
+    	FFMpegMessageBox.show(context, ex);
     }
     
     @Override

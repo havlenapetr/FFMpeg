@@ -6,8 +6,6 @@ import java.util.Comparator;
 
 import com.media.ffmpeg.FFMpeg;
 
-import cz.havlena.android.ui.MessageBox;
-
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -73,7 +71,7 @@ public class FFMpegFileExplorer extends ListActivity {
 			mFiles = files;
 			setListAdapter(new FileExplorerAdapter(this, files, temp.length == files.length));
 		} catch(Exception ex) {
-			MessageBox.show(this, "Error", ex.getMessage());
+			FFMpegMessageBox.show(this, "Error", ex.getMessage());
 		}
 	}
 	
@@ -85,14 +83,14 @@ public class FFMpegFileExplorer extends ListActivity {
 			if (file.canRead())
 				getDirectory(file.getAbsolutePath());
 			else {
-				MessageBox.show(this, "Error", "[" + file.getName() + "] folder can't be read!");
+				FFMpegMessageBox.show(this, "Error", "[" + file.getName() + "] folder can't be read!");
 			}
 		} else {
 			if(!checkExtension(file)) {
 				StringBuilder strBuilder = new StringBuilder();
 				for(int i=0;i<FFMpeg.EXTENSIONS.length;i++)
 					strBuilder.append(FFMpeg.EXTENSIONS[i] + " ");
-				MessageBox.show(this, "Error", "File must have this extensions: " + strBuilder.toString());
+				FFMpegMessageBox.show(this, "Error", "File must have this extensions: " + strBuilder.toString());
 				return;
 			}
 			Intent i = new Intent(FFMpegFileExplorer.this, FFMpegActivity.class);
