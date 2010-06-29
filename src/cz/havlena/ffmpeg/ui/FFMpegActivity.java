@@ -76,7 +76,6 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 	
-	    /*
 	    Intent i = getIntent();
 	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
@@ -93,7 +92,7 @@ public class FFMpegActivity extends Activity {
 	    	catch (Exception e) {
 	    		showError(this, e);
 			}
-	    }*/
+	    }
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {
