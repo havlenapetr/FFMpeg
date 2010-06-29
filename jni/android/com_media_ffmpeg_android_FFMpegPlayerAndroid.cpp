@@ -161,7 +161,7 @@ void FFMpegPlayerAndroid_play(int argc, char **argv) {
 } // end of extern C
 
 static int FFMpegPlayerAndroid_drawFrame(AVFrame *pFrame, int width, int height) {
-
+   	return 0;
 }
 
 static void FFMpegPlayerAndroid_runPlayer(JNIEnv *env, jobject obj, jobjectArray args) {
