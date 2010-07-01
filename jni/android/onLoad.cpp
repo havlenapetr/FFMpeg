@@ -13,6 +13,8 @@ extern int register_android_media_FFMpegAVInputFormat(JNIEnv *env);
 
 }
 
+extern int register_android_media_FFMpegUtils(JNIEnv *env);
+
 #ifdef BUILD_WITH_PLAYER
 extern int register_android_media_FFMpegPlayerAndroid(JNIEnv *env);
 #endif
@@ -109,6 +111,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     	goto end;
     }
 	
+	if(register_android_media_FFMpegUtils(env) != JNI_OK) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegUtils");
+		goto end;
+	}
+
 #ifdef BUILD_WITH_PLAYER
 	if(register_android_media_FFMpegPlayerAndroid(env) != JNI_OK) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegPlayerAndroid");

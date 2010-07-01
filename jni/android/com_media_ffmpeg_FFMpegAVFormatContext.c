@@ -18,7 +18,7 @@ const char *AVFormatContext_getClassSignature() {
 	return "Lcom/media/ffmpeg/FFMpegAVFormatContext;";
 }
 
-jobject *AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext) {
+jobject AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext) {
 	jclass *clazz = AVFormatContext_getClass(env);
 	jobject result = (*env)->NewObject(env, clazz, fields.constructor);
 

@@ -9,6 +9,7 @@ import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.FFMpegFile;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
 import com.media.ffmpeg.FFMpegReport;
+import com.media.ffmpeg.FFMpegUtils;
 import com.media.ffmpeg.FFMpeg.IFFMpegListener;
 import com.media.ffmpeg.android.FFMpegConfigAndroid;
 
@@ -80,6 +81,17 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 	
+	    mFFMpegController = new FFMpeg();
+  		mFFMpegController.setListener(new FFMpegHandler(this));
+  		FFMpegUtils utils = mFFMpegController.getUtils();
+  		try {
+  			FFMpegAVFormatContext c = utils.setInputFile("/sdcard/Videos/pixar.flv");
+  			utils.setOutput("/sdcard/frames");
+			utils.printToSdcard(c);
+		} catch (IOException e) {
+			Log.e(TAG , e.getMessage());
+		}
+	    /*
 	    Intent i = getIntent();
 	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
@@ -97,6 +109,7 @@ public class FFMpegActivity extends Activity {
 	    		showError(this, e);
 			}
 	    }
+	    */
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {

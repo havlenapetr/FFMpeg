@@ -32,6 +32,10 @@ public class FFMpeg {
 		mConverting = false;
     }
     
+    public FFMpegUtils getUtils() {
+    	return new FFMpegUtils();
+    }
+    
     public boolean isConverting() {
     	return mConverting;
     }
