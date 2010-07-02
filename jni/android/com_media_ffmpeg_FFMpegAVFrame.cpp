@@ -10,62 +10,65 @@ struct fields_t
 };
 static struct fields_t fields;
 
-jclass *AVFrame_getClass(JNIEnv *env) {
-	return env->FindClass(env, "com/media/ffmpeg/FFMpegAVFrame");
+jclass AVFrame_getClass(JNIEnv *env) {
+	return env->FindClass("com/media/ffmpeg/FFMpegAVFrame");
 }
 
 const char *AVFrame_getClassSignature() {
 	return "Lcom/media/ffmpeg/FFMpegAVFrame;";
 }
 
-jobject *AVFrame_create(JNIEnv *env, AVFrame *frame) {
-	jclass *clazz = AVFrame_getClass(env);
-	jobject result = env->NewObject(env, clazz, fields.constructor);
+jobject AVFrame_create(JNIEnv *env, AVFrame *frame) {
+	jclass clazz = AVFrame_getClass(env);
+	jobject result = env->NewObject(clazz, fields.constructor);
 
+	env->SetIntField(result,
+					 env->GetFieldID(clazz, "mPointer", "I"),
+					 (jint)frame);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mKeyFrame", "I"), 
-					frame->key_frame);
+					 env->GetFieldID(clazz, "mKeyFrame", "I"),
+					 frame->key_frame);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mPictType", "I"), 
+					 env->GetFieldID(clazz, "mPictType", "I"),
 					 frame->pict_type);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mCodedPictureNumber", "I"), 
+					 env->GetFieldID(clazz, "mCodedPictureNumber", "I"),
 					 frame->coded_picture_number);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mDisplayPictureNumber", "I"), 
+					 env->GetFieldID(clazz, "mDisplayPictureNumber", "I"),
 					 frame->display_picture_number);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mQuality", "I"), 
+					 env->GetFieldID(clazz, "mQuality", "I"),
 					 frame->quality);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mAge", "I"), 
+					 env->GetFieldID(clazz, "mAge", "I"),
 					 frame->age);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mReference", "I"), 
+					 env->GetFieldID(clazz, "mReference", "I"),
 					 frame->reference);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mQstride", "I"), 
+					 env->GetFieldID(clazz, "mQstride", "I"),
 					 frame->qstride);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mType", "I"), 
+					 env->GetFieldID(clazz, "mType", "I"),
 					 frame->type);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mRepeatPict", "I"), 
+					 env->GetFieldID(clazz, "mRepeatPict", "I"),
 					 frame->repeat_pict);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mQscaleType", "I"), 
+					 env->GetFieldID(clazz, "mQscaleType", "I"),
 					 frame->qscale_type);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mInterlacedFrame", "I"), 
+					 env->GetFieldID(clazz, "mInterlacedFrame", "I"),
 					 frame->interlaced_frame);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mTopFieldFirst", "I"), 
+					 env->GetFieldID(clazz, "mTopFieldFirst", "I"),
 					 frame->top_field_first);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mPaletteHasChanged", "I"), 
+					 env->GetFieldID(clazz, "mPaletteHasChanged", "I"),
 					 frame->palette_has_changed);
 	env->SetIntField(result, 
-					 env->GetFieldID(env, clazz, "mBufferHints", "I"), 
+					 env->GetFieldID(clazz, "mBufferHints", "I"),
 					 frame->buffer_hints);
 
 	return result;
@@ -85,8 +88,8 @@ static JNINativeMethod methods[] = {
 };
 
 int register_android_media_FFMpegAVFrame(JNIEnv *env) {
-	jclass *clazz = AVFrame_getClass(env);
-	fields.constructor = env->GetMethodID(env, clazz, "<init>", "()V");
+	jclass clazz = AVFrame_getClass(env);
+	fields.constructor = env->GetMethodID(clazz, "<init>", "()V");
 	if (fields.constructor == NULL) {
 		jniThrowException(env,
 	                      "java/lang/RuntimeException",

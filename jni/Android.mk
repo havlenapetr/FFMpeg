@@ -9,6 +9,7 @@ endif
 
 LOCAL_SRC_FILES := \
 		android/onLoad.cpp \
+		android/com_media_ffmpeg_FFMpegAVFrame.cpp \
 		android/com_media_ffmpeg_FFMpegAVInputFormat.c \
 		android/com_media_ffmpeg_FFMpegAVRational.c \
 		android/com_media_ffmpeg_FFMpegAVFormatContext.c \

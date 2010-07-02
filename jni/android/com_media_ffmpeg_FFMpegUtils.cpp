@@ -14,10 +14,19 @@ extern "C" {
 
 struct fields_t {
 	jfieldID    surface;
+	jmethodID   clb_onVideoFrame;
 };
 static struct fields_t fields;
 
 static const char *framesOutput = NULL;
+
+jclass FFMpegUtils_getClass(JNIEnv *env) {
+	return env->FindClass("com/media/ffmpeg/FFMpegUtils");
+}
+
+const char *FFMpegUtils() {
+	return "Lcom/media/ffmpeg/FFMpegUtils;";
+}
 
 extern "C" {
 
@@ -42,7 +51,7 @@ static void FFMpegUtils_saveFrame(AVFrame *pFrame, int width, int height, int iF
 	
 	// Write pixel data
 	for(y=0; y<height; y++)
-		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
+		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width * 2, pFile);
 	
 	// Close file
 	fclose(pFile);
@@ -66,6 +75,7 @@ static jobject FFMpegUtils_setInputFile(JNIEnv *env, jobject obj, jstring filePa
 	return AVFormatContext_create(env, pFormatCtx);
 }
 
+static void FFMpeg_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height);
 static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 	int i;
 	AVCodecContext *pCodecCtx;
@@ -124,26 +134,27 @@ static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 	uint8_t *buffer;
 	int numBytes;
 	// Determine required buffer size and allocate buffer
-	numBytes = avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
+	numBytes = avpicture_get_size(PIX_FMT_RGB565, pCodecCtx->width,
 			pCodecCtx->height);
 	buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
 
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture
-	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB24,
+	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB565,
 			pCodecCtx->width, pCodecCtx->height);
 
 	int w = pCodecCtx->width;
 	int h = pCodecCtx->height;
 	img_convert_ctx = sws_getContext(w, h, pCodecCtx->pix_fmt, w, h,
-			PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
+			PIX_FMT_RGB565, SWS_BICUBIC, NULL, NULL, NULL);
 
 	int frameFinished;
 	AVPacket packet;
 
 	i = 0;
-	while (av_read_frame(pFormatCtx, &packet) >= 0) {
+	int result = -1;
+	while ((result = av_read_frame(pFormatCtx, &packet)) >= 0) {
 		// Is this a packet from the video stream?
 		if (packet.stream_index == videoStream) {
 			// Decode video frame
@@ -156,8 +167,10 @@ static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 				sws_scale(img_convert_ctx, pFrame->data, pFrame->linesize, 0,
 						pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 
-				FFMpegUtils_saveFrame(pFrameRGB, pCodecCtx->width,
-						pCodecCtx->height, i);
+				//FFMpegUtils_saveFrame(pFrameRGB, pCodecCtx->width,
+				//		pCodecCtx->height, i);
+				FFMpeg_handleOnVideoFrame(env, obj, pFrame, pCodecCtx->width,
+						pCodecCtx->height);
 				i++;
 			}
 		}
@@ -184,6 +197,14 @@ static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 
 } // end of extern C
 
+static void FFMpeg_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
+	int size = width * 2;//) * pFrame->linesize[0];
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
+	jintArray arr = env->NewIntArray(size);
+	env->SetIntArrayRegion(arr, 0, size, (jint *) pFrame->data[0] /* + y *pFrame->linesize[0]*/);
+    env->CallVoidMethod(object, fields.clb_onVideoFrame, arr);
+}
+
 static void FFMpegUtils_setOutput(JNIEnv *env, jobject obj, jstring path) {
 	framesOutput = env->GetStringUTFChars(path, NULL);
 }
@@ -203,5 +224,10 @@ static JNINativeMethod methods[] = {
 };
 
 int register_android_media_FFMpegUtils(JNIEnv *env) {
+	jclass clazz = FFMpegUtils_getClass(env);
+	fields.clb_onVideoFrame = env->GetMethodID(clazz, "onVideoFrame", "([I)V");
+	if (fields.clb_onVideoFrame == NULL) {
+		return JNI_ERR;
+	}
 	return jniRegisterNativeMethods(env, "com/media/ffmpeg/FFMpegUtils", methods, sizeof(methods) / sizeof(methods[0]));
 }

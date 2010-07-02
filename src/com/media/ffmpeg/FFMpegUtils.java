@@ -3,6 +3,9 @@ package com.media.ffmpeg;
 import java.io.File;
 import java.io.IOException;
 
+import android.graphics.Bitmap;
+import android.util.Log;
+
 import com.media.ffmpeg.FFMpegAVFormatContext;
 
 public class FFMpegUtils {
@@ -25,6 +28,10 @@ public class FFMpegUtils {
 	
 	public void printToSdcard(FFMpegAVFormatContext context) throws IOException {
 		native_av_print(context.pointer);
+	}
+	
+	public void onVideoFrame(int[] pixels) {
+		Log.d("FFMpegUtils", "pixels length: " + pixels.length);
 	}
 	
 	private native FFMpegAVFormatContext native_av_setInputFile(String filePath) throws IOException;

@@ -60,7 +60,7 @@ public class FFMpegAVFrame {
      * quality (between 1 (good) and FF_LAMBDA_MAX (bad)) \
      * - encoding: Set by libavcodec. for coded_picture (and set by user for input).\
      * - decoding: Set by libavcodec.\
-     */\
+     */
     int			mQuality;
 	
     /**\
@@ -101,7 +101,7 @@ public class FFMpegAVFrame {
      * stride= mb_width = (width+15)>>4\
      * - encoding: unused\
      * - decoding: Set by libavcodec.\
-     */\
+     */
     byte		mBskipTable;
 	
     /**\
@@ -234,6 +234,6 @@ public class FFMpegAVFrame {
      */
     //void *hwaccel_picture_private;\
 	
-	private native void nativeRelease();
+	private native void nativeRelease(int FFMpegAVFrame);
 	
 }
