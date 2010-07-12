@@ -3,9 +3,9 @@ include $(CLEAR_VARS)
 
 LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS
 
-ifeq ($(WITH_PLAYER),true)
+#ifeq ($(WITH_PLAYER),true)
 LOCAL_CFLAGS += -DBUILD_WITH_PLAYER
-endif
+#endif
 
 LOCAL_SRC_FILES := \
 		android/onLoad.cpp \
@@ -17,10 +17,10 @@ LOCAL_SRC_FILES := \
 		android/com_media_ffmpeg_FFMpegUtils.cpp \
 		cmdutils.c
 		
-ifeq ($(WITH_PLAYER),true)
+#ifeq ($(WITH_PLAYER),true)
 LOCAL_SRC_FILES += \
 	android/com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
-endif
+#endif
 
 ifeq ($(IN_NDK),true)	
 LOCAL_LDLIBS := -llog

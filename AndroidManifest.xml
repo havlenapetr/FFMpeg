@@ -16,7 +16,8 @@
         <activity 
         		  android:name=".FFMpegPlayerActivity"
                   android:label="@string/app_name"
-                  android:screenOrientation="landscape">
+                  android:screenOrientation="landscape"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>

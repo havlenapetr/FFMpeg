@@ -10,7 +10,7 @@ struct fields_t
 };
 static struct fields_t fields;
 
-jclass *AVFormatContext_getClass(JNIEnv *env) {
+jclass AVFormatContext_getClass(JNIEnv *env) {
 	return (*env)->FindClass(env, "com/media/ffmpeg/FFMpegAVFormatContext");
 }
 

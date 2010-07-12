@@ -3,7 +3,6 @@ package com.media.ffmpeg;
 import java.io.File;
 import java.io.IOException;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.media.ffmpeg.FFMpegAVFormatContext;

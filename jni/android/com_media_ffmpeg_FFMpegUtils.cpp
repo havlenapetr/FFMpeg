@@ -24,7 +24,7 @@ jclass FFMpegUtils_getClass(JNIEnv *env) {
 	return env->FindClass("com/media/ffmpeg/FFMpegUtils");
 }
 
-const char *FFMpegUtils() {
+const char *FFMpegUtils_getSignature() {
 	return "Lcom/media/ffmpeg/FFMpegUtils;";
 }
 
@@ -75,7 +75,7 @@ static jobject FFMpegUtils_setInputFile(JNIEnv *env, jobject obj, jstring filePa
 	return AVFormatContext_create(env, pFormatCtx);
 }
 
-static void FFMpeg_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height);
+static void FFMpegUtils_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height);
 static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 	int i;
 	AVCodecContext *pCodecCtx;
@@ -169,7 +169,7 @@ static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 
 				//FFMpegUtils_saveFrame(pFrameRGB, pCodecCtx->width,
 				//		pCodecCtx->height, i);
-				FFMpeg_handleOnVideoFrame(env, obj, pFrame, pCodecCtx->width,
+				FFMpegUtils_handleOnVideoFrame(env, obj, pFrame, pCodecCtx->width,
 						pCodecCtx->height);
 				i++;
 			}
@@ -197,7 +197,7 @@ static void FFMpegUtils_print(JNIEnv *env, jobject obj, jint pAVFormatContext) {
 
 } // end of extern C
 
-static void FFMpeg_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
+static void FFMpegUtils_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
 	int size = width * 2;//) * pFrame->linesize[0];
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
 	jintArray arr = env->NewIntArray(size);

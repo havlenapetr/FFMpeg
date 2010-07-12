@@ -81,6 +81,8 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 	
+	    //startPlayer();
+	    
 	    mFFMpegController = new FFMpeg();
   		mFFMpegController.setListener(new FFMpegHandler(this));
   		FFMpegUtils utils = mFFMpegController.getUtils();
@@ -91,7 +93,7 @@ public class FFMpegActivity extends Activity {
 		} catch (IOException e) {
 			Log.e(TAG , e.getMessage());
 		}
-	    /*
+	    
 	    Intent i = getIntent();
 	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
@@ -109,7 +111,6 @@ public class FFMpegActivity extends Activity {
 	    		showError(this, e);
 			}
 	    }
-	    */
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {
@@ -125,6 +126,11 @@ public class FFMpegActivity extends Activity {
     
     private void startFileExplorer() {
     	Intent i = new Intent(FFMpegActivity.this, FFMpegFileExplorer.class);
+    	startActivityForResult(i, FILE_SELECT);
+    }
+    
+    private void startPlayer() {
+    	Intent i = new Intent(FFMpegActivity.this, FFMpegPlayerActivity.class);
     	startActivityForResult(i, FILE_SELECT);
     }
         
