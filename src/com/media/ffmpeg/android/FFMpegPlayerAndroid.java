@@ -3,6 +3,7 @@ package com.media.ffmpeg.android;
 import java.io.IOException;
 
 import com.media.ffmpeg.FFMpegAVFormatContext;
+import com.media.ffmpeg.IFFMpegPlayer;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -26,6 +27,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private SurfaceHolder					mSurfaceHolder;
 	private Thread							mRenderThread;
 	private int								mDrawingType;
+	private IFFMpegPlayer					mListener;
 	private FFMpegConfigAndroid 			mConfig;
 	
 	public FFMpegPlayerAndroid(Context context) {
@@ -52,6 +54,10 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mSurfaceHolder.addCallback(new FFMpegSurfaceHandler());
     }
     
+    public void setListener(IFFMpegPlayer listener) {
+    	mListener = listener;
+    }
+    
     /**
      * init player
      * @param filePath path to video which we want to play
@@ -61,6 +67,30 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	FFMpegAVFormatContext input = nativeSetInputFile(filePath);
     	nativeInit(input);
 	}
+    
+    private void play() {
+    	mRenderThread = new Thread() {
+			public void run() {
+				if(mListener != null) {
+					mListener.onPlay();
+				}
+				
+				try {
+					nativePlay();
+				} catch (IOException e) {
+					Log.e(TAG, "Error while playing: " + e.getMessage());
+					if(mListener != null) {
+						mListener.onError("Error while playing", e);
+					}
+				}
+				
+				if(mListener != null) {
+		    		mListener.onStop();
+		    	}
+			}
+		};
+		mRenderThread.start();
+    }
     
     /**
      * stops player
@@ -79,6 +109,10 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	if(D) {
     		Log.d(TAG, "player stopped");
     	}
+    	
+    	if(mListener != null) {
+    		mListener.onStop();
+    	}
     }
     
     /**
@@ -93,6 +127,10 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	
     	if(D) {
     		Log.d(TAG, "player released");
+    	}
+    	
+    	if(mListener != null) {
+    		mListener.onRelease();
     	}
     }
 	
@@ -133,11 +171,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	}
 	
 	private void doDraw(Canvas canvas, int[] pixels, int width, int height) {
-		Log.d(TAG, "received pixels: w=" + width + " h=" + height);
-		
+		//Log.d(TAG, "received pixels: w=" + width + " h=" + height);
 		int screenWidth = mConfig.resolution[0];
 		int screenHeight = mConfig.resolution[1];
 		
+		//Bitmap.createBitmap(pixels, width, height, Bitmap.Config.RGB_565);
 		canvas.scale(((float) screenWidth) / width, ((float) screenHeight) / height);
 		canvas.drawBitmap(pixels, 0, width, 0, 0, width, height, false, null);
 		
@@ -157,16 +195,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 
 		public void surfaceCreated(SurfaceHolder holder) {
 			Log.d(TAG, "Surface created");
-			mRenderThread = new Thread() {
-				public void run() {
-					try {
-						nativePlay();
-					} catch (IOException e) {
-						Log.e(TAG, "Error while playing: " + e.getMessage());
-					}
-				}
-			};
-			mRenderThread.start();
+			play();
 		}
 
 		public void surfaceDestroyed(SurfaceHolder holder) {
@@ -174,7 +203,9 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			try {
 				stop();
 			} catch (InterruptedException e) {
-				Log.e(TAG, "Couldn't stop player: " + e.getMessage());
+				if(mListener != null) {
+					mListener.onError("Couldn't stop player", e);
+				}
 			}
 			release();
 		}

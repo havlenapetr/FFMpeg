@@ -201,14 +201,31 @@ static void FFMpegPlayerAndroid_surfaceChanged(JNIEnv *env, jobject object, int 
 	screen.width = width;
 	screen.height = height;
 }
-
+/*
+ * // Write pixel data
+ * width*3
+	for(y=0; y<height; y++)
+		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
+ */
 static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
-	int size = height * width * 2;//) * pFrame->linesize[0];
-	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
-	jintArray arr = env->NewIntArray(size);
-	env->SetIntArrayRegion(arr, 0, width * 15, (jint *) pFrame->data[0] /* + y *pFrame->linesize[0]*/);
-    env->CallVoidMethod(object, fields.clb_onVideoFrame, arr, width, height);
-    env->DeleteLocalRef(arr);
+	int size = width * 3;//height * width * 2;//) * pFrame->linesize[0];
+	__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
+
+	/*
+	__android_log_print(ANDROID_LOG_INFO, TAG, "linesize: %i, %i, %i, %i", pFrame->linesize[0],
+			pFrame->linesize[1], pFrame->linesize[2], pFrame->linesize[3]);
+	__android_log_print(ANDROID_LOG_INFO, TAG, "data: %i, %i, %i, %i", pFrame->data[0],
+				pFrame->data[1], pFrame->data[2], pFrame->data[3]);
+	*/
+
+	jintArray arr = env->NewIntArray(width * height * 2);
+	for(int y=0; y<height; y++) {
+		if(y == 44) break;
+		//__android_log_print(ANDROID_LOG_INFO, TAG, "cykl %i", y);
+		env->SetIntArrayRegion(arr, width * 2 * y, width * 2, (jint *) pFrame->data[0]  + y * pFrame->linesize[0]);
+	}
+	env->CallVoidMethod(object, fields.clb_onVideoFrame, arr, width, height);
+	env->DeleteLocalRef(arr);
 }
 
 static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
