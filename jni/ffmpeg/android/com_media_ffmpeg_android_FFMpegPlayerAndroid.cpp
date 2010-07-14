@@ -30,12 +30,6 @@ struct fields_t {
 };
 static struct fields_t fields;
 
-struct screen_t {
-	int width;
-	int height;
-};
-static struct screen_t screen;
-
 enum State {
 	STATE_STOPED,
 	STATE_STOPING,
@@ -75,7 +69,7 @@ static void FFMpegPlayerAndroid_saveFrame(AVFrame *pFrame, int width, int height
 	fclose(pFile);
 }
 
-static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
+static jintArray FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
 	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, fields.avformatcontext);
 
 	// Find the first video stream
@@ -90,7 +84,7 @@ static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormat
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Didn't find a video stream");
-		return;
+		return NULL;
 	}
 
 	// Get a pointer to the codec context for the video stream
@@ -102,7 +96,7 @@ static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormat
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Unsupported codec!");
-		return; // Codec not found
+		return NULL; // Codec not found
 	}
 
 	// Open codec
@@ -110,27 +104,30 @@ static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormat
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Could not open codec");
-		return; // Could not open codec
+		return NULL; // Could not open codec
 	}
 
 	// Allocate video frame
 	ffmpeg_fields.pFrame = avcodec_alloc_frame();
 
-	int w = ffmpeg_fields.pCodecCtx->width;
-	int h = ffmpeg_fields.pCodecCtx->height;
-	ffmpeg_fields.img_convert_ctx = sws_getContext(w, h, ffmpeg_fields.pCodecCtx->pix_fmt, w, h,
+	int size[2];
+	size[0] = ffmpeg_fields.pCodecCtx->width;
+	size[1] = ffmpeg_fields.pCodecCtx->height;
+	ffmpeg_fields.img_convert_ctx = sws_getContext(size[0], size[1], ffmpeg_fields.pCodecCtx->pix_fmt, size[0], size[1],
 			PIX_FMT_RGB565, SWS_POINT, NULL, NULL, NULL);
+	
+	jintArray arr = env->NewIntArray(2);
+	env->SetIntArrayRegion(arr, 0, 2, (jint *) size);
+	return arr;
 }
 
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame/*, int width, int height*/);
+static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame, int width, int height);
 static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	// Determine required buffer size and allocate buffer
 	int numBytes = avpicture_get_size(PIX_FMT_RGB565, ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, bytes: %i", screen.width, screen.height, numBytes);
 						
 	uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
-	
-	__android_log_print(ANDROID_LOG_ERROR, TAG, "1");
 	
 	// Allocate an AVFrame structure
 	AVFrame *pFrameRGB = avcodec_alloc_frame();
@@ -140,8 +137,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 						  "Could allocate an AVFrame structure");
 		return;
 	}
-
-	__android_log_print(ANDROID_LOG_ERROR, TAG, "2");
 	
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
@@ -149,9 +144,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB565,
 			ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
 	
-	__android_log_print(ANDROID_LOG_ERROR, TAG, "3");
-	
-
 	int frameFinished;
 	AVPacket packet;
 	int i = 0;
@@ -161,22 +153,18 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 			status == STATE_PLAYING) {
 		// Is this a packet from the video stream?
 		if (packet.stream_index == ffmpeg_fields.videoStream) {
-			__android_log_print(ANDROID_LOG_ERROR, TAG, "5");
-			
 			// Decode video frame
 			avcodec_decode_video(ffmpeg_fields.pCodecCtx, ffmpeg_fields.pFrame, &frameFinished,
 					packet.data, packet.size);
 
 			// Did we get a video frame?
 			if (frameFinished) {
-				__android_log_print(ANDROID_LOG_ERROR, TAG, "4");
-				
 				// Convert the image from its native format to RGB
 				sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 						ffmpeg_fields.pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 
-				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, bitmap, pFrameRGB/*, screen.width,
-						screen.height*/);
+				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, bitmap, pFrameRGB,
+						ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
 				i++;
 			}
 		}
@@ -211,42 +199,28 @@ static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
 	status = STATE_STOPING;
 }
 
-static void FFMpegPlayerAndroid_surfaceChanged(JNIEnv *env, jobject object, int width, int height) {
-	screen.width = width;
-	screen.height = height;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "surface changed %i x %i", screen.width, screen.height);
-}
-/*
- * // Write pixel data
- * width*3
-	for(y=0; y<height; y++)
-		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
- */
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame/*int width, int height*/) {
-	//int size = width * 3;//height * width * 2;//) * pFrame->linesize[0];
-	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
-
-	/*
-	__android_log_print(ANDROID_LOG_INFO, TAG, "linesize: %i, %i, %i, %i", pFrame->linesize[0],
-			pFrame->linesize[1], pFrame->linesize[2], pFrame->linesize[3]);
-	__android_log_print(ANDROID_LOG_INFO, TAG, "data: %i, %i, %i, %i", pFrame->data[0],
-				pFrame->data[1], pFrame->data[2], pFrame->data[3]);
+static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame, int width, int height) {
+	void*					android_pixels;
+	void*					ffmpeg_pixels = pFrame->data[0];
+	AndroidBitmapInfo		info;
+	int						lineLength = pFrame->linesize[0];
+	int						ret = -1;
 	
-	jintArray arr = env->NewIntArray(width * height * 2);
-	for(int y=0; y<height; y++) {
-		if(y == 44) break;
-		//__android_log_print(ANDROID_LOG_INFO, TAG, "cykl %i", y);
-		env->SetIntArrayRegion(arr, width * y * 2, width * 2, (jint *) pFrame->data[0]  + y * pFrame->linesize[0]);
-	}
-	env->CallVoidMethod(object, fields.clb_onVideoFrame, arr, width, height);
-	env->DeleteLocalRef(arr);*/
-	void* pixels;
-	int ret = -1;
-	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_getInfo() failed ! error=%d", ret);
+        return;
+    }
+	
+	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &android_pixels)) < 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_lockPixels() failed ! error=%d", ret);
     }
 	
-	//pixels = pFrame->data[0];
+	for(int y=0; y<height; y++) {
+		void *dest = (unsigned char*)android_pixels + y * info.width * 2;
+		void *src = (unsigned char*)ffmpeg_pixels + y * lineLength;
+		size_t num = lineLength;
+		memcpy(dest, src, num);
+	}
 	
 	AndroidBitmap_unlockPixels(env, bitmap);
 	
@@ -289,8 +263,7 @@ static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {
 * JNI registration.
 */
 static JNINativeMethod methods[] = {
-	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)V", (void*) FFMpegPlayerAndroid_init},
-	{ "nativeSurfaceChanged", "(II)V", (void*) FFMpegPlayerAndroid_surfaceChanged },
+	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)[I", (void*) FFMpegPlayerAndroid_init},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },

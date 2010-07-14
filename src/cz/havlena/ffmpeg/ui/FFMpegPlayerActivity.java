@@ -23,7 +23,7 @@ public class FFMpegPlayerActivity extends Activity {
 		FFMpeg ffmpeg = new FFMpeg();
 		mPlayer = ffmpeg.getPlayer(this);
 		try {
-			mPlayer.init("/sdcard/Videos/pixar.flv");
+			mPlayer.setVideoPath("/sdcard/Videos/pixar.flv");
 			mPlayer.setListener(new FFMpegPlayerHandler());
 		} catch (IOException e) {
 			FFMpegMessageBox.show(this, e);

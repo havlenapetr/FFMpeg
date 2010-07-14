@@ -10,28 +10,30 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.MediaController;
+import android.widget.MediaController.MediaPlayerControl;
 
 public class FFMpegPlayerAndroid extends SurfaceView {
 	private static final String 			TAG = "FFMpegPlayerAndroid"; 
 	private static final boolean 			D = true;
 	
-	public static class Drawing {
-		public static final int DRAWING_JAVA 	= 1;	// drawed here in java
-		public static final int DRAWING_NATIVE 	= 2; 	// drawed in native code, should be faster
-	}
-	
-	private int 							mVideoWidth;
-	private int 							mVideoHeight;
+	private int        	 					mVideoWidth;
+    private int         					mVideoHeight;
+	private int 							mSurfaceWidth;
+	private int 							mSurfaceHeight;
 	private SurfaceHolder					mSurfaceHolder;
+	private MediaController					mMediaController;
 	private Thread							mRenderThread;
-	private int								mDrawingType;
 	private IFFMpegPlayer					mListener;
 	private boolean							mPlaying;
 	private Bitmap							mBitmap;
-	private FFMpegConfigAndroid 			mConfig;
+	private FFMpegAVFormatContext			mVideoPath;
+	private boolean 						mFitToScreen;
 	
 	public FFMpegPlayerAndroid(Context context) {
         super(context);
@@ -49,18 +51,43 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     }
     
     private void initVideoView(Context context) {
-    	mVideoWidth = 480;
-    	mVideoHeight = 320;
-    	mDrawingType = Drawing.DRAWING_JAVA;
-    	mConfig = new FFMpegConfigAndroid(context);
-    	mSurfaceHolder = getHolder();
-		nativeSurfaceChanged(mVideoWidth, mVideoHeight);
-		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
-		play();
+    	mFitToScreen = true;
+    	mVideoWidth = 0;
+        mVideoHeight = 0;
+    	getHolder().addCallback(mSHCallback);
+    	attachMediaController(context);
+    }
+    
+    private void attachMediaController(Context context) {
+    	mMediaController = new MediaController(context);
+        View anchorView = this.getParent() instanceof View ?
+                    (View)this.getParent() : this;
+        mMediaController.setMediaPlayer(mMediaPlayerControl);
+        mMediaController.setAnchorView(anchorView);
+        mMediaController.setEnabled(false);
     }
     
     public void setListener(IFFMpegPlayer listener) {
     	mListener = listener;
+    }
+    
+    private void openVideo() {
+    	try {
+			int[] size = nativeInit(mVideoPath);
+			mVideoWidth = size[0];
+			mVideoHeight = size[1];
+			Log.d(TAG, "Video size: " + mVideoWidth + " x " + mVideoHeight);
+		} catch (IOException e) {
+			if(mListener != null) {
+				mListener.onError("Opening video", e);
+			}
+		}
+    }
+    
+    private void start() {
+		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
+		play();
+		toggleMediaControlsVisiblity();
     }
     
     /**
@@ -68,12 +95,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
      * @param filePath path to video which we want to play
      * @throws IOException
      */
-    public void init(String filePath) throws IOException {
-    	FFMpegAVFormatContext input = nativeSetInputFile(filePath);
-    	nativeInit(input);
+    public void setVideoPath(String filePath) throws IOException {
+    	mVideoPath = nativeSetInputFile(filePath);
 	}
     
-    public void play() {
+    private void play() {
     	mRenderThread = new Thread() {
 			public void run() {
 				mPlaying = true;
@@ -132,10 +158,18 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     /**
      * release all allocated objects by player
      */
-    public void release() {
+    private void release() {
     	if(D) {
     		Log.d(TAG, "releasing player");
     	}
+    	
+    	try {
+			stop();
+		} catch (InterruptedException e) {
+			if(mListener != null) {
+				mListener.onError("Couldn't stop player", e);
+			}
+		}
     	
     	nativeRelease();
     	
@@ -147,6 +181,20 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     		mListener.onRelease();
     	}
     }
+    
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+    	toggleMediaControlsVisiblity();
+    	return false;
+    }
+    
+    private void toggleMediaControlsVisiblity() {
+        if (mMediaController.isShowing()) {
+            mMediaController.hide();
+        } else {
+            mMediaController.show(3000);
+        }
+    }
 	
 	/**
 	 * native callback which receive pixels from ffmpeg
@@ -157,15 +205,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         try {
             c = mSurfaceHolder.lockCanvas(null);
             synchronized (mSurfaceHolder) {
-            	Log.d(TAG, "drawing");
-            	
-            	c.drawBitmap(mBitmap, 0, 0, null);
-            	
-            	Log.d(TAG, "drawed");
-        		
-        		if(D) {
-        			calcFps();
-        		}
+            	doDraw(c);
 			}
         } finally {
             // do this in a finally so that if an exception is thrown
@@ -175,6 +215,20 @@ public class FFMpegPlayerAndroid extends SurfaceView {
                 mSurfaceHolder.unlockCanvasAndPost(c);
             }
         }
+	}
+	
+	private void doDraw(Canvas c) {
+		if(mFitToScreen) {
+			float scale_x = (float) mSurfaceWidth/ (float) mVideoWidth;
+			float scale_y = (float) mSurfaceHeight/ (float) mVideoHeight;
+			c.scale(scale_x, scale_y);
+		}
+		
+		c.drawBitmap(mBitmap, 0, 0, null);
+		
+		if(D) {
+			calcFps();
+		}
 	}
 	
 	private long mStart;
@@ -192,52 +246,70 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 	}
 	
-	@Override
-	protected void onDetachedFromWindow() {
-		Log.d(TAG, "Surface destroyed");
-		try {
-			stop();
-		} catch (InterruptedException e) {
-			if(mListener != null) {
-				mListener.onError("Couldn't stop player", e);
-			}
-		}
-		release();
-	}
-	
-	/*
-	private class FFMpegSurfaceHandler implements SurfaceHolder.Callback {
+	SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
+        public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+            mSurfaceWidth = w;
+            mSurfaceHeight = h;
+            start();
+        }
 
-		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-			//mVideoHeight = height;
-			//mVideoWidth = width;
-			Log.d(TAG, "Surface width: " + width + ", height: " + height);
-			nativeSurfaceChanged(width, height);
-			mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-		}
+        public void surfaceCreated(SurfaceHolder holder) {
+        	Log.d(TAG, "Surface created");
+            mSurfaceHolder = holder;
+            openVideo();
+        }
 
-		public void surfaceCreated(SurfaceHolder holder) {
-			Log.d(TAG, "Surface created");
-		}
-
-		public void surfaceDestroyed(SurfaceHolder holder) {
-			Log.d(TAG, "Surface destroyed");
-			try {
-				stop();
-			} catch (InterruptedException e) {
-				if(mListener != null) {
-					mListener.onError("Couldn't stop player", e);
-				}
-			}
+        public void surfaceDestroyed(SurfaceHolder holder) {
+        	Log.d(TAG, "Surface destroyed");
 			release();
+			if(mMediaController.isShowing()) {
+				mMediaController.hide();
+			}
+			// after we return from this we can't use the surface any more
+            mSurfaceHolder = null;
+        }
+    };
+    
+    MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
+		
+		public void start() {
+			// TODO Auto-generated method stub
+			
 		}
 		
-	}
-	*/
+		public void seekTo(int pos) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		public void pause() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		public boolean isPlaying() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		
+		public int getDuration() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+		public int getCurrentPosition() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+		public int getBufferPercentage() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+	};
 	
-	private native void nativeSurfaceChanged(int width, int height);
 	private native FFMpegAVFormatContext nativeSetInputFile(String filePath) throws IOException;
-	private native void nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	private native int[] nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
 	private native void nativePlay(Bitmap bitmap)throws IOException;
 	private native void nativeStop();
 	private native void nativeSetSurface(Surface surface);
