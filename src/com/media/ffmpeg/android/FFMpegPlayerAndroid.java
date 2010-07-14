@@ -8,6 +8,9 @@ import com.media.ffmpeg.IFFMpegPlayer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -28,6 +31,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private int 							mSurfaceHeight;
 	private Context							mContext;
 	private SurfaceHolder					mSurfaceHolder;
+	private AudioTrack						mAudioTrack;
 	private MediaController					mMediaController;
 	private Thread							mRenderThread;
 	private IFFMpegPlayer					mListener;
@@ -56,6 +60,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT, 
+        		192000, AudioTrack.MODE_STREAM);
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -217,6 +223,10 @@ public class FFMpegPlayerAndroid extends SurfaceView {
                 mSurfaceHolder.unlockCanvasAndPost(c);
             }
         }
+	}
+	
+	private void onAudioBuffer(byte[] buffer) {
+		mAudioTrack.write(buffer, 0, buffer.length);
 	}
 	
 	private void doDraw(Canvas c) {

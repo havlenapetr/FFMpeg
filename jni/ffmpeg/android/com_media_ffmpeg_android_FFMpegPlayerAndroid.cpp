@@ -15,6 +15,7 @@ extern "C" {
 
 struct ffmpeg_fields_t {
 	int 				videoStream;
+	int					audioStream;
 	AVCodecContext 		*pCodecCtx;
 	AVFrame 			*pFrame;
 	AVCodec 			*pCodec;
@@ -45,40 +46,23 @@ const char *FFMpegPlayerAndroid_getSignature() {
 	return "Lcom/media/ffmpeg/android/FFMpegPlayerAndroid;";
 }
 
-extern "C" {
-
-static void FFMpegPlayerAndroid_saveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
-	FILE *pFile;
-	char szFilename[100];
-	int  y;
-	
-	// Open file
-	sprintf(szFilename, "/sdcard/frame%d.ppm", iFrame);
-	pFile=fopen(szFilename, "wb");
-	if(pFile==NULL)
-		return;
-	
-	// Write header
-	fprintf(pFile, "P6\n%d %d\n255\n", width, height);
-	
-	// Write pixel data
-	for(y=0; y<height; y++)
-		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
-	
-	// Close file
-	fclose(pFile);
-}
-
 static jintArray FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
 	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, fields.avformatcontext);
 
 	// Find the first video stream
 	ffmpeg_fields.videoStream = -1;
-	for (int i = 0; i < ffmpeg_fields.pFormatCtx->nb_streams; i++)
+	ffmpeg_fields.audioStream = -1;
+	for (int i = 0; i < ffmpeg_fields.pFormatCtx->nb_streams; i++) {
 		if (ffmpeg_fields.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
 			ffmpeg_fields.videoStream = i;
+		}
+		if (ffmpeg_fields.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
+			ffmpeg_fields.audioStream = i;
+		}
+		if(ffmpeg_fields.audioStream != -1 && ffmpeg_fields.videoStream != -1) {
 			break;
 		}
+	}
 
 	if (ffmpeg_fields.videoStream == -1) {
 		jniThrowException(env,
@@ -128,12 +112,10 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 	int						result = -1;
 	
 	if ((result = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_getInfo() failed ! error=%d", result);
         return NULL;
     }
 	
 	if ((result = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_lockPixels() failed ! error=%d", result);
 		return NULL;
     }
 	
@@ -153,6 +135,14 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 	return pFrame;
 }
 
+// Allocate a structure for storing decoded samples
+static void FFMpegPlayerAndroid_processAudio(AVPacket *packet, int16_t *samples) {
+	// Try to decode the audio from the packet into the frame
+	int out_size, len;
+	len = avcodec_decode_audio3(ffmpeg_fields.pCodecCtx, samples, 
+								&out_size, packet);
+}
+
 static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	AVPacket				packet;
 	int						result = -1;
@@ -163,9 +153,12 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	if (pFrameRGB == NULL) {
 		jniThrowException(env,
 						  "java/io/IOException",
-						  "Could allocate an AVFrame structure");
+						  "Couldn't allocate an AVFrame structure");
 		return;
 	}
+	
+	int16_t *samples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+	memset(samples, 0, AVCODEC_MAX_AUDIO_FRAME_SIZE);
 	
 	status = STATE_PLAYING;
 	while ((result = av_read_frame(ffmpeg_fields.pFormatCtx, &packet)) >= 0 &&
@@ -175,7 +168,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 			// Decode video frame
 			avcodec_decode_video(ffmpeg_fields.pCodecCtx, ffmpeg_fields.pFrame, &frameFinished,
 					packet.data, packet.size);
-
+			
 			// Did we get a video frame?
 			if (frameFinished) {
 				// Convert the image from its native format to RGB
@@ -183,12 +176,16 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 						ffmpeg_fields.pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 				env->CallVoidMethod(obj, fields.clb_onVideoFrame);
 			}
+		} else if (packet.stream_index == ffmpeg_fields.audioStream) {
+			FFMpegPlayerAndroid_processAudio(&packet, samples);
 		}
 
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 	}
 
+	av_free( samples );
+	
 	// Free the RGB image
 	av_free(pFrameRGB);
 
@@ -204,8 +201,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	status = STATE_STOPED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 }
-
-} // end of extern C
 
 static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
 	if(status != STATE_PLAYING) {

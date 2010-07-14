@@ -42,6 +42,7 @@ import android.widget.TextView;
 public class FFMpegActivity extends Activity {
 	
 	private static final String TAG = "FFMpegActivity";
+	private static final boolean D = false;
 	
 	private static final int		FILE_SELECT = 0;
 	public static final String		FILE_INPUT = "FFMpeg_file";
@@ -81,28 +82,30 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
   		
-	    //startPlayer();
-	    Intent i = getIntent();
-	    if(i.getAction() == null || !i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
-	    	startFileExplorer();
+	    if(D) {
+	    	startPlayer("/sdcard/Videos/pixar.flv");
 	    } else {
-	    	startPlayer(i.getStringExtra(FILE_INPUT));
-	    	/*
-	    	mFFMpegController = new FFMpeg();
-	  		mFFMpegController.setListener(new FFMpegHandler(this));
-	    	String filePath = i.getStringExtra(FILE_INPUT);
-	    	mTextViewInputVideo.setText(filePath);
-	    	try {
-	    		initFFMpeg(filePath);
-	    		FFMpegFile input = mFFMpegController.getInputFile();
-	    		FFMpegAVFormatContext.Duration duration = input.getContext().getDuration();
-	    		mTextViewInputVideoLength.setText(getString(R.string.input_file_info) + " " + 
-	    				duration.hours + "h " + duration.mins + "min " + duration.secs + "sec");
-	    	}
-	    	catch (Exception e) {
-	    		showError(this, e);
-			}
-			*/
+		    Intent i = getIntent();
+		    if(i.getAction() == null || !i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
+		    	startFileExplorer();
+		    } else {
+		    	startPlayer(i.getStringExtra(FILE_INPUT));
+		    	/*
+		    	mFFMpegController = new FFMpeg();
+		  		mFFMpegController.setListener(new FFMpegHandler(this));
+		    	String filePath = i.getStringExtra(FILE_INPUT);
+		    	mTextViewInputVideo.setText(filePath);
+		    	try {
+		    		initFFMpeg(filePath);
+		    		FFMpegFile input = mFFMpegController.getInputFile();
+		    		FFMpegAVFormatContext.Duration duration = input.getContext().getDuration();
+		    		mTextViewInputVideoLength.setText(getString(R.string.input_file_info) + " " + 
+		    				duration.hours + "h " + duration.mins + "min " + duration.secs + "sec");
+		    	}
+		    	catch (Exception e) {
+		    		showError(this, e);
+				}*/
+		    }
 	    }
 	}
     
