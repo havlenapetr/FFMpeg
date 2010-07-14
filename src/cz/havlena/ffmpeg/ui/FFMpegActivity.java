@@ -80,24 +80,16 @@ public class FFMpegActivity extends Activity {
 	    
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
-	
-	    startPlayer();
-	    /*
-	    mFFMpegController = new FFMpeg();
-  		mFFMpegController.setListener(new FFMpegHandler(this));
-  		FFMpegUtils utils = mFFMpegController.getUtils();
-  		try {
-  			FFMpegAVFormatContext c = utils.setInputFile("/sdcard/Videos/pixar.flv");
-  			utils.setOutput("/sdcard/frames");
-			utils.printToSdcard(c);
-		} catch (IOException e) {
-			Log.e(TAG , e.getMessage());
-		}
-	    
+  		
+	    //startPlayer();
 	    Intent i = getIntent();
-	    if(!i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
+	    if(i.getAction() == null || !i.getAction().equals(Intent.ACTION_INPUT_METHOD_CHANGED)) {
 	    	startFileExplorer();
 	    } else {
+	    	startPlayer(i.getStringExtra(FILE_INPUT));
+	    	/*
+	    	mFFMpegController = new FFMpeg();
+	  		mFFMpegController.setListener(new FFMpegHandler(this));
 	    	String filePath = i.getStringExtra(FILE_INPUT);
 	    	mTextViewInputVideo.setText(filePath);
 	    	try {
@@ -110,8 +102,8 @@ public class FFMpegActivity extends Activity {
 	    	catch (Exception e) {
 	    		showError(this, e);
 			}
+			*/
 	    }
-	    */
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {
@@ -130,8 +122,9 @@ public class FFMpegActivity extends Activity {
     	startActivityForResult(i, FILE_SELECT);
     }
     
-    private void startPlayer() {
+    private void startPlayer(String filePath) {
     	Intent i = new Intent(FFMpegActivity.this, FFMpegPlayerActivity.class);
+    	i.putExtra(FFMpegActivity.FILE_INPUT, filePath);
     	startActivityForResult(i, FILE_SELECT);
     }
         

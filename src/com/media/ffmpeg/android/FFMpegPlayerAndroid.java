@@ -26,13 +26,14 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     private int         					mVideoHeight;
 	private int 							mSurfaceWidth;
 	private int 							mSurfaceHeight;
+	private Context							mContext;
 	private SurfaceHolder					mSurfaceHolder;
 	private MediaController					mMediaController;
 	private Thread							mRenderThread;
 	private IFFMpegPlayer					mListener;
 	private boolean							mPlaying;
 	private Bitmap							mBitmap;
-	private FFMpegAVFormatContext			mVideoPath;
+	private FFMpegAVFormatContext			mInputVideo;
 	private boolean 						mFitToScreen;
 	
 	public FFMpegPlayerAndroid(Context context) {
@@ -51,20 +52,20 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     }
     
     private void initVideoView(Context context) {
+    	mContext = context;
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
     	getHolder().addCallback(mSHCallback);
-    	attachMediaController(context);
     }
     
-    private void attachMediaController(Context context) {
-    	mMediaController = new MediaController(context);
+    private void attachMediaController() {
+    	mMediaController = new MediaController(mContext);
         View anchorView = this.getParent() instanceof View ?
                     (View)this.getParent() : this;
         mMediaController.setMediaPlayer(mMediaPlayerControl);
         mMediaController.setAnchorView(anchorView);
-        mMediaController.setEnabled(false);
+        mMediaController.setEnabled(true);
     }
     
     public void setListener(IFFMpegPlayer listener) {
@@ -73,7 +74,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void openVideo() {
     	try {
-			int[] size = nativeInit(mVideoPath);
+			int[] size = nativeInit(mInputVideo);
 			mVideoWidth = size[0];
 			mVideoHeight = size[1];
 			Log.d(TAG, "Video size: " + mVideoWidth + " x " + mVideoHeight);
@@ -86,6 +87,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void start() {
 		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
+		attachMediaController();
 		play();
 		toggleMediaControlsVisiblity();
     }
@@ -96,7 +98,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
      * @throws IOException
      */
     public void setVideoPath(String filePath) throws IOException {
-    	mVideoPath = nativeSetInputFile(filePath);
+    	mInputVideo = nativeSetInputFile(filePath);
 	}
     
     private void play() {
@@ -293,7 +295,9 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public int getDuration() {
-			// TODO Auto-generated method stub
+			if(mInputVideo != null) {
+				return mInputVideo.getDurationInSeconds();
+			}
 			return 0;
 		}
 		

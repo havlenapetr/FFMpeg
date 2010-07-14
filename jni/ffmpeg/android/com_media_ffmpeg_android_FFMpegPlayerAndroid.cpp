@@ -120,17 +120,46 @@ static jintArray FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVF
 	env->SetIntArrayRegion(arr, 0, 2, (jint *) size);
 	return arr;
 }
-
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame, int width, int height);
-static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
-	// Determine required buffer size and allocate buffer
-	int numBytes = avpicture_get_size(PIX_FMT_RGB565, ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
-	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, bytes: %i", screen.width, screen.height, numBytes);
-						
-	uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+	
+static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
+	void*					pixels;
+	AVFrame*				pFrame;
+	AndroidBitmapInfo		info;
+	int						result = -1;
+	
+	if ((result = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_getInfo() failed ! error=%d", result);
+        return NULL;
+    }
+	
+	if ((result = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_lockPixels() failed ! error=%d", result);
+		return NULL;
+    }
+	
+	AndroidBitmap_unlockPixels(env, bitmap);
 	
 	// Allocate an AVFrame structure
-	AVFrame *pFrameRGB = avcodec_alloc_frame();
+	pFrame = avcodec_alloc_frame();
+	if (pFrame == NULL) {
+		return NULL;
+	}
+	
+	// Assign appropriate parts of buffer to image planes in pFrameRGB
+	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+	// of AVPicture
+	avpicture_fill((AVPicture *) pFrame, (uint8_t *)pixels, PIX_FMT_RGB565,
+				   info.width, info.height);
+	return pFrame;
+}
+
+static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
+	AVPacket				packet;
+	int						result = -1;
+	int						frameFinished;
+
+	// Allocate an AVFrame structure
+	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env, bitmap);
 	if (pFrameRGB == NULL) {
 		jniThrowException(env,
 						  "java/io/IOException",
@@ -138,16 +167,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		return;
 	}
 	
-	// Assign appropriate parts of buffer to image planes in pFrameRGB
-	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-	// of AVPicture
-	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB565,
-			ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
-	
-	int frameFinished;
-	AVPacket packet;
-	int i = 0;
-	int result = -1;
 	status = STATE_PLAYING;
 	while ((result = av_read_frame(ffmpeg_fields.pFormatCtx, &packet)) >= 0 &&
 			status == STATE_PLAYING) {
@@ -162,10 +181,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 				// Convert the image from its native format to RGB
 				sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 						ffmpeg_fields.pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
-
-				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, bitmap, pFrameRGB,
-						ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
-				i++;
+				env->CallVoidMethod(obj, fields.clb_onVideoFrame);
 			}
 		}
 
@@ -174,7 +190,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	}
 
 	// Free the RGB image
-	av_free(buffer);
 	av_free(pFrameRGB);
 
 	// Free the YUV frame
@@ -197,34 +212,6 @@ static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
 		return;
 	}
 	status = STATE_STOPING;
-}
-
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame, int width, int height) {
-	void*					android_pixels;
-	void*					ffmpeg_pixels = pFrame->data[0];
-	AndroidBitmapInfo		info;
-	int						lineLength = pFrame->linesize[0];
-	int						ret = -1;
-	
-	if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_getInfo() failed ! error=%d", ret);
-        return;
-    }
-	
-	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &android_pixels)) < 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_lockPixels() failed ! error=%d", ret);
-    }
-	
-	for(int y=0; y<height; y++) {
-		void *dest = (unsigned char*)android_pixels + y * info.width * 2;
-		void *src = (unsigned char*)ffmpeg_pixels + y * lineLength;
-		size_t num = lineLength;
-		memcpy(dest, src, num);
-	}
-	
-	AndroidBitmap_unlockPixels(env, bitmap);
-	
-	env->CallVoidMethod(object, fields.clb_onVideoFrame);
 }
 
 static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {

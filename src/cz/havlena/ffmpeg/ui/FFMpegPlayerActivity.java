@@ -7,6 +7,7 @@ import com.media.ffmpeg.IFFMpegPlayer;
 import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -20,15 +21,22 @@ public class FFMpegPlayerActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
-		FFMpeg ffmpeg = new FFMpeg();
-		mPlayer = ffmpeg.getPlayer(this);
-		try {
-			mPlayer.setVideoPath("/sdcard/Videos/pixar.flv");
-			mPlayer.setListener(new FFMpegPlayerHandler());
-		} catch (IOException e) {
-			FFMpegMessageBox.show(this, e);
+		Intent i = getIntent();
+		String filePath = i.getStringExtra(FFMpegActivity.FILE_INPUT);
+		if(filePath == null) {
+			Log.d(TAG, "Not specified video file");
+			finish();
+		} else {
+			FFMpeg ffmpeg = new FFMpeg();
+			mPlayer = ffmpeg.getPlayer(this);
+			try {
+				mPlayer.setVideoPath(filePath);
+				mPlayer.setListener(new FFMpegPlayerHandler());
+			} catch (IOException e) {
+				FFMpegMessageBox.show(this, e);
+			}
+			setContentView(mPlayer);
 		}
-		setContentView(mPlayer);
 	}
 
 	private class FFMpegPlayerHandler implements IFFMpegPlayer {
