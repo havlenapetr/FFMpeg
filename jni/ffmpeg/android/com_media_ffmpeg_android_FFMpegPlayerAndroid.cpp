@@ -122,11 +122,15 @@ static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormat
 			PIX_FMT_RGB565, SWS_POINT, NULL, NULL, NULL);
 }
 
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height);
+static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame/*, int width, int height*/);
 static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	// Determine required buffer size and allocate buffer
-	int numBytes = avpicture_get_size(PIX_FMT_RGB565, screen.width, screen.height);
+	int numBytes = avpicture_get_size(PIX_FMT_RGB565, ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, bytes: %i", screen.width, screen.height, numBytes);
+						
 	uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+	
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "1");
 	
 	// Allocate an AVFrame structure
 	AVFrame *pFrameRGB = avcodec_alloc_frame();
@@ -137,11 +141,16 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		return;
 	}
 
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "2");
+	
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture
 	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB565,
-			screen.width, screen.height);
+			ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
+	
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "3");
+	
 
 	int frameFinished;
 	AVPacket packet;
@@ -152,18 +161,22 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 			status == STATE_PLAYING) {
 		// Is this a packet from the video stream?
 		if (packet.stream_index == ffmpeg_fields.videoStream) {
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "5");
+			
 			// Decode video frame
 			avcodec_decode_video(ffmpeg_fields.pCodecCtx, ffmpeg_fields.pFrame, &frameFinished,
 					packet.data, packet.size);
 
 			// Did we get a video frame?
 			if (frameFinished) {
+				__android_log_print(ANDROID_LOG_ERROR, TAG, "4");
+				
 				// Convert the image from its native format to RGB
 				sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 						ffmpeg_fields.pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 
-				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, pFrameRGB, screen.width,
-						screen.height);
+				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, bitmap, pFrameRGB/*, screen.width,
+						screen.height*/);
 				i++;
 			}
 		}
@@ -201,6 +214,7 @@ static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
 static void FFMpegPlayerAndroid_surfaceChanged(JNIEnv *env, jobject object, int width, int height) {
 	screen.width = width;
 	screen.height = height;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "surface changed %i x %i", screen.width, screen.height);
 }
 /*
  * // Write pixel data
@@ -208,8 +222,8 @@ static void FFMpegPlayerAndroid_surfaceChanged(JNIEnv *env, jobject object, int 
 	for(y=0; y<height; y++)
 		fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
  */
-static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
-	int size = width * 3;//height * width * 2;//) * pFrame->linesize[0];
+static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, jobject bitmap, AVFrame *pFrame/*int width, int height*/) {
+	//int size = width * 3;//height * width * 2;//) * pFrame->linesize[0];
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
 
 	/*
@@ -217,7 +231,7 @@ static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, 
 			pFrame->linesize[1], pFrame->linesize[2], pFrame->linesize[3]);
 	__android_log_print(ANDROID_LOG_INFO, TAG, "data: %i, %i, %i, %i", pFrame->data[0],
 				pFrame->data[1], pFrame->data[2], pFrame->data[3]);
-	*/
+	
 	jintArray arr = env->NewIntArray(width * height * 2);
 	for(int y=0; y<height; y++) {
 		if(y == 44) break;
@@ -225,7 +239,18 @@ static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, 
 		env->SetIntArrayRegion(arr, width * y * 2, width * 2, (jint *) pFrame->data[0]  + y * pFrame->linesize[0]);
 	}
 	env->CallVoidMethod(object, fields.clb_onVideoFrame, arr, width, height);
-	env->DeleteLocalRef(arr);
+	env->DeleteLocalRef(arr);*/
+	void* pixels;
+	int ret = -1;
+	if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "AndroidBitmap_lockPixels() failed ! error=%d", ret);
+    }
+	
+	//pixels = pFrame->data[0];
+	
+	AndroidBitmap_unlockPixels(env, bitmap);
+	
+	env->CallVoidMethod(object, fields.clb_onVideoFrame);
 }
 
 static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstring filePath) {
@@ -284,7 +309,7 @@ int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native mSurface");
 	    return JNI_ERR;
 	}
-	fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "([III)V");
+	fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
 	if (fields.clb_onVideoFrame == NULL) {
 		return JNI_ERR;
 	}

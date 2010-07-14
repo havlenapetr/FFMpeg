@@ -6,6 +6,7 @@ import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.IFFMpegPlayer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private int								mDrawingType;
 	private IFFMpegPlayer					mListener;
 	private boolean							mPlaying;
+	private Bitmap							mBitmap;
 	private FFMpegConfigAndroid 			mConfig;
 	
 	public FFMpegPlayerAndroid(Context context) {
@@ -47,12 +49,14 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     }
     
     private void initVideoView(Context context) {
-    	mVideoWidth = 0;
-    	mVideoHeight = 0;
+    	mVideoWidth = 480;
+    	mVideoHeight = 320;
     	mDrawingType = Drawing.DRAWING_JAVA;
     	mConfig = new FFMpegConfigAndroid(context);
     	mSurfaceHolder = getHolder();
-    	mSurfaceHolder.addCallback(new FFMpegSurfaceHandler());
+		nativeSurfaceChanged(mVideoWidth, mVideoHeight);
+		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
+		play();
     }
     
     public void setListener(IFFMpegPlayer listener) {
@@ -69,7 +73,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	nativeInit(input);
 	}
     
-    private void play() {
+    public void play() {
     	mRenderThread = new Thread() {
 			public void run() {
 				mPlaying = true;
@@ -79,7 +83,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 				}
 				
 				try {
-					nativePlay();
+					nativePlay(mBitmap);
 				} catch (IOException e) {
 					Log.e(TAG, "Error while playing: " + e.getMessage());
 					mPlaying = false;
@@ -148,12 +152,20 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * native callback which receive pixels from ffmpeg
 	 * @param pixels
 	 */
-	private void onVideoFrame(int[] pixels, int width, int height) {
+	private void onVideoFrame() {
 		Canvas c = null;
         try {
             c = mSurfaceHolder.lockCanvas(null);
             synchronized (mSurfaceHolder) {
-                doDraw(c, pixels, width, height);
+            	Log.d(TAG, "drawing");
+            	
+            	c.drawBitmap(mBitmap, 0, 0, null);
+            	
+            	Log.d(TAG, "drawed");
+        		
+        		if(D) {
+        			calcFps();
+        		}
 			}
         } finally {
             // do this in a finally so that if an exception is thrown
@@ -180,20 +192,20 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 	}
 	
-	private void doDraw(Canvas canvas, int[] pixels, int width, int height) {
-		//Log.d(TAG, "received pixels: w=" + width + " h=" + height);
-		int screenWidth = mConfig.resolution[0];
-		int screenHeight = mConfig.resolution[1];
-		
-		//Bitmap.createBitmap(pixels, width, height, Bitmap.Config.RGB_565);
-		canvas.scale(((float) screenWidth) / width, ((float) screenHeight) / height);
-		canvas.drawBitmap(pixels, 0, width, 0, 0, width, height, false, null);
-		
-		if(D) {
-			calcFps();
+	@Override
+	protected void onDetachedFromWindow() {
+		Log.d(TAG, "Surface destroyed");
+		try {
+			stop();
+		} catch (InterruptedException e) {
+			if(mListener != null) {
+				mListener.onError("Couldn't stop player", e);
+			}
 		}
+		release();
 	}
 	
+	/*
 	private class FFMpegSurfaceHandler implements SurfaceHolder.Callback {
 
 		public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -201,11 +213,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			//mVideoWidth = width;
 			Log.d(TAG, "Surface width: " + width + ", height: " + height);
 			nativeSurfaceChanged(width, height);
+			mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 		}
 
 		public void surfaceCreated(SurfaceHolder holder) {
 			Log.d(TAG, "Surface created");
-			play();
 		}
 
 		public void surfaceDestroyed(SurfaceHolder holder) {
@@ -221,11 +233,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 	}
+	*/
 	
 	private native void nativeSurfaceChanged(int width, int height);
 	private native FFMpegAVFormatContext nativeSetInputFile(String filePath) throws IOException;
 	private native void nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
-	private native void nativePlay()throws IOException;
+	private native void nativePlay(Bitmap bitmap)throws IOException;
 	private native void nativeStop();
 	private native void nativeSetSurface(Surface surface);
 	private native void nativeRelease();
