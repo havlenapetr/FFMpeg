@@ -189,15 +189,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	// Free the RGB image
 	av_free(pFrameRGB);
 
-	// Free the YUV frame
-	av_free(ffmpeg_fields.pFrame);
-
-	// Close the codec
-	avcodec_close(ffmpeg_fields.pCodecCtx);
-
-	// Close the video file
-	av_close_input_file(ffmpeg_fields.pFormatCtx);
-
 	status = STATE_STOPED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 }
@@ -238,7 +229,14 @@ static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject sur
 }
 
 static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {
-
+	// Free the YUV frame
+	av_free(ffmpeg_fields.pFrame);
+	
+	// Close the codec
+	avcodec_close(ffmpeg_fields.pCodecCtx);
+	
+	// Close the video file
+	av_close_input_file(ffmpeg_fields.pFormatCtx);
 }
 
 /*
