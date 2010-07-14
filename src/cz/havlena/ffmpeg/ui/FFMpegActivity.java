@@ -81,8 +81,8 @@ public class FFMpegActivity extends Activity {
 	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 	
-	    //startPlayer();
-	    
+	    startPlayer();
+	    /*
 	    mFFMpegController = new FFMpeg();
   		mFFMpegController.setListener(new FFMpegHandler(this));
   		FFMpegUtils utils = mFFMpegController.getUtils();
@@ -111,6 +111,7 @@ public class FFMpegActivity extends Activity {
 	    		showError(this, e);
 			}
 	    }
+	    */
 	}
     
     private void initFFMpeg(String filePath) throws RuntimeException, IOException {

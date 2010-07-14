@@ -28,6 +28,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private Thread							mRenderThread;
 	private int								mDrawingType;
 	private IFFMpegPlayer					mListener;
+	private boolean							mPlaying;
 	private FFMpegConfigAndroid 			mConfig;
 	
 	public FFMpegPlayerAndroid(Context context) {
@@ -71,6 +72,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     private void play() {
     	mRenderThread = new Thread() {
 			public void run() {
+				mPlaying = true;
+				
 				if(mListener != null) {
 					mListener.onPlay();
 				}
@@ -79,6 +82,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 					nativePlay();
 				} catch (IOException e) {
 					Log.e(TAG, "Error while playing: " + e.getMessage());
+					mPlaying = false;
 					if(mListener != null) {
 						mListener.onError("Error while playing", e);
 					}
@@ -97,9 +101,15 @@ public class FFMpegPlayerAndroid extends SurfaceView {
      * @throws InterruptedException
      */
     public void stop() throws InterruptedException {
+    	if(!mPlaying) {
+    		return;
+    	}
+    	
     	if(D) {
     		Log.d(TAG, "stopping player");
     	}
+    	
+    	mPlaying = false;
     	
     	nativeStop();
     	if(mRenderThread != null) {

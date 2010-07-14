@@ -1,4 +1,5 @@
 #include <android/log.h>
+#include <android/bitmap.h>
 #include "jniUtils.h"
 #include "methods.h"
 
@@ -122,11 +123,11 @@ static void FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormat
 }
 
 static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height);
-static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
+static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	// Determine required buffer size and allocate buffer
-	int numBytes = avpicture_get_size(PIX_FMT_RGB565, ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
+	int numBytes = avpicture_get_size(PIX_FMT_RGB565, screen.width, screen.height);
 	uint8_t *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
-
+	
 	// Allocate an AVFrame structure
 	AVFrame *pFrameRGB = avcodec_alloc_frame();
 	if (pFrameRGB == NULL) {
@@ -140,7 +141,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture
 	avpicture_fill((AVPicture *) pFrameRGB, buffer, PIX_FMT_RGB565,
-			ffmpeg_fields.pCodecCtx->width, ffmpeg_fields.pCodecCtx->height);
+			screen.width, screen.height);
 
 	int frameFinished;
 	AVPacket packet;
@@ -161,8 +162,8 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 				sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 						ffmpeg_fields.pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 
-				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, ffmpeg_fields.pFrame, ffmpeg_fields.pCodecCtx->width,
-						ffmpeg_fields.pCodecCtx->height);
+				FFMpegPlayerAndroid_handleOnVideoFrame(env, obj, pFrameRGB, screen.width,
+						screen.height);
 				i++;
 			}
 		}
@@ -209,7 +210,7 @@ static void FFMpegPlayerAndroid_surfaceChanged(JNIEnv *env, jobject object, int 
  */
 static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, AVFrame *pFrame, int width, int height) {
 	int size = width * 3;//height * width * 2;//) * pFrame->linesize[0];
-	__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "width: %i, height: %i, linesize: %i", width, height, pFrame->linesize[0]);
 
 	/*
 	__android_log_print(ANDROID_LOG_INFO, TAG, "linesize: %i, %i, %i, %i", pFrame->linesize[0],
@@ -217,12 +218,11 @@ static void FFMpegPlayerAndroid_handleOnVideoFrame(JNIEnv *env, jobject object, 
 	__android_log_print(ANDROID_LOG_INFO, TAG, "data: %i, %i, %i, %i", pFrame->data[0],
 				pFrame->data[1], pFrame->data[2], pFrame->data[3]);
 	*/
-
 	jintArray arr = env->NewIntArray(width * height * 2);
 	for(int y=0; y<height; y++) {
 		if(y == 44) break;
 		//__android_log_print(ANDROID_LOG_INFO, TAG, "cykl %i", y);
-		env->SetIntArrayRegion(arr, width * 2 * y, width * 2, (jint *) pFrame->data[0]  + y * pFrame->linesize[0]);
+		env->SetIntArrayRegion(arr, width * y * 2, width * 2, (jint *) pFrame->data[0]  + y * pFrame->linesize[0]);
 	}
 	env->CallVoidMethod(object, fields.clb_onVideoFrame, arr, width, height);
 	env->DeleteLocalRef(arr);
@@ -267,7 +267,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)V", (void*) FFMpegPlayerAndroid_init},
 	{ "nativeSurfaceChanged", "(II)V", (void*) FFMpegPlayerAndroid_surfaceChanged },
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
-	{ "nativePlay", "()V", (void*) FFMpegPlayerAndroid_play },
+	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },
