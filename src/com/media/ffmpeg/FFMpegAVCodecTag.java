@@ -2,6 +2,8 @@ package com.media.ffmpeg;
 
 public class FFMpegAVCodecTag {
 	
+	public static final int AVCODEC_MAX_AUDIO_FRAME_SIZE = 192000;
+	
 	public enum CodecID {
 		CODEC_ID_NONE,
 		CODEC_ID_MPEG1VIDEO, 	

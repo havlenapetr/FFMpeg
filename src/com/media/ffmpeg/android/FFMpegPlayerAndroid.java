@@ -3,6 +3,7 @@ package com.media.ffmpeg.android;
 import java.io.IOException;
 
 import com.media.ffmpeg.FFMpegAVCodecContext;
+import com.media.ffmpeg.FFMpegAVCodecTag;
 import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.IFFMpegPlayer;
 
@@ -61,8 +62,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT, 
-        		192000, AudioTrack.MODE_STREAM);
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
+        							 44100, 
+        							 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
+        							 AudioFormat.ENCODING_PCM_16BIT, 
+        							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+        							 AudioTrack.MODE_STREAM);
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -226,7 +231,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         }
 	}
 	
-	private void onAudioBuffer(byte[] buffer) {
+	private void onAudioBuffer(short[] buffer) {
 		mAudioTrack.write(buffer, 0, buffer.length);
 	}
 	

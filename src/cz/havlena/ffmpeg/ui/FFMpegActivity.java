@@ -41,8 +41,8 @@ import android.widget.TextView;
  */
 public class FFMpegActivity extends Activity {
 	
-	private static final String TAG = "FFMpegActivity";
-	private static final boolean D = false;
+	private static final String 	TAG = "FFMpegActivity";
+	private static final boolean 	D = true;
 	
 	private static final int		FILE_SELECT = 0;
 	public static final String		FILE_INPUT = "FFMpeg_file";

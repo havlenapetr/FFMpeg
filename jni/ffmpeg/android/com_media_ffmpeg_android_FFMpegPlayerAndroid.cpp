@@ -8,6 +8,7 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
+#include "libavutil/log.h"
 
 } // end of extern C
 
@@ -28,6 +29,7 @@ struct fields_t {
 	jfieldID    surface;
 	jfieldID    avformatcontext;
 	jmethodID   clb_onVideoFrame;
+	jmethodID   clb_onAudioBuffer;
 };
 static struct fields_t fields;
 
@@ -46,7 +48,56 @@ const char *FFMpegPlayerAndroid_getSignature() {
 	return "Lcom/media/ffmpeg/android/FFMpegPlayerAndroid;";
 }
 
+static void FFMpegPlayerAndroid_handleErrors(void* ptr, int level, const char* fmt, va_list vl) {
+
+	switch(level) {
+
+	/**
+	 * Something went really wrong and we will crash now.
+	 */
+	case AV_LOG_PANIC:
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_PANIC: %s", fmt);
+		break;
+
+	/**
+	* Something went wrong and recovery is not possible.
+	* For example, no header was found for a format which depends
+	* on headers or an illegal combination of parameters is used.
+    */
+	case AV_LOG_FATAL:
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_FATAL: %s", fmt);
+		break;
+
+	/**
+	 * Something went wrong and cannot losslessly be recovered.
+	 * However, not all future data is affected.
+	 */
+	case AV_LOG_ERROR:
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_ERROR: %s", fmt);
+		break;
+
+	/**
+	 * Something somehow does not look correct. This may or may not
+	 * lead to problems. An example would be the use of '-vstrict -2'.
+	 */
+	case AV_LOG_WARNING:
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_WARNING: %s", fmt);
+		break;
+
+	case AV_LOG_INFO:
+		__android_log_print(ANDROID_LOG_INFO, TAG, "%s", fmt);
+		break;
+
+	case AV_LOG_DEBUG:
+		__android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", fmt);
+		break;
+
+	}
+}
+
 static jobject FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
+	av_log_set_callback(FFMpegPlayerAndroid_handleErrors);
+
 	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, fields.avformatcontext);
 
 	// Find the first video stream
@@ -63,6 +114,8 @@ static jobject FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFor
 			break;
 		}
 	}
+
+	__android_log_print(ANDROID_LOG_INFO, TAG, "audio: %i, video: %i", ffmpeg_fields.videoStream, ffmpeg_fields.audioStream);
 
 	if (ffmpeg_fields.videoStream == -1) {
 		jniThrowException(env,
@@ -133,17 +186,30 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 }
 
 // Allocate a structure for storing decoded samples
-static void FFMpegPlayerAndroid_processAudio(AVPacket *packet, int16_t *samples) {
+static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples) {
 	// Try to decode the audio from the packet into the frame
-	int out_size, len;
-	len = avcodec_decode_audio3(ffmpeg_fields.pCodecCtx, samples, 
+	int out_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+	int len = avcodec_decode_audio3(ffmpeg_fields.pCodecCtx, samples,
 								&out_size, packet);
+
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "size: %i, len: %i, out_size: %i", packet->size, len, out_size);
+
+	/*
+	 * call java callback for writing audio buffer to android audio track
+	 */
+	if(len > 0) {
+		jshortArray arr = env->NewShortArray(len);
+		env->SetShortArrayRegion(arr, 0, len, (jshort *) samples);
+		env->CallVoidMethod(obj, fields.clb_onAudioBuffer);
+		env->DeleteLocalRef(arr);
+	}
 }
 
 static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	AVPacket				packet;
 	int						result = -1;
 	int						frameFinished;
+	int 					audio_sample_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
 	// Allocate an AVFrame structure
 	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env, bitmap);
@@ -154,8 +220,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		return;
 	}
 	
-	int16_t *samples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
-	memset(samples, 0, AVCODEC_MAX_AUDIO_FRAME_SIZE);
+	int16_t *samples = (int16_t *) av_malloc(audio_sample_size);
 	
 	status = STATE_PLAYING;
 	while ((result = av_read_frame(ffmpeg_fields.pFormatCtx, &packet)) >= 0 &&
@@ -174,7 +239,15 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 				env->CallVoidMethod(obj, fields.clb_onVideoFrame);
 			}
 		} else if (packet.stream_index == ffmpeg_fields.audioStream) {
-			FFMpegPlayerAndroid_processAudio(&packet, samples);
+			int sample_size = FFMAX(packet.size * sizeof(*samples), audio_sample_size);
+			//__android_log_print(ANDROID_LOG_INFO, TAG, "orig. %i should be %i", audio_sample_size, sample_size);
+			if(audio_sample_size < sample_size) {
+				__android_log_print(ANDROID_LOG_INFO, TAG, "resizing audio buffer from %i to %i", audio_sample_size, sample_size);
+				av_free(samples);
+				audio_sample_size = sample_size;
+				samples = (int16_t *) av_malloc(sample_size);
+			}
+			FFMpegPlayerAndroid_processAudio(env, obj, &packet, samples);
 		}
 
 		// Free the packet that was allocated by av_read_frame
@@ -261,6 +334,10 @@ int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 	}
 	fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
 	if (fields.clb_onVideoFrame == NULL) {
+		return JNI_ERR;
+	}
+	fields.clb_onAudioBuffer = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onAudioBuffer", "([S)V");
+	if (fields.clb_onAudioBuffer == NULL) {
 		return JNI_ERR;
 	}
 	fields.avformatcontext = env->GetFieldID(AVFormatContext_getClass(env), "pointer", "I");
