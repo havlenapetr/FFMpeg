@@ -83,13 +83,16 @@ public class FFMpegPlayerAndroid extends SurfaceView {
                     (View)this.getParent() : this;
         mMediaController.setMediaPlayer(mMediaPlayerControl);
         mMediaController.setAnchorView(anchorView);
-        mMediaController.setEnabled(false);
+        mMediaController.setEnabled(true);
     }
     
     public void setListener(IFFMpegPlayer listener) {
     	mListener = listener;
     }
     
+    /**
+     * initzialize player
+     */
     private void openVideo() {
     	try {
 			FFMpegAVCodecContext context = nativeInit(mInputVideo);
@@ -103,36 +106,42 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
     }
     
+    /**
+     * starts playing of video
+     */
     private void startVideo() {
-		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
-		attachMediaController();
-		
-		mRenderThread = new Thread() {
-			public void run() {
-				mPlaying = true;
-				
-				if(mListener != null) {
-					mListener.onPlay();
-				}
-				
-				try {
-					nativePlay(mBitmap);
-				} catch (IOException e) {
-					Log.e(TAG, "Error while playing: " + e.getMessage());
-					mPlaying = false;
+		mPlaying = true;
+		if(mRenderThread == null) {
+			mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
+			attachMediaController();
+			
+			mRenderThread = new Thread() {
+				public void run() {
+					
 					if(mListener != null) {
-						mListener.onError("Error while playing", e);
+						mListener.onPlay();
 					}
+					
+					try {
+						nativePlay(mBitmap);
+					} catch (IOException e) {
+						Log.e(TAG, "Error while playing: " + e.getMessage());
+						mPlaying = false;
+						if(mListener != null) {
+							mListener.onError("Error while playing", e);
+						}
+					}
+					
+					if(mListener != null) {
+			    		mListener.onStop();
+			    	}
 				}
-				
-				if(mListener != null) {
-		    		mListener.onStop();
-		    	}
-			}
-		};
-		mRenderThread.start();
-		
-		toggleMediaControlsVisiblity();
+			};
+			mRenderThread.start();
+			toggleMediaControlsVisiblity();
+		} else {
+			Log.d(TAG, "repausing player " + nativePause(false));
+		}
     }
     
     /**
@@ -151,6 +160,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
     }
     */
+    
+    public boolean pause() {
+    	mPlaying = false;
+    	return nativePause(true);
+    }
     
     /**
      * stops player
@@ -348,7 +362,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
 		
 		public void start() {
-			Log.d(TAG, "want start");
+			FFMpegPlayerAndroid.this.startVideo();
 		}
 		
 		public void seekTo(int pos) {
@@ -356,7 +370,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public void pause() {
-			Log.d(TAG, "want pause");
+			FFMpegPlayerAndroid.this.pause();
 		}
 		
 		public boolean isPlaying() {
@@ -396,6 +410,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * @throws IOException
 	 */
 	private native FFMpegAVCodecContext 	nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	
+	/**
+	 * pause playing of video
+	 * @return true if pausing was finished othewise return false
+	 */
+	private native boolean					nativePause(boolean pause);
 	
 	/**
 	 * starts playing movie 

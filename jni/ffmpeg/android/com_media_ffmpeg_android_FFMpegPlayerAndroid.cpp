@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <android/log.h>
 #include <android/bitmap.h>
 #include "jniUtils.h"
@@ -37,6 +38,7 @@ enum State {
 	STATE_STOPED,
 	STATE_STOPING,
 	STATE_PLAYING,
+	STATE_PAUSE
 };
 static State status = STATE_STOPED;
 
@@ -51,7 +53,6 @@ const char *FFMpegPlayerAndroid_getSignature() {
 static void FFMpegPlayerAndroid_handleErrors(void* ptr, int level, const char* fmt, va_list vl) {
 
 	switch(level) {
-
 	/**
 	 * Something went really wrong and we will crash now.
 	 */
@@ -223,8 +224,18 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	int16_t *samples = (int16_t *) av_malloc(audio_sample_size);
 	
 	status = STATE_PLAYING;
-	while ((result = av_read_frame(ffmpeg_fields.pFormatCtx, &packet)) >= 0 &&
-			status == STATE_PLAYING) {
+	while (status != STATE_STOPING) {
+
+		if(status == STATE_PAUSE) {
+			usleep(50);
+			continue;
+		}
+
+		if((result = av_read_frame(ffmpeg_fields.pFormatCtx, &packet)) < 0) {
+			status = STATE_STOPING;
+			continue;
+		}
+
 		// Is this a packet from the video stream?
 		if (packet.stream_index == ffmpeg_fields.videoStream) {
 			// Decode video frame
@@ -263,8 +274,27 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 }
 
+static jboolean FFMpegPlayerAndroid_pause(JNIEnv *env, jobject object, jboolean pause) {
+	switch(pause) {
+	case JNI_TRUE:
+		if(status != STATE_PLAYING) {
+			return JNI_FALSE;
+		}
+		status = STATE_PAUSE;
+		break;
+
+	case JNI_FALSE:
+		if(status != STATE_PAUSE) {
+			return JNI_FALSE;
+		}
+		status = STATE_PLAYING;
+		break;
+	}
+	return JNI_TRUE;
+}
+
 static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
-	if(status != STATE_PLAYING) {
+	if(status == STATE_STOPING || status == STATE_STOPED) {
 		return;
 	}
 	status = STATE_STOPING;
@@ -315,6 +345,7 @@ static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {
 static JNINativeMethod methods[] = {
 	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)Lcom/media/ffmpeg/FFMpegAVCodecContext;", (void*) FFMpegPlayerAndroid_init},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
+	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
 	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
