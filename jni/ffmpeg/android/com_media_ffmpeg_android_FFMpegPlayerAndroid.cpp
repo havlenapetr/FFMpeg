@@ -290,7 +290,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 						ffmpeg_video.codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
 				env->CallVoidMethod(obj, jni_fields.clb_onVideoFrame);
 			}
-		} else if (packet.stream_index == ffmpeg_audio.stream) {
+		} /*else if (packet.stream_index == ffmpeg_audio.stream) {
 			int sample_size = FFMAX(packet.size * sizeof(*samples), audio_sample_size);
 			//__android_log_print(ANDROID_LOG_INFO, TAG, "orig. %i should be %i", audio_sample_size, sample_size);
 			if(audio_sample_size < sample_size) {
@@ -300,7 +300,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 				samples = (int16_t *) av_malloc(sample_size);
 			}
 			FFMpegPlayerAndroid_processAudio(env, obj, &packet, samples, audio_sample_size);
-		}
+		}*/
 
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);

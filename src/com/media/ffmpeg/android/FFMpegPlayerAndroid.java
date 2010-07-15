@@ -68,12 +68,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
+        /*mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
         							 44100,
         							 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
         							 AudioFormat.ENCODING_PCM_16BIT, 
         							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-        							 AudioTrack.MODE_STATIC);
+        							 AudioTrack.MODE_STATIC);*/
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -290,9 +290,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		Log.d(TAG, "***************************************");
 		*/
-		mAudioTrack.write(buffer, 0, buffer.length);
-		mAudioTrack.flush();
-		mAudioTrack.play();
+		if(mAudioTrack != null) {
+			mAudioTrack.write(buffer, 0, buffer.length);
+			mAudioTrack.flush();
+			mAudioTrack.play();
+		}
 	}
 	
 	private void doDraw(Canvas c) {
