@@ -31,6 +31,7 @@ struct ffmpeg_audio_t {
 	int 				stream;
 	AVCodecContext 		*codec_ctx;
 	AVCodec 			*codec;
+	jbyteArray 			buffer_jni;
 } ffmpeg_audio;
 
 struct jni_fields_t {
@@ -231,8 +232,8 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples, int samples_length) {
 	// Try to decode the audio from the packet into the frame
 	int out_size = samples_length;
-	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
-								&out_size, packet);
+	int len = -1;/*avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
+								&out_size, packet);*/
 
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "size: %i, len: %i, out_size: %i", packet->size, len, out_size);
 
@@ -240,10 +241,13 @@ static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket 
 	 * call java callback for writing audio buffer to android audio track
 	 */
 	if(len > 0) {
-		jbyteArray arr = env->NewByteArray(out_size);
-		env->SetByteArrayRegion(arr, 0, out_size, (jbyte *) samples);
-		env->CallVoidMethod(obj, jni_fields.clb_onAudioBuffer, arr);
-		env->DeleteLocalRef(arr);
+		if(ffmpeg_audio.buffer_jni == NULL) {
+			__android_log_print(ANDROID_LOG_INFO, TAG, "creating jni audio buffer");
+			ffmpeg_audio.buffer_jni = env->NewByteArray(out_size);
+		}
+		//env->SetByteArrayRegion(ffmpeg_audio.buffer_jni, 0, out_size, (jbyte *) samples);
+		env->CallVoidMethod(obj, jni_fields.clb_onAudioBuffer, ffmpeg_audio.buffer_jni);
+		//env->DeleteLocalRef(arr);
 	}
 }
 
@@ -290,7 +294,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 						ffmpeg_video.codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
 				env->CallVoidMethod(obj, jni_fields.clb_onVideoFrame);
 			}
-		} /*else if (packet.stream_index == ffmpeg_audio.stream) {
+		} else if (packet.stream_index == ffmpeg_audio.stream) {
 			int sample_size = FFMAX(packet.size * sizeof(*samples), audio_sample_size);
 			//__android_log_print(ANDROID_LOG_INFO, TAG, "orig. %i should be %i", audio_sample_size, sample_size);
 			if(audio_sample_size < sample_size) {
@@ -300,7 +304,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 				samples = (int16_t *) av_malloc(sample_size);
 			}
 			FFMpegPlayerAndroid_processAudio(env, obj, &packet, samples, audio_sample_size);
-		}*/
+		}
 
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
