@@ -12,7 +12,7 @@ import com.media.ffmpeg.config.FFMpegConfig;
 
 public class FFMpeg {
 	
-	public static final String LIB_NAME = "ffmpeg_jni";
+	public static final String[] LIBS = new String[] {"jniaudio", "ffmpeg_jni"};
 	public static final String[] EXTENSIONS = new String[] {".mp4", ".flv", ".avi", ".wmv"};
 	
 	private Thread 						mThread;
@@ -22,15 +22,17 @@ public class FFMpeg {
 	private FFMpegFile					mOutputFile;
 	private boolean 					mConverting;
 	
-	static {
-		System.loadLibrary("jniaudio");
-		System.loadLibrary(LIB_NAME);
-	}
-	
     public FFMpeg() {
+    	loadLibs();
     	native_avcodec_register_all();
 		native_av_register_all();
 		mConverting = false;
+    }
+    
+    private void loadLibs() {
+    	for(int i=0;i<LIBS.length;i++) {
+			System.loadLibrary(LIBS[i]);
+		}
     }
     
     public FFMpegUtils getUtils() {
