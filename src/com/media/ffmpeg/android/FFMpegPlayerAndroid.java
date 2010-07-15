@@ -1,7 +1,6 @@
 package com.media.ffmpeg.android;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import com.media.ffmpeg.FFMpegAVCodecContext;
 import com.media.ffmpeg.FFMpegAVCodecTag;
@@ -28,12 +27,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private static final String 			TAG = "FFMpegPlayerAndroid"; 
 	private static final boolean 			D = true;
 	
+	/*
 	private static final int				EVENTS_PLAY = 1;
 	private static final int				EVENTS_STOP = 2;
 	private static final int				EVENTS_PAUSE = 3;
+	*/
 	
-	private boolean 						mInitzialized;
-	private boolean 						mRelease;
 	private int        	 					mVideoWidth;
     private int         					mVideoHeight;
 	private int 							mSurfaceWidth;
@@ -48,7 +47,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private Bitmap							mBitmap;
 	private FFMpegAVFormatContext			mInputVideo;
 	private boolean 						mFitToScreen;
-	private ArrayList<Integer> 				mEvents;
 	
 	public FFMpegPlayerAndroid(Context context) {
         super(context);
@@ -67,8 +65,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void initVideoView(Context context) {
     	mContext = context;
-    	mInitzialized = false;
-    	mEvents = new ArrayList<Integer>();
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
@@ -79,7 +75,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
         							 AudioTrack.MODE_STREAM);
     	getHolder().addCallback(mSHCallback);
-    	//mEventThread.start();
     }
     
     private void attachMediaController() {
@@ -331,13 +326,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
             mSurfaceWidth = w;
             mSurfaceHeight = h;
             startVideo();
-            mInitzialized = true;
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
         	Log.d(TAG, "Surface created");
             mSurfaceHolder = holder;
-            mInitzialized = false;
             openVideo();
         }
 
@@ -347,7 +340,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			if(mMediaController.isShowing()) {
 				mMediaController.hide();
 			}
-			mInitzialized = false;
 			// after we return from this we can't use the surface any more
             mSurfaceHolder = null;
         }
@@ -389,11 +381,43 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 	};
 	
-	private native FFMpegAVFormatContext nativeSetInputFile(String filePath) throws IOException;
-	private native FFMpegAVCodecContext nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
-	private native void nativePlay(Bitmap bitmap)throws IOException;
-	private native void nativeStop();
-	private native void nativeSetSurface(Surface surface);
-	private native void nativeRelease();
+	/**
+	 * set input file for playing
+	 * @param filePath path to video file
+	 * @return FFMpeg AVFormatContext struct which should be passed to init player
+	 * @throws IOException if file doesn't exist or couldn't be opened
+	 */
+	private native FFMpegAVFormatContext 	nativeSetInputFile(String filePath) throws IOException;
+	
+	/**
+	 * 
+	 * @param AVFormatContext
+	 * @return
+	 * @throws IOException
+	 */
+	private native FFMpegAVCodecContext 	nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	
+	/**
+	 * starts playing movie 
+	 * @param bitmap to which player will draw pixels
+	 * @throws IOException
+	 */
+	private native void 					nativePlay(Bitmap bitmap)throws IOException;
+	
+	/**
+	 * stops playing movie
+	 */
+	private native void 					nativeStop();
+	
+	/**
+	 * sets native pointer of player surface view
+	 * @param surface
+	 */
+	private native void 					nativeSetSurface(Surface surface);
+	
+	/**
+	 * release all native resources allocated by player 
+	 */
+	private native void 					nativeRelease();
 
 }
