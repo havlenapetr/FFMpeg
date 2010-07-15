@@ -227,31 +227,6 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 	return pFrame;
 }
 
-// Allocate a structure for storing decoded samples
-static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples, int samples_length) {
-	// Try to decode the audio from the packet into the frame
-	int out_size = samples_length;
-	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
-								&out_size, packet);
-
-	//__android_log_print(ANDROID_LOG_INFO, TAG, "size: %i, len: %i, out_size: %i", packet->size, len, out_size);
-
-	
-	/*
-	 * call java callback for writing audio buffer to android audio track
-	 *
-	if(len > 0) {
-		if(ffmpeg_audio.buffer_jni == NULL) {
-			__android_log_print(ANDROID_LOG_INFO, TAG, "creating jni audio buffer");
-			ffmpeg_audio.buffer_jni = env->NewByteArray(out_size);
-		}
-		//env->SetByteArrayRegion(ffmpeg_audio.buffer_jni, 0, out_size, (jbyte *) samples);
-		env->CallVoidMethod(obj, jni_fields.clb_onAudioBuffer, ffmpeg_audio.buffer_jni);
-		//env->DeleteLocalRef(arr);
-	}
-	*/
-}
-
 static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, jobject audioTrack) {
 	AVPacket				packet;
 	int						result = -1;
@@ -271,7 +246,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, j
 	if(AndroidAudioTrack_register(env, audioTrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		jniThrowException(env,
 						  "java/io/IOException",
-						  "Couldn't start audio track");
+						  "Couldn't register audio track");
 		return;
 	}
 	
@@ -328,7 +303,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, j
 	if(AndroidAudioTrack_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		jniThrowException(env,
 						  "java/io/IOException",
-						  "Couldn't stop audio track");
+						  "Couldn't unregister audio track");
 	}
 	
 	av_free( samples );
