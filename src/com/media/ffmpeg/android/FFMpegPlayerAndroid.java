@@ -69,11 +69,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mVideoWidth = 0;
         mVideoHeight = 0;
         mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
-        							 44100, 
+        							 44100,
         							 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
         							 AudioFormat.ENCODING_PCM_16BIT, 
         							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-        							 AudioTrack.MODE_STREAM);
+        							 AudioTrack.MODE_STATIC);
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -111,6 +111,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
      */
     private void startVideo() {
 		mPlaying = true;
+		
+		// we hasn't run player thread so we are launching
 		if(mRenderThread == null) {
 			mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
 			attachMediaController();
@@ -139,7 +141,9 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			};
 			mRenderThread.start();
 			toggleMediaControlsVisiblity();
-		} else {
+		}
+		// player thread is running so we are unpausing
+		else {
 			Log.d(TAG, "repausing player " + nativePause(false));
 		}
     }
@@ -211,6 +215,13 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 				mListener.onError("Couldn't stop player", e);
 			}
 		}
+		
+		if(mAudioTrack != null) {
+			mAudioTrack.stop();
+			mAudioTrack.release();
+			mAudioTrack = null;
+		}
+		
 		/*
 		mRelease = true;
 		try {
@@ -269,8 +280,19 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         }
 	}
 	
-	private void onAudioBuffer(short[] buffer) {
+	private void onAudioBuffer(byte[] buffer) {
+		//Log.d(TAG, "buffer length " + buffer.length);
+		
+		/*
+		Log.d(TAG, "***************************************");
+		for(int i=0;i<buffer.length; i++) {
+			Log.d(TAG, "buffer: " + buffer[i]);
+		}
+		Log.d(TAG, "***************************************");
+		*/
 		mAudioTrack.write(buffer, 0, buffer.length);
+		mAudioTrack.flush();
+		mAudioTrack.play();
 	}
 	
 	private void doDraw(Canvas c) {
@@ -366,7 +388,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public void seekTo(int pos) {
-			Log.d(TAG, "want seek to");
+			//Log.d(TAG, "want seek to");
 		}
 		
 		public void pause() {
@@ -385,12 +407,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public int getCurrentPosition() {
-			Log.d(TAG, "want get current position");
+			//Log.d(TAG, "want get current position");
 			return 0;
 		}
 		
 		public int getBufferPercentage() {
-			Log.d(TAG, "want buffer percentage");
+			//Log.d(TAG, "want buffer percentage");
 			return 0;
 		}
 	};
