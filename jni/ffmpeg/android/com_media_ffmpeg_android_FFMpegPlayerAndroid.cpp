@@ -16,25 +16,29 @@ extern "C" {
 #define TAG "FFMpegPlayerAndroid"
 
 struct ffmpeg_fields_t {
-	int 				videoStream;
-	int					audioStream;
-	AVCodecContext 		*video_codec_ctx;
-	AVCodecContext 		*audio_codec_ctx;
 	AVFrame 			*pFrame;
-	AVCodec 			*video_codec;
-	AVCodec 			*audio_codec;
-	AVFormatContext 	*pFormatCtx;;
+	AVFormatContext 	*pFormatCtx;
 	struct SwsContext 	*img_convert_ctx;
-};
-static struct ffmpeg_fields_t ffmpeg_fields;
+} ffmpeg_fields;
 
-struct fields_t {
+struct ffmpeg_video_t {
+	int 				stream;
+	AVCodecContext 		*codec_ctx;
+	AVCodec 			*codec;
+} ffmpeg_video;
+
+struct ffmpeg_audio_t {
+	int 				stream;
+	AVCodecContext 		*codec_ctx;
+	AVCodec 			*codec;
+} ffmpeg_audio;
+
+struct jni_fields_t {
 	jfieldID    surface;
 	jfieldID    avformatcontext;
 	jmethodID   clb_onVideoFrame;
 	jmethodID   clb_onAudioBuffer;
-};
-static struct fields_t fields;
+} jni_fields;
 
 enum State {
 	STATE_STOPED,
@@ -99,16 +103,16 @@ static void FFMpegPlayerAndroid_handleErrors(void* ptr, int level, const char* f
 }
 
 static int FFMpegPlayerAndroid_initAudio(JNIEnv *env) {
-	if (ffmpeg_fields.audioStream == -1) {
+	if (ffmpeg_audio.stream == -1) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Didn't find a audio stream");
 		return -1;
 	}
 	// Get a pointer to the codec context for the video stream
-	ffmpeg_fields.audio_codec_ctx = ffmpeg_fields.pFormatCtx->streams[ffmpeg_fields.audioStream]->codec;
-	ffmpeg_fields.audio_codec = avcodec_find_decoder(ffmpeg_fields.audio_codec_ctx->codec_id);
-	if (ffmpeg_fields.audio_codec == NULL) {
+	ffmpeg_audio.codec_ctx = ffmpeg_fields.pFormatCtx->streams[ffmpeg_audio.stream]->codec;
+	ffmpeg_audio.codec = avcodec_find_decoder(ffmpeg_audio.codec_ctx->codec_id);
+	if (ffmpeg_audio.codec == NULL) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't find audio codec!");
@@ -116,7 +120,7 @@ static int FFMpegPlayerAndroid_initAudio(JNIEnv *env) {
 	}
 
 	// Open codec
-	if (avcodec_open(ffmpeg_fields.audio_codec_ctx, ffmpeg_fields.audio_codec) < 0) {
+	if (avcodec_open(ffmpeg_audio.codec_ctx, ffmpeg_audio.codec) < 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Could not open audio codec");
@@ -126,16 +130,16 @@ static int FFMpegPlayerAndroid_initAudio(JNIEnv *env) {
 }
 
 static int FFMpegPlayerAndroid_initVideo(JNIEnv *env) {
-	if (ffmpeg_fields.videoStream == -1) {
+	if (ffmpeg_video.stream == -1) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Didn't find a video stream");
 		return -1;
 	}
 	// Get a pointer to the codec context for the video stream
-	ffmpeg_fields.video_codec_ctx = ffmpeg_fields.pFormatCtx->streams[ffmpeg_fields.videoStream]->codec;
-	ffmpeg_fields.video_codec = avcodec_find_decoder(ffmpeg_fields.video_codec_ctx->codec_id);
-	if (ffmpeg_fields.video_codec == NULL) {
+	ffmpeg_video.codec_ctx = ffmpeg_fields.pFormatCtx->streams[ffmpeg_video.stream]->codec;
+	ffmpeg_video.codec = avcodec_find_decoder(ffmpeg_video.codec_ctx->codec_id);
+	if (ffmpeg_video.codec == NULL) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't find video codec!");
@@ -143,7 +147,7 @@ static int FFMpegPlayerAndroid_initVideo(JNIEnv *env) {
 	}
 
 	// Open codec
-	if (avcodec_open(ffmpeg_fields.video_codec_ctx, ffmpeg_fields.video_codec) < 0) {
+	if (avcodec_open(ffmpeg_video.codec_ctx, ffmpeg_video.codec) < 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Could not open video codec");
@@ -155,24 +159,24 @@ static int FFMpegPlayerAndroid_initVideo(JNIEnv *env) {
 static jobject FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
 	av_log_set_callback(FFMpegPlayerAndroid_handleErrors);
 
-	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, fields.avformatcontext);
+	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, jni_fields.avformatcontext);
 
 	// Find the first video stream
-	ffmpeg_fields.videoStream = -1;
-	ffmpeg_fields.audioStream = -1;
+	ffmpeg_video.stream = -1;
+	ffmpeg_audio.stream = -1;
 	for (int i = 0; i < ffmpeg_fields.pFormatCtx->nb_streams; i++) {
 		if (ffmpeg_fields.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
-			ffmpeg_fields.videoStream = i;
+			ffmpeg_video.stream = i;
 		}
 		if (ffmpeg_fields.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
-			ffmpeg_fields.audioStream = i;
+			ffmpeg_audio.stream = i;
 		}
-		if(ffmpeg_fields.audioStream != -1 && ffmpeg_fields.videoStream != -1) {
+		if(ffmpeg_audio.stream != -1 && ffmpeg_video.stream != -1) {
 			break;
 		}
 	}
 
-	//__android_log_print(ANDROID_LOG_INFO, TAG, "audio: %i, video: %i", ffmpeg_fields.videoStream, ffmpeg_fields.audioStream);
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "audio: %i, video: %i", ffmpeg_video.stream, ffmpeg_audio.stream);
 
 	if(FFMpegPlayerAndroid_initAudio(env) != 0) {
 		return NULL;
@@ -185,12 +189,12 @@ static jobject FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFor
 	// Allocate video frame
 	ffmpeg_fields.pFrame = avcodec_alloc_frame();
 
-	int w = ffmpeg_fields.video_codec_ctx->width;
-	int h = ffmpeg_fields.video_codec_ctx->height;
-	ffmpeg_fields.img_convert_ctx = sws_getContext(w, h, ffmpeg_fields.video_codec_ctx->pix_fmt, w, h,
+	int w = ffmpeg_video.codec_ctx->width;
+	int h = ffmpeg_video.codec_ctx->height;
+	ffmpeg_fields.img_convert_ctx = sws_getContext(w, h, ffmpeg_video.codec_ctx->pix_fmt, w, h,
 			PIX_FMT_RGB565, SWS_POINT, NULL, NULL, NULL);
 	
-	return AVCodecContext_create(env, ffmpeg_fields.video_codec_ctx);
+	return AVCodecContext_create(env, ffmpeg_video.codec_ctx);
 }
 	
 static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
@@ -227,7 +231,7 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples, int samples_length) {
 	// Try to decode the audio from the packet into the frame
 	int out_size = samples_length;
-	int len = avcodec_decode_audio3(ffmpeg_fields.audio_codec_ctx, samples,
+	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
 								&out_size, packet);
 
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "size: %i, len: %i, out_size: %i", packet->size, len, out_size);
@@ -238,7 +242,7 @@ static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket 
 	if(len > 0) {
 		jbyteArray arr = env->NewByteArray(out_size);
 		env->SetByteArrayRegion(arr, 0, out_size, (jbyte *) samples);
-		env->CallVoidMethod(obj, fields.clb_onAudioBuffer, arr);
+		env->CallVoidMethod(obj, jni_fields.clb_onAudioBuffer, arr);
 		env->DeleteLocalRef(arr);
 	}
 }
@@ -274,19 +278,19 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		}
 
 		// Is this a packet from the video stream?
-		if (packet.stream_index == ffmpeg_fields.videoStream) {
+		if (packet.stream_index == ffmpeg_video.stream) {
 			// Decode video frame
-			avcodec_decode_video(ffmpeg_fields.video_codec_ctx, ffmpeg_fields.pFrame, &frameFinished,
+			avcodec_decode_video(ffmpeg_video.codec_ctx, ffmpeg_fields.pFrame, &frameFinished,
 					packet.data, packet.size);
 			
 			// Did we get a video frame?
 			if (frameFinished) {
 				// Convert the image from its native format to RGB
 				sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
-						ffmpeg_fields.video_codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
-				env->CallVoidMethod(obj, fields.clb_onVideoFrame);
+						ffmpeg_video.codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
+				env->CallVoidMethod(obj, jni_fields.clb_onVideoFrame);
 			}
-		} else if (packet.stream_index == ffmpeg_fields.audioStream) {
+		} else if (packet.stream_index == ffmpeg_audio.stream) {
 			int sample_size = FFMAX(packet.size * sizeof(*samples), audio_sample_size);
 			//__android_log_print(ANDROID_LOG_INFO, TAG, "orig. %i should be %i", audio_sample_size, sample_size);
 			if(audio_sample_size < sample_size) {
@@ -358,7 +362,7 @@ static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstrin
 static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject surface) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	int surface_ptr = env->GetIntField(surface, fields.surface);
+	int surface_ptr = env->GetIntField(surface, jni_fields.surface);
 	/*if(sSurface == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Native surface is NULL");
 	    return;
@@ -370,8 +374,8 @@ static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {
 	av_free(ffmpeg_fields.pFrame);
 	
 	// Close the codec
-	avcodec_close(ffmpeg_fields.video_codec_ctx);
-	avcodec_close(ffmpeg_fields.audio_codec_ctx);
+	avcodec_close(ffmpeg_video.codec_ctx);
+	avcodec_close(ffmpeg_audio.codec_ctx);
 	
 	// Close the video file
 	av_close_input_file(ffmpeg_fields.pFormatCtx);
@@ -396,21 +400,21 @@ int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native surface");
 	    return JNI_ERR;
 	}
-	fields.surface = env->GetFieldID(clazz, "mSurface", "I");
-	if(fields.surface == NULL) {
+	jni_fields.surface = env->GetFieldID(clazz, "mSurface", "I");
+	if(jni_fields.surface == NULL) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native mSurface");
 	    return JNI_ERR;
 	}
-	fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
-	if (fields.clb_onVideoFrame == NULL) {
+	jni_fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
+	if (jni_fields.clb_onVideoFrame == NULL) {
 		return JNI_ERR;
 	}
-	fields.clb_onAudioBuffer = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onAudioBuffer", "([B)V");
-	if (fields.clb_onAudioBuffer == NULL) {
+	jni_fields.clb_onAudioBuffer = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onAudioBuffer", "([B)V");
+	if (jni_fields.clb_onAudioBuffer == NULL) {
 		return JNI_ERR;
 	}
-	fields.avformatcontext = env->GetFieldID(AVFormatContext_getClass(env), "pointer", "I");
-	if (fields.avformatcontext == NULL) {
+	jni_fields.avformatcontext = env->GetFieldID(AVFormatContext_getClass(env), "pointer", "I");
+	if (jni_fields.avformatcontext == NULL) {
 		return JNI_ERR;
 	}
 	return jniRegisterNativeMethods(env, "com/media/ffmpeg/android/FFMpegPlayerAndroid", methods, sizeof(methods) / sizeof(methods[0]));

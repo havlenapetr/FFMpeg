@@ -434,8 +434,9 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private native FFMpegAVCodecContext 	nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
 	
 	/**
-	 * pause playing of video
-	 * @return true if pausing was finished othewise return false
+	 * pause video playing
+	 * @param pause if true play -> pause, if false pause -> play
+	 * @return true if operation was successful
 	 */
 	private native boolean					nativePause(boolean pause);
 	
