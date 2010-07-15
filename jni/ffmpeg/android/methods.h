@@ -13,6 +13,7 @@ extern "C"
 jobject AVFormatContext_create(JNIEnv *env, AVFormatContext *fileContext);
 jobject *AVRational_create(JNIEnv *env, AVRational *rational);
 jobject *AVInputFormat_create(JNIEnv *env, AVInputFormat *format);
+jobject AVCodecContext_create(JNIEnv *env, AVCodecContext *codecContext);
 
 jclass AVFormatContext_getClass(JNIEnv *env);
 const char *AVInputFormat_getClassSignature();

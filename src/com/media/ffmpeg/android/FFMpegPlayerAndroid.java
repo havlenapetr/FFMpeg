@@ -2,6 +2,7 @@ package com.media.ffmpeg.android;
 
 import java.io.IOException;
 
+import com.media.ffmpeg.FFMpegAVCodecContext;
 import com.media.ffmpeg.FFMpegAVFormatContext;
 import com.media.ffmpeg.IFFMpegPlayer;
 
@@ -71,7 +72,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
                     (View)this.getParent() : this;
         mMediaController.setMediaPlayer(mMediaPlayerControl);
         mMediaController.setAnchorView(anchorView);
-        mMediaController.setEnabled(true);
+        mMediaController.setEnabled(false);
     }
     
     public void setListener(IFFMpegPlayer listener) {
@@ -80,9 +81,9 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void openVideo() {
     	try {
-			int[] size = nativeInit(mInputVideo);
-			mVideoWidth = size[0];
-			mVideoHeight = size[1];
+			FFMpegAVCodecContext context = nativeInit(mInputVideo);
+			mVideoWidth = context.getWidth();
+			mVideoHeight = context.getHeight();
 			Log.d(TAG, "Video size: " + mVideoWidth + " x " + mVideoHeight);
 		} catch (IOException e) {
 			if(mListener != null) {
@@ -323,7 +324,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	};
 	
 	private native FFMpegAVFormatContext nativeSetInputFile(String filePath) throws IOException;
-	private native int[] nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	private native FFMpegAVCodecContext nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
 	private native void nativePlay(Bitmap bitmap)throws IOException;
 	private native void nativeStop();
 	private native void nativeSetSurface(Surface surface);

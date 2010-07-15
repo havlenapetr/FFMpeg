@@ -46,7 +46,7 @@ const char *FFMpegPlayerAndroid_getSignature() {
 	return "Lcom/media/ffmpeg/android/FFMpegPlayerAndroid;";
 }
 
-static jintArray FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
+static jobject FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
 	ffmpeg_fields.pFormatCtx = (AVFormatContext *) env->GetIntField(pAVFormatContext, fields.avformatcontext);
 
 	// Find the first video stream
@@ -94,15 +94,12 @@ static jintArray FFMpegPlayerAndroid_init(JNIEnv *env, jobject obj, jobject pAVF
 	// Allocate video frame
 	ffmpeg_fields.pFrame = avcodec_alloc_frame();
 
-	int size[2];
-	size[0] = ffmpeg_fields.pCodecCtx->width;
-	size[1] = ffmpeg_fields.pCodecCtx->height;
-	ffmpeg_fields.img_convert_ctx = sws_getContext(size[0], size[1], ffmpeg_fields.pCodecCtx->pix_fmt, size[0], size[1],
+	int w = ffmpeg_fields.pCodecCtx->width;
+	int h = ffmpeg_fields.pCodecCtx->height;
+	ffmpeg_fields.img_convert_ctx = sws_getContext(w, h, ffmpeg_fields.pCodecCtx->pix_fmt, w, h,
 			PIX_FMT_RGB565, SWS_POINT, NULL, NULL, NULL);
 	
-	jintArray arr = env->NewIntArray(2);
-	env->SetIntArrayRegion(arr, 0, 2, (jint *) size);
-	return arr;
+	return AVCodecContext_create(env, ffmpeg_fields.pCodecCtx);
 }
 	
 static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
@@ -243,7 +240,7 @@ static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {
 * JNI registration.
 */
 static JNINativeMethod methods[] = {
-	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)[I", (void*) FFMpegPlayerAndroid_init},
+	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)Lcom/media/ffmpeg/FFMpegAVCodecContext;", (void*) FFMpegPlayerAndroid_init},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },

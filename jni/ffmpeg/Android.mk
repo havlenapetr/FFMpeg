@@ -13,6 +13,7 @@ LOCAL_SRC_FILES := \
 		android/com_media_ffmpeg_FFMpegAVInputFormat.c \
 		android/com_media_ffmpeg_FFMpegAVRational.c \
 		android/com_media_ffmpeg_FFMpegAVFormatContext.c \
+		android/com_media_ffmpeg_FFMpegAVCodecContext.cpp \
 		android/com_media_ffmpeg_FFMpeg.c \
 		android/com_media_ffmpeg_FFMpegUtils.cpp \
 		cmdutils.c
