@@ -23,6 +23,7 @@ public class FFMpeg {
 	private boolean 					mConverting;
 	
 	static {
+		System.loadLibrary("jniaudio");
 		System.loadLibrary(LIB_NAME);
 	}
 	

@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <android/log.h>
 #include <android/bitmap.h>
+#include <android/audiotrack.h>
 #include "jniUtils.h"
 #include "methods.h"
 
@@ -31,14 +32,12 @@ struct ffmpeg_audio_t {
 	int 				stream;
 	AVCodecContext 		*codec_ctx;
 	AVCodec 			*codec;
-	jbyteArray 			buffer_jni;
 } ffmpeg_audio;
 
 struct jni_fields_t {
 	jfieldID    surface;
 	jfieldID    avformatcontext;
 	jmethodID   clb_onVideoFrame;
-	jmethodID   clb_onAudioBuffer;
 } jni_fields;
 
 enum State {
@@ -232,14 +231,15 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples, int samples_length) {
 	// Try to decode the audio from the packet into the frame
 	int out_size = samples_length;
-	int len = -1;/*avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
-								&out_size, packet);*/
+	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples,
+								&out_size, packet);
 
 	//__android_log_print(ANDROID_LOG_INFO, TAG, "size: %i, len: %i, out_size: %i", packet->size, len, out_size);
 
+	
 	/*
 	 * call java callback for writing audio buffer to android audio track
-	 */
+	 *
 	if(len > 0) {
 		if(ffmpeg_audio.buffer_jni == NULL) {
 			__android_log_print(ANDROID_LOG_INFO, TAG, "creating jni audio buffer");
@@ -249,14 +249,15 @@ static void FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket 
 		env->CallVoidMethod(obj, jni_fields.clb_onAudioBuffer, ffmpeg_audio.buffer_jni);
 		//env->DeleteLocalRef(arr);
 	}
+	*/
 }
 
-static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
+static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, jobject audioTrack) {
 	AVPacket				packet;
 	int						result = -1;
 	int						frameFinished;
 	int 					audio_sample_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-
+	
 	// Allocate an AVFrame structure
 	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env, bitmap);
 	if (pFrameRGB == NULL) {
@@ -267,6 +268,12 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	}
 	
 	int16_t *samples = (int16_t *) av_malloc(audio_sample_size);
+	if(AndroidAudioTrack_register(env, audioTrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't start audio track");
+		return;
+	}
 	
 	status = STATE_PLAYING;
 	while (status != STATE_STOPING) {
@@ -295,21 +302,35 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 				env->CallVoidMethod(obj, jni_fields.clb_onVideoFrame);
 			}
 		} else if (packet.stream_index == ffmpeg_audio.stream) {
+			/*
 			int sample_size = FFMAX(packet.size * sizeof(*samples), audio_sample_size);
-			//__android_log_print(ANDROID_LOG_INFO, TAG, "orig. %i should be %i", audio_sample_size, sample_size);
 			if(audio_sample_size < sample_size) {
 				__android_log_print(ANDROID_LOG_INFO, TAG, "resizing audio buffer from %i to %i", audio_sample_size, sample_size);
 				av_free(samples);
 				audio_sample_size = sample_size;
 				samples = (int16_t *) av_malloc(sample_size);
 			}
-			FFMpegPlayerAndroid_processAudio(env, obj, &packet, samples, audio_sample_size);
+			*/
+			int out_size = audio_sample_size;
+			int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &out_size, &packet);
+			if((result = AndroidAudioTrack_write(samples, out_size)) <= 0) {
+				jniThrowException(env,
+								  "java/io/IOException",
+								  "Couldn't write bytes to audio track");
+				return;
+			}
 		}
 
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 	}
-
+	
+	if(AndroidAudioTrack_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't stop audio track");
+	}
+	
 	av_free( samples );
 	
 	// Free the RGB image
@@ -392,7 +413,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeInit", "(Lcom/media/ffmpeg/FFMpegAVFormatContext;)Lcom/media/ffmpeg/FFMpegAVCodecContext;", (void*) FFMpegPlayerAndroid_init},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
-	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
+	{ "nativePlay", "(Landroid/graphics/Bitmap;Landroid/media/AudioTrack;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },
@@ -411,10 +432,6 @@ int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 	}
 	jni_fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
 	if (jni_fields.clb_onVideoFrame == NULL) {
-		return JNI_ERR;
-	}
-	jni_fields.clb_onAudioBuffer = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onAudioBuffer", "([B)V");
-	if (jni_fields.clb_onAudioBuffer == NULL) {
 		return JNI_ERR;
 	}
 	jni_fields.avformatcontext = env->GetFieldID(AVFormatContext_getClass(env), "pointer", "I");

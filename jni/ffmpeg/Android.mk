@@ -7,6 +7,9 @@ LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS
 LOCAL_CFLAGS += -DBUILD_WITH_PLAYER
 #endif
 
+LOCAL_C_INCLUDES += \
+	$(LOCAL_PATH)/../include
+
 LOCAL_SRC_FILES := \
 		android/onLoad.cpp \
 		android/com_media_ffmpeg_FFMpegAVFrame.cpp \
@@ -29,6 +32,8 @@ else
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog
 endif
+
+LOCAL_SHARED_LIBRARIES := libjniaudio
 
 LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale
 

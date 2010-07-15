@@ -68,12 +68,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
-        /*mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
-        							 44100,
-        							 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
-        							 AudioFormat.ENCODING_PCM_16BIT, 
-        							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-        							 AudioTrack.MODE_STATIC);*/
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -115,6 +109,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		// we hasn't run player thread so we are launching
 		if(mRenderThread == null) {
 			mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
+			mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
+					 44100,
+					 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
+					 AudioFormat.ENCODING_PCM_16BIT,
+					 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+					 AudioTrack.MODE_STREAM);
 			attachMediaController();
 			
 			mRenderThread = new Thread() {
@@ -125,7 +125,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 					}
 					
 					try {
-						nativePlay(mBitmap);
+						nativePlay(mBitmap, mAudioTrack);
 					} catch (IOException e) {
 						Log.e(TAG, "Error while playing: " + e.getMessage());
 						mPlaying = false;
@@ -217,7 +217,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		if(mAudioTrack != null) {
-			mAudioTrack.stop();
 			mAudioTrack.release();
 			mAudioTrack = null;
 		}
@@ -278,23 +277,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
                 mSurfaceHolder.unlockCanvasAndPost(c);
             }
         }
-	}
-	
-	private void onAudioBuffer(byte[] buffer) {
-		//Log.d(TAG, "buffer length " + buffer.length);
-		
-		/*
-		Log.d(TAG, "***************************************");
-		for(int i=0;i<buffer.length; i++) {
-			Log.d(TAG, "buffer: " + buffer[i]);
-		}
-		Log.d(TAG, "***************************************");
-		*/
-		if(mAudioTrack != null) {
-			mAudioTrack.write(buffer, 0, buffer.length);
-			mAudioTrack.flush();
-			mAudioTrack.play();
-		}
 	}
 	
 	private void doDraw(Canvas c) {
@@ -447,7 +429,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * @param bitmap to which player will draw pixels
 	 * @throws IOException
 	 */
-	private native void 					nativePlay(Bitmap bitmap)throws IOException;
+	private native void 					nativePlay(Bitmap bitmap, AudioTrack audioTrack) throws IOException;
 	
 	/**
 	 * stops playing movie
