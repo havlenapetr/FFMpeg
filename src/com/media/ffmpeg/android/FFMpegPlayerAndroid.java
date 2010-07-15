@@ -1,6 +1,7 @@
 package com.media.ffmpeg.android;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.media.ffmpeg.FFMpegAVCodecContext;
 import com.media.ffmpeg.FFMpegAVCodecTag;
@@ -27,20 +28,27 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private static final String 			TAG = "FFMpegPlayerAndroid"; 
 	private static final boolean 			D = true;
 	
+	private static final int				EVENTS_PLAY = 1;
+	private static final int				EVENTS_STOP = 2;
+	private static final int				EVENTS_PAUSE = 3;
+	
+	private boolean 						mInitzialized;
+	private boolean 						mRelease;
 	private int        	 					mVideoWidth;
     private int         					mVideoHeight;
 	private int 							mSurfaceWidth;
 	private int 							mSurfaceHeight;
+	private Thread							mRenderThread;
 	private Context							mContext;
 	private SurfaceHolder					mSurfaceHolder;
 	private AudioTrack						mAudioTrack;
 	private MediaController					mMediaController;
-	private Thread							mRenderThread;
 	private IFFMpegPlayer					mListener;
 	private boolean							mPlaying;
 	private Bitmap							mBitmap;
 	private FFMpegAVFormatContext			mInputVideo;
 	private boolean 						mFitToScreen;
+	private ArrayList<Integer> 				mEvents;
 	
 	public FFMpegPlayerAndroid(Context context) {
         super(context);
@@ -59,6 +67,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void initVideoView(Context context) {
     	mContext = context;
+    	mInitzialized = false;
+    	mEvents = new ArrayList<Integer>();
     	mFitToScreen = true;
     	mVideoWidth = 0;
         mVideoHeight = 0;
@@ -69,6 +79,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         							 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
         							 AudioTrack.MODE_STREAM);
     	getHolder().addCallback(mSHCallback);
+    	//mEventThread.start();
     }
     
     private void attachMediaController() {
@@ -97,24 +108,11 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
     }
     
-    private void start() {
+    private void startVideo() {
 		mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
 		attachMediaController();
-		play();
-		toggleMediaControlsVisiblity();
-    }
-    
-    /**
-     * init player
-     * @param filePath path to video which we want to play
-     * @throws IOException
-     */
-    public void setVideoPath(String filePath) throws IOException {
-    	mInputVideo = nativeSetInputFile(filePath);
-	}
-    
-    private void play() {
-    	mRenderThread = new Thread() {
+		
+		mRenderThread = new Thread() {
 			public void run() {
 				mPlaying = true;
 				
@@ -138,7 +136,26 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			}
 		};
 		mRenderThread.start();
+		
+		toggleMediaControlsVisiblity();
     }
+    
+    /**
+     * init player
+     * @param filePath path to video which we want to play
+     * @throws IOException
+     */
+    public void setVideoPath(String filePath) throws IOException {
+    	mInputVideo = nativeSetInputFile(filePath);
+	}
+    
+    /*
+    public void play() {
+    	synchronized (mEvents) {
+        	mEvents.add(EVENTS_PLAY);
+		}
+    }
+    */
     
     /**
      * stops player
@@ -159,6 +176,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	if(mRenderThread != null) {
     		mRenderThread.join();
     	}
+    	mRenderThread = null;
     	
     	if(D) {
     		Log.d(TAG, "player stopped");
@@ -184,6 +202,17 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 				mListener.onError("Couldn't stop player", e);
 			}
 		}
+		/*
+		mRelease = true;
+		try {
+			mEventThread.join();
+		} catch (InterruptedException e) {
+			if(mListener != null) {
+				mListener.onError("Couldn't stop event thread", e);
+			}
+		}
+		mEventThread = null;
+		*/
     	
     	nativeRelease();
     	
@@ -264,16 +293,51 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 	}
 	
+	/*
+	private Thread	mEventThread = new Thread() {
+		
+		private void processEvent(int event) {
+			Log.d(TAG, "Processing event: " + event);
+			
+			switch(event) {
+			case EVENTS_PLAY:
+				FFMpegPlayerAndroid.this.openVideo();
+				FFMpegPlayerAndroid.this.startVideo();
+				break;
+			}
+		}
+		
+		public void run() {
+			while(!mRelease) {
+				if(mInitzialized) {
+					synchronized (mEvents) {
+						for(int i=0;i<mEvents.size();i++) {
+							processEvent(mEvents.get(i));
+						}
+					}
+				}
+				
+				try {
+					sleep(100);
+				} catch (InterruptedException e) {}
+			}
+		};
+	};
+	*/
+	
 	SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        	Log.d(TAG, "Surface changed");
             mSurfaceWidth = w;
             mSurfaceHeight = h;
-            start();
+            startVideo();
+            mInitzialized = true;
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
         	Log.d(TAG, "Surface created");
             mSurfaceHolder = holder;
+            mInitzialized = false;
             openVideo();
         }
 
@@ -283,6 +347,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			if(mMediaController.isShowing()) {
 				mMediaController.hide();
 			}
+			mInitzialized = false;
 			// after we return from this we can't use the surface any more
             mSurfaceHolder = null;
         }
@@ -291,23 +356,19 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
 		
 		public void start() {
-			// TODO Auto-generated method stub
-			
+			Log.d(TAG, "want start");
 		}
 		
 		public void seekTo(int pos) {
-			// TODO Auto-generated method stub
-			
+			Log.d(TAG, "want seek to");
 		}
 		
 		public void pause() {
-			// TODO Auto-generated method stub
-			
+			Log.d(TAG, "want pause");
 		}
 		
 		public boolean isPlaying() {
-			// TODO Auto-generated method stub
-			return false;
+			return mPlaying;
 		}
 		
 		public int getDuration() {
@@ -318,12 +379,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public int getCurrentPosition() {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "want get current position");
 			return 0;
 		}
 		
 		public int getBufferPercentage() {
-			// TODO Auto-generated method stub
+			Log.d(TAG, "want buffer percentage");
 			return 0;
 		}
 	};
