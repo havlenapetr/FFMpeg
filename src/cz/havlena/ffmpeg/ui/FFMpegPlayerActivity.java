@@ -90,7 +90,7 @@ public class FFMpegPlayerActivity extends Activity {
 
 		public void onRelease() {
 			Log.d(TAG, "released");
-			startFileExplorer();
+			//startFileExplorer();
 		}
 
 		public void onStop() {

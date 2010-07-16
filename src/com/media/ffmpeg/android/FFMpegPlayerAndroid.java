@@ -23,6 +23,28 @@ import android.view.View;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 
+/**
+ * 
+ * playing audio track in static mode:
+ * 
+ * Hi,
+	Peter, Dave, do you have a clear description of what to do ? 
+	I also want to replay a static AudioTrack instance, but i'm facing the 
+	problems described below 
+	http://groups.google.com/group/android-beginners/browse_thread/thread... 
+	So basically what i do is : play() => stop() => reloadStaticData() => 
+	play() => etc... 
+	It almost works but when i stop doing this, the sound is still 
+	playing, even if i call release on the AudioTrack or set it to null. 
+	I have noticed that this happens when i'm trying to replay an 
+	AudioTrack more frequently than its duration. No way to play a sound 
+	of 500ms every 250ms : all you can expect it to have it replayed every 
+	500ms.
+ * 
+ * 
+ * @author petr
+ *
+ */
 public class FFMpegPlayerAndroid extends SurfaceView {
 	private static final String 			TAG = "FFMpegPlayerAndroid"; 
 	private static final boolean 			D = true;
@@ -141,7 +163,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			 					 			 (mAudioCodecCtx.getChannels() == 2) ? AudioFormat.CHANNEL_CONFIGURATION_STEREO : AudioFormat.CHANNEL_CONFIGURATION_MONO, 
 			 					 			 AudioFormat.ENCODING_PCM_16BIT,
 			 					 			 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-			 					 			 AudioTrack.MODE_STREAM);
+			 					 			 AudioTrack.MODE_STATIC);
 			}
 			
 			attachMediaController();
@@ -156,7 +178,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 					try {
 						nativePlay(mBitmap, mAudioTrack);
 					} catch (IOException e) {
-						Log.e(TAG, "Error while playing: " + e.getMessage());
 						mPlaying = false;
 						if(mListener != null) {
 							mListener.onError("Error while playing", e);

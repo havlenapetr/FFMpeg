@@ -234,12 +234,12 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 	}
 
 	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
-	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
-		jniThrowException(env,
+	/*if(*/AndroidAudioTrack_write(samples, samples_size);// <= 0) {
+	/*	jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
-	}
+	}*/
 	return 0;
 }
 
