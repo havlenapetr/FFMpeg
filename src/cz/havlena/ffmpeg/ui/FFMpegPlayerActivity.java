@@ -26,7 +26,7 @@ public class FFMpegPlayerActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		Intent i = getIntent();
-		String filePath = i.getStringExtra(FFMpegActivity.FILE_INPUT);
+		String filePath = i.getStringExtra(getResources().getString(R.string.input_file));
 		if(filePath == null) {
 			Log.d(TAG, "Not specified video file");
 			finish();
@@ -71,11 +71,17 @@ public class FFMpegPlayerActivity extends Activity {
         }
         super.onPause();
     }
+    
+    private void startFileExplorer() {
+    	Intent i = new Intent(this, FFMpegFileExplorer.class);
+    	startActivity(i);
+    }
 
 	private class FFMpegPlayerHandler implements IFFMpegPlayer {
 
 		public void onError(String msg, Exception e) {
 			Log.e(TAG, "ERROR: " + e.getMessage());
+			startFileExplorer();
 		}
 
 		public void onPlay() {
@@ -84,9 +90,11 @@ public class FFMpegPlayerActivity extends Activity {
 
 		public void onRelease() {
 			Log.d(TAG, "released");
+			startFileExplorer();
 		}
 
 		public void onStop() {
+			Log.d(TAG, "stopped");
 			FFMpegPlayerActivity.this.finish();
 		}
 		

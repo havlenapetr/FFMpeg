@@ -28,4 +28,7 @@
     
     <string name="framerate">13</string>
     
+    <!-- used between activities to pass input video path -->
+    <string name="input_file">Input_file</string>
+    
 </resources>

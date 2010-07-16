@@ -93,13 +93,15 @@ public class FFMpegFileExplorer extends ListActivity {
 				FFMpegMessageBox.show(this, "Error", "File must have this extensions: " + strBuilder.toString());
 				return;
 			}
-			Intent i = new Intent(FFMpegFileExplorer.this, FFMpegActivity.class);
-			i.putExtra(FFMpegActivity.FILE_INPUT, file.getAbsolutePath());
-			setResult(RESULT_OK);
-			i.setAction(Intent.ACTION_INPUT_METHOD_CHANGED);
-			finish();
-			startActivity(i);
+			
+			startPlayer(file.getAbsolutePath());
 		}
 	}
+	
+	private void startPlayer(String filePath) {
+    	Intent i = new Intent(this, FFMpegPlayerActivity.class);
+    	i.putExtra(getResources().getString(R.string.input_file), filePath);
+    	startActivity(i);
+    }
 	
 }

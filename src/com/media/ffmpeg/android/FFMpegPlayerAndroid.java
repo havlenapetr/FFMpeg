@@ -134,21 +134,21 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 			mBitmap = Bitmap.createBitmap(mVideoCodecCtx.getWidth(), 
 										  mVideoCodecCtx.getHeight(), 
 										  Bitmap.Config.RGB_565);
-			
+
 			if(mAudioCodecCtx != null) {
 				mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
-						 					 mAudioCodecCtx.getSampleRate(),
-						 					 (mAudioCodecCtx.getChannels() == 2) ? AudioFormat.CHANNEL_CONFIGURATION_STEREO : AudioFormat.CHANNEL_CONFIGURATION_MONO, 
-						 					 AudioFormat.ENCODING_PCM_16BIT,
-						 					 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-						 					 AudioTrack.MODE_STREAM);
+			 					 			 mAudioCodecCtx.getSampleRate(),
+			 					 			 (mAudioCodecCtx.getChannels() == 2) ? AudioFormat.CHANNEL_CONFIGURATION_STEREO : AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+			 					 			 AudioFormat.ENCODING_PCM_16BIT,
+			 					 			 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+			 					 			 AudioTrack.MODE_STREAM);
 			}
 			
 			attachMediaController();
 			
 			mRenderThread = new Thread() {
+				
 				public void run() {
-					
 					if(mListener != null) {
 						mListener.onPlay();
 					}
