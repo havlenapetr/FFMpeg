@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegAVFormatContext;
+import com.media.ffmpeg.FFMpegException;
 import com.media.ffmpeg.FFMpegFile;
 import com.media.ffmpeg.FFMpegMediaScannerNotifier;
 import com.media.ffmpeg.FFMpegReport;
@@ -109,7 +110,7 @@ public class FFMpegActivity extends Activity {
 	    }
 	}
     
-    private void initFFMpeg(String filePath) throws RuntimeException, IOException {
+    private void initFFMpeg(String filePath) throws RuntimeException, IOException, FFMpegException {
     	String inputFile = filePath;
     	int index = filePath.lastIndexOf(".");
     	String before = filePath.substring(0, index);

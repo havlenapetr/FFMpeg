@@ -33,8 +33,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private static final int				EVENTS_PAUSE = 3;
 	*/
 	
-	private int        	 					mVideoWidth;
-    private int         					mVideoHeight;
+	private FFMpegAVCodecContext			mVideoCodecCtx;
+	private FFMpegAVCodecContext			mAudioCodecCtx;
 	private int 							mSurfaceWidth;
 	private int 							mSurfaceHeight;
 	private Thread							mRenderThread;
@@ -66,8 +66,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     private void initVideoView(Context context) {
     	mContext = context;
     	mFitToScreen = true;
-    	mVideoWidth = 0;
-        mVideoHeight = 0;
     	getHolder().addCallback(mSHCallback);
     }
     
@@ -84,15 +82,40 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	mListener = listener;
     }
     
+    private void printContextInfo(FFMpegAVCodecContext context, int type) {
+    	if(context == null) {
+    		return;
+    	}
+    	String label = "Unknown";
+    	if(type == 1) {
+    		label = "Video";
+    	}else if(type == 2) {
+    		label = "Audio";
+    	}
+    	Log.d(TAG, "****************** " + label + " info **********************");
+    	Log.d(TAG, "bitrate: " + context.getBitRate());
+    	Log.d(TAG, "bitrate tolerance: " + context.getBitRateTolerance());
+    	Log.d(TAG, "channels: " + context.getChannels());
+    	Log.d(TAG, "frame number: " + context.getFrameNumber());
+    	Log.d(TAG, "frame size: " + context.getFrameSize());
+    	Log.d(TAG, "sample rate: " + context.getSampleRate());
+    	Log.d(TAG, "width: " + context.getWidth());
+    	Log.d(TAG, "height: " + context.getHeight());
+    	Log.d(TAG, "****************************************************");
+    }
+    
     /**
      * initzialize player
      */
     private void openVideo() {
     	try {
-			FFMpegAVCodecContext context = nativeInit(mInputVideo);
-			mVideoWidth = context.getWidth();
-			mVideoHeight = context.getHeight();
-			Log.d(TAG, "Video size: " + mVideoWidth + " x " + mVideoHeight);
+    		nativeEnableErrorCallback();
+			mVideoCodecCtx = nativeInitVideo(mInputVideo);
+			mAudioCodecCtx = nativeInitAudio(mInputVideo);
+			if(D) {
+				printContextInfo(mVideoCodecCtx, 1);
+				printContextInfo(mAudioCodecCtx, 2);
+			}
 		} catch (IOException e) {
 			if(mListener != null) {
 				mListener.onError("Opening video", e);
@@ -108,13 +131,19 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		
 		// we hasn't run player thread so we are launching
 		if(mRenderThread == null) {
-			mBitmap = Bitmap.createBitmap(mVideoWidth, mVideoHeight, Bitmap.Config.RGB_565);
-			mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
-					 44100,
-					 AudioFormat.CHANNEL_CONFIGURATION_STEREO, 
-					 AudioFormat.ENCODING_PCM_16BIT,
-					 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-					 AudioTrack.MODE_STREAM);
+			mBitmap = Bitmap.createBitmap(mVideoCodecCtx.getWidth(), 
+										  mVideoCodecCtx.getHeight(), 
+										  Bitmap.Config.RGB_565);
+			
+			if(mAudioCodecCtx != null) {
+				mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, 
+						 					 mAudioCodecCtx.getSampleRate(),
+						 					 (mAudioCodecCtx.getChannels() == 2) ? AudioFormat.CHANNEL_CONFIGURATION_STEREO : AudioFormat.CHANNEL_CONFIGURATION_MONO, 
+						 					 AudioFormat.ENCODING_PCM_16BIT,
+						 					 FFMpegAVCodecTag.AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+						 					 AudioTrack.MODE_STREAM);
+			}
+			
 			attachMediaController();
 			
 			mRenderThread = new Thread() {
@@ -281,8 +310,8 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	
 	private void doDraw(Canvas c) {
 		if(mFitToScreen) {
-			float scale_x = (float) mSurfaceWidth/ (float) mVideoWidth;
-			float scale_y = (float) mSurfaceHeight/ (float) mVideoHeight;
+			float scale_x = (float) mSurfaceWidth/ (float) mVideoCodecCtx.getWidth();
+			float scale_y = (float) mSurfaceHeight/ (float) mVideoCodecCtx.getHeight();
 			c.scale(scale_x, scale_y);
 		}
 		
@@ -409,13 +438,12 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 */
 	private native FFMpegAVFormatContext 	nativeSetInputFile(String filePath) throws IOException;
 	
-	/**
-	 * 
-	 * @param AVFormatContext
-	 * @return
-	 * @throws IOException
-	 */
-	private native FFMpegAVCodecContext 	nativeInit(FFMpegAVFormatContext AVFormatContext) throws IOException;
+
+	private native FFMpegAVCodecContext 	nativeInitAudio(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	
+	private native FFMpegAVCodecContext 	nativeInitVideo(FFMpegAVFormatContext AVFormatContext) throws IOException;
+	
+	private native void nativeEnableErrorCallback();
 	
 	/**
 	 * pause video playing

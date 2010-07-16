@@ -49,6 +49,30 @@ public class FFMpegAVCodecContext {
 		return mHeight;
 	}
 
+	public int getBitRate() {
+		return mBitRate;
+	}
+
+	public int getBitRateTolerance() {
+		return mBitRateTolerance;
+	}
+
+	public int getSampleRate() {
+		return mSampleRate;
+	}
+
+	public int getChannels() {
+		return mChannels;
+	}
+
+	public int getFrameSize() {
+		return mFrameSize;
+	}
+
+	public int getFrameNumber() {
+		return mFrameNumber;
+	}
+
 	protected native void release();
 
 }

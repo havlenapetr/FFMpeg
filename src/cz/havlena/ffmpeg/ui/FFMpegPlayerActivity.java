@@ -3,6 +3,7 @@ package cz.havlena.ffmpeg.ui;
 import java.io.IOException;
 
 import com.media.ffmpeg.FFMpeg;
+import com.media.ffmpeg.FFMpegException;
 import com.media.ffmpeg.IFFMpegPlayer;
 import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 
@@ -22,7 +23,6 @@ public class FFMpegPlayerActivity extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
 		Intent i = getIntent();
@@ -33,16 +33,22 @@ public class FFMpegPlayerActivity extends Activity {
 		} else {
 			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
-		    
-			FFMpeg ffmpeg = new FFMpeg();
-			mPlayer = ffmpeg.getPlayer(this);
+
 			try {
-				mPlayer.setVideoPath(filePath);
-				mPlayer.setListener(new FFMpegPlayerHandler());
-			} catch (IOException e) {
+				FFMpeg ffmpeg = new FFMpeg();
+				mPlayer = ffmpeg.getPlayer(this);
+				try {
+					mPlayer.setVideoPath(filePath);
+					mPlayer.setListener(new FFMpegPlayerHandler());
+				} catch (IOException e) {
+					FFMpegMessageBox.show(this, e);
+				}
+				setContentView(mPlayer);
+			} catch (FFMpegException e) {
+				Log.d(TAG, "Error when inicializing ffmpeg: " + e.getMessage());
 				FFMpegMessageBox.show(this, e);
+				finish();
 			}
-			setContentView(mPlayer);
 		}
 	}
 	

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 import com.media.ffmpeg.config.FFMpegConfig;
@@ -12,8 +13,17 @@ import com.media.ffmpeg.config.FFMpegConfig;
 
 public class FFMpeg {
 	
-	public static final String[] LIBS = new String[] {"jniaudio", "ffmpeg_jni"};
-	public static final String[] EXTENSIONS = new String[] {".mp4", ".flv", ".avi", ".wmv"};
+	public static final String[] LIBS = new String[] {
+		"jniaudio", 	// used for access to android native AudioTrack class 
+		"ffmpeg_jni"	// ffmpeg libs compiled to jni lib
+	};
+	
+	public static final String[] EXTENSIONS = new String[] {
+		".mp4", 
+		".flv", 
+		".avi", 
+		".wmv"
+	};
 	
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
@@ -22,17 +32,31 @@ public class FFMpeg {
 	private FFMpegFile					mOutputFile;
 	private boolean 					mConverting;
 	
-    public FFMpeg() {
-    	loadLibs();
+    public FFMpeg() throws FFMpegException {
+    	if(!loadLibs()) {
+    		throw new FFMpegException(FFMpegException.LEVEL_FATAL, "Couldn't load native libs");
+    	}
     	native_avcodec_register_all();
 		native_av_register_all();
 		mConverting = false;
     }
     
-    private void loadLibs() {
+    /**
+     * loads all native libraries
+     * @return true if all libraries was loaded, otherwise return false
+     */
+    private boolean loadLibs() {
+    	boolean err = false;
     	for(int i=0;i<LIBS.length;i++) {
-			System.loadLibrary(LIBS[i]);
+    		try {
+    			System.loadLibrary(LIBS[i]);
+    		} catch(UnsatisfiedLinkError e) {
+    			// fatal error, we can't load some our libs
+    			Log.d("FFMpeg", "Couldn't load lib: " + LIBS[i] + " - " + e.getMessage());
+    			err = true;
+    		}
 		}
+    	return !err;
     }
     
     public FFMpegUtils getUtils() {
