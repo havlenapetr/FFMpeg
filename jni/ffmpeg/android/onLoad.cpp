@@ -7,7 +7,11 @@
 extern "C" {
 
 extern int register_android_media_FFMpegAVRational(JNIEnv *env);
+
+#ifdef BUILD_WITH_CONVERTOR
 extern int register_android_media_FFMpeg(JNIEnv *env);
+#endif
+
 extern int register_android_media_FFMpegAVFormatContext(JNIEnv *env);
 extern int register_android_media_FFMpegAVInputFormat(JNIEnv *env);
 
@@ -93,10 +97,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "loading . . .");
 
+#ifdef BUILD_WITH_CONVERTOR
     if(register_android_media_FFMpeg(env) != JNI_OK) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpeg");
         goto end;
     }
+#endif
 
     if(register_android_media_FFMpegAVFormatContext(env) != JNI_OK) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegAVFormatContext");
@@ -129,7 +135,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	}
 
 #ifdef BUILD_WITH_PLAYER
-	if(register_android_media_FFMpegPlayerAndroid(env) != JNI_OK) {
+    if(register_android_media_FFMpegPlayerAndroid(env) != JNI_OK) {
     	__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load android_media_FFMpegPlayerAndroid");
     	goto end;
     }
