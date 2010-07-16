@@ -24,12 +24,21 @@
 #define ANDROID_AUDIOTRACK_RESULT_BAD_PARAMETER			-1
 #define ANDROID_AUDIOTRACK_RESULT_JNI_EXCEPTION			-2
 #define ANDROID_AUDIOTRACK_RESULT_ALLOCATION_FAILED		-3
+#define ANDROID_AUDIOTRACK_RESULT_ERRNO					-4
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 int AndroidAudioTrack_register(JNIEnv* env, jobject jaudioTrack);
+	
+int AndroidAudioTrack_start();
+
+int AndroidAudioTrack_flush();
+	
+int AndroidAudioTrack_stop();
+	
+int AndroidAudioTrack_reload();
 
 int AndroidAudioTrack_unregister();
 

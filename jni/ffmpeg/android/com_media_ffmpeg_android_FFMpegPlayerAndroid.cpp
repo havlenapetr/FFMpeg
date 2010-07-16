@@ -232,14 +232,15 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		samples_size = size;
 		samples = (int16_t *) av_malloc(samples_size);
 	}
-
+	
 	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
-	/*if(*/AndroidAudioTrack_write(samples, samples_size);// <= 0) {
-	/*	jniThrowException(env,
+	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
+		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
-	}*/
+	}
+	AndroidAudioTrack_flush();
 	return 0;
 }
 
@@ -282,6 +283,12 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, j
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't register audio track");
+			return;
+		}
+		if(AndroidAudioTrack_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+			jniThrowException(env,
+							  "java/io/IOException",
+							  "Couldn't start audio track");
 			return;
 		}
 	}
