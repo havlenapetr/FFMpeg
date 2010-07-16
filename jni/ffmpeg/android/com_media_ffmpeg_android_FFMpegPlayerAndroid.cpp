@@ -224,6 +224,7 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 	return pFrame;
 }
 
+static bool called = false;
 static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16_t *samples, int samples_size) {
 	int size = FFMAX(packet->size * sizeof(*samples), samples_size);
 	if(samples_size < size) {
@@ -234,13 +235,33 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 	}
 	
 	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
+	if(!called) {
+		if(AndroidAudioTrack_set(MUSIC, 
+								 ffmpeg_audio.codec_ctx->sample_rate,
+								 PCM_16_BIT,
+								 (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
+								 samples_size) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+			jniThrowException(env,
+							  "java/io/IOException",
+							  "Couldn't set audio track parametres");
+			return -1;
+		}
+		if(AndroidAudioTrack_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+			jniThrowException(env,
+							  "java/io/IOException",
+							  "Couldn't start audio track");
+			return -1;
+		}
+		called = true;
+	}
+	
 	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
 	}
-	AndroidAudioTrack_flush();
+	//AndroidAudioTrack_flush();
 	return 0;
 }
 
@@ -262,7 +283,7 @@ static int FFMpegPlayerAndroid_processVideo(JNIEnv *env, jobject obj, AVPacket *
 	return -1;
 }
 
-static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, jobject audioTrack) {
+static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	AVPacket				packet;
 	int						result = -1;
 	int 					samples_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
@@ -279,16 +300,10 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap, j
 	
 	if(ffmpeg_audio.initzialized) {
 		samples = (int16_t *) av_malloc(samples_size);
-		if(AndroidAudioTrack_register(env, audioTrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		if(AndroidAudioTrack_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't register audio track");
-			return;
-		}
-		if(AndroidAudioTrack_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-			jniThrowException(env,
-							  "java/io/IOException",
-							  "Couldn't start audio track");
 			return;
 		}
 	}
@@ -414,7 +429,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeEnableErrorCallback", "()V", (void*) FFMpegPlayerAndroid_enableErrorCallback},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
-	{ "nativePlay", "(Landroid/graphics/Bitmap;Landroid/media/AudioTrack;)V", (void*) FFMpegPlayerAndroid_play },
+	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },
