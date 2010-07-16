@@ -1,4 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <stdint.h>
 #include <unistd.h>
+#include <sys/mman.h>
+#include <sys/ioctl.h>
+
+#include <linux/ioctl.h>
+
 #include <android/log.h>
 #include <android/bitmap.h>
 #include <android/audiotrack.h>
@@ -234,7 +243,6 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		samples = (int16_t *) av_malloc(samples_size);
 	}
 	
-	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
 	if(!called) {
 		if(AndroidAudioTrack_set(MUSIC, 
 								 ffmpeg_audio.codec_ctx->sample_rate,
@@ -255,6 +263,7 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		called = true;
 	}
 	
+	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
 	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
