@@ -41,6 +41,11 @@ enum stream_type {
 	NUM_STREAM_TYPES
 };
 
+enum {
+	NO_MORE_BUFFERS = 0x80000001,
+	STOPPED = 1
+};
+
 // Audio sub formats (see AudioSystem::audio_format).
 enum pcm_sub_format {
 	PCM_SUB_16_BIT          = 0x1, // must be 1 for backward compatibility
@@ -89,7 +94,7 @@ int AndroidAudioTrack_set(int streamType,
 						  uint32_t sampleRate,
 						  int format,
 						  int channels,
-						  int frameCount);
+						  int buffSizeInBytes);
 	
 int AndroidAudioTrack_start();
 

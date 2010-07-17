@@ -11,6 +11,7 @@
 #include <android/log.h>
 #include <android/bitmap.h>
 #include <android/audiotrack.h>
+#include <android/surface.h>
 #include "jniUtils.h"
 #include "methods.h"
 
@@ -235,6 +236,7 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 
 static bool called = false;
 static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16_t *samples, int samples_size) {
+	/*
 	int size = FFMAX(packet->size * sizeof(*samples), samples_size);
 	if(samples_size < size) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "resizing audio buffer from %i to %i", samples_size, size);
@@ -242,8 +244,11 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		samples_size = size;
 		samples = (int16_t *) av_malloc(samples_size);
 	}
+	*/
+	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
 	
 	if(!called) {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "starting android audio track");
 		if(AndroidAudioTrack_set(MUSIC, 
 								 ffmpeg_audio.codec_ctx->sample_rate,
 								 PCM_16_BIT,
@@ -263,14 +268,13 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		called = true;
 	}
 	
-	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
 	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
 	}
-	//AndroidAudioTrack_flush();
+	AndroidAudioTrack_flush();
 	return 0;
 }
 
@@ -407,14 +411,12 @@ static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstrin
 	return AVFormatContext_create(env, ffmpeg_fields.pFormatCtx);
 }
 
-static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject surface) {
+static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject jsurface, int width, int height) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	int surface_ptr = env->GetIntField(surface, jni_fields.surface);
-	/*if(sSurface == NULL) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "Native surface is NULL");
-	    return;
-	}*/
+	if(AndroidSurface_register(env, jsurface, width, height) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't set surface");
+	}
 }
 
 static void FFMpegPlayerAndroid_release(JNIEnv *env, jobject obj) {

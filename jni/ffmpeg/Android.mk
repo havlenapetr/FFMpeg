@@ -44,7 +44,7 @@ LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog
 endif
 
-LOCAL_SHARED_LIBRARIES := libjniaudio
+LOCAL_SHARED_LIBRARIES := libjniaudio libjnivideo
 
 LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale
 

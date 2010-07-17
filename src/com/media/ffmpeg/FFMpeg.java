@@ -15,6 +15,7 @@ public class FFMpeg {
 	
 	public static final String[] LIBS = new String[] {
 		"jniaudio", 	// used for access to android native AudioTrack class 
+		"jnivideo",
 		"ffmpeg_jni"	// ffmpeg libs compiled to jni lib
 	};
 	
@@ -25,6 +26,7 @@ public class FFMpeg {
 		".wmv"
 	};
 	
+	private static boolean				sLoaded = false;
 	private Thread 						mThread;
 	private IFFMpegListener 			mListener;
 	
@@ -45,7 +47,10 @@ public class FFMpeg {
      * loads all native libraries
      * @return true if all libraries was loaded, otherwise return false
      */
-    private boolean loadLibs() {
+    private static boolean loadLibs() {
+    	if(sLoaded) {
+    		return true;
+    	}
     	boolean err = false;
     	for(int i=0;i<LIBS.length;i++) {
     		try {
@@ -56,7 +61,10 @@ public class FFMpeg {
     			err = true;
     		}
 		}
-    	return !err;
+    	if(!err) {
+    		sLoaded = true;
+    	}
+    	return sLoaded;
     }
     
     public FFMpegUtils getUtils() {
