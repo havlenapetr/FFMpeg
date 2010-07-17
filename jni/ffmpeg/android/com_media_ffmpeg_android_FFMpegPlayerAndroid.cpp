@@ -9,7 +9,6 @@
 #include <linux/ioctl.h>
 
 #include <android/log.h>
-#include <android/bitmap.h>
 #include <android/audiotrack.h>
 #include <android/surface.h>
 #include "jniUtils.h"
@@ -45,12 +44,6 @@ struct ffmpeg_audio_t {
 	AVCodecContext 		*codec_ctx;
 	AVCodec 			*codec;
 } ffmpeg_audio;
-
-struct jni_fields_t {
-	jfieldID    surface;
-	jfieldID    avformatcontext;
-	jmethodID   clb_onVideoFrame;
-} jni_fields;
 
 enum State {
 	STATE_STOPED,
@@ -204,25 +197,20 @@ static jobject FFMpegPlayerAndroid_initVideo(JNIEnv *env, jobject obj, jobject p
 	return AVCodecContext_create(env, ffmpeg_video.codec_ctx);
 }
 
-static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
+static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv* env) {
 	void*					pixels;
 	AVFrame*				pFrame;
-	AndroidBitmapInfo		info;
-	int						result = -1;
 	
-	if ((result = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        return NULL;
-    }
-	
-	if ((result = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
-		return NULL;
-    }
-	
-	AndroidBitmap_unlockPixels(env, bitmap);
-	
-	// Allocate an AVFrame structure
 	pFrame = avcodec_alloc_frame();
 	if (pFrame == NULL) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't allocate an AVFrame structure");
+		return NULL;
+	}
+	
+	if(AndroidSurface_getPixels(&pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't get surface's pixels");
 		return NULL;
 	}
 	
@@ -230,7 +218,8 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv *env, jobject bitmap) {
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture
 	avpicture_fill((AVPicture *) pFrame, (uint8_t *)pixels, PIX_FMT_RGB565,
-				   info.width, info.height);
+				   ffmpeg_video.codec_ctx->width, ffmpeg_video.codec_ctx->height);
+	
 	return pFrame;
 }
 
@@ -290,7 +279,7 @@ static int FFMpegPlayerAndroid_processVideo(JNIEnv *env, jobject obj, AVPacket *
 		// Convert the image from its native format to RGB
 		sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 							ffmpeg_video.codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
-		env->CallVoidMethod(obj, jni_fields.clb_onVideoFrame);
+		AndroidSurface_updateSurface();
 		return 0;
 	}
 	return -1;
@@ -303,13 +292,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	int16_t*				samples;
 	
 	// Allocate an AVFrame structure
-	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env, bitmap);
-	if (pFrameRGB == NULL) {
-		jniThrowException(env,
-						  "java/io/IOException",
-						  "Couldn't allocate an AVFrame structure");
-		return;
-	}
+	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env);
 	
 	if(ffmpeg_audio.initzialized) {
 		samples = (int16_t *) av_malloc(samples_size);
@@ -350,6 +333,8 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 	}
+	
+	AndroidAudioTrack_unregister();
 	
 	if(ffmpeg_audio.initzialized) {
 		if(AndroidAudioTrack_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
@@ -411,10 +396,10 @@ static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstrin
 	return AVFormatContext_create(env, ffmpeg_fields.pFormatCtx);
 }
 
-static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject jsurface, int width, int height) {
+static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject jsurface) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	if(AndroidSurface_register(env, jsurface, width, height) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(AndroidSurface_register(env, jsurface, ffmpeg_video.codec_ctx->width, ffmpeg_video.codec_ctx->height) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't set surface");
 	}
 }
@@ -442,7 +427,7 @@ static JNINativeMethod methods[] = {
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
 	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
-	{ "nativeSetSurface", "(Landroid/view/Surface;II)V", (void*) FFMpegPlayerAndroid_setSurface },
+	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },
 };
 	
@@ -450,23 +435,5 @@ int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 	ffmpeg_audio.initzialized = false;
 	ffmpeg_video.initzialized = false;
 
-	jclass clazz = env->FindClass("android/view/Surface");
-	if(clazz == NULL) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native surface");
-	    return JNI_ERR;
-	}
-	jni_fields.surface = env->GetFieldID(clazz, "mSurface", "I");
-	if(jni_fields.surface == NULL) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "can't load native mSurface");
-	    return JNI_ERR;
-	}
-	jni_fields.clb_onVideoFrame = env->GetMethodID(FFMpegPlayerAndroid_getClass(env), "onVideoFrame", "()V");
-	if (jni_fields.clb_onVideoFrame == NULL) {
-		return JNI_ERR;
-	}
-	jni_fields.avformatcontext = env->GetFieldID(AVFormatContext_getClass(env), "pointer", "I");
-	if (jni_fields.avformatcontext == NULL) {
-		return JNI_ERR;
-	}
 	return jniRegisterNativeMethods(env, "com/media/ffmpeg/android/FFMpegPlayerAndroid", methods, sizeof(methods) / sizeof(methods[0]));
 }

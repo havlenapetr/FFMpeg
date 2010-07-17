@@ -34,7 +34,7 @@ extern "C" {
 
 int AndroidSurface_register(JNIEnv* env, jobject jsurface, int width, int height);
 
-int AndroidSurface_getPixels(void *pixels);
+int AndroidSurface_getPixels(void** pixels);
 	
 int AndroidSurface_updateSurface();
 	

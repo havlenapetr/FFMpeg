@@ -120,6 +120,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 				printContextInfo(mVideoCodecCtx, 1);
 				printContextInfo(mAudioCodecCtx, 2);
 			}
+			nativeSetSurface(mSurfaceHolder.getSurface());
 		} catch (IOException e) {
 			if(mListener != null) {
 				mListener.onError("Opening video", e);
@@ -275,56 +276,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         }
     }
 	
-	/**
-	 * native callback which receive pixels from ffmpeg
-	 * @param pixels
-	 */
-	private void onVideoFrame() {
-		Canvas c = null;
-        try {
-            c = mSurfaceHolder.lockCanvas(null);
-            synchronized (mSurfaceHolder) {
-            	doDraw(c);
-			}
-        } finally {
-            // do this in a finally so that if an exception is thrown
-            // during the above, we don't leave the Surface in an
-            // inconsistent state
-            if (c != null) {
-                mSurfaceHolder.unlockCanvasAndPost(c);
-            }
-        }
-	}
-	
-	private void doDraw(Canvas c) {
-		if(mFitToScreen) {
-			float scale_x = (float) mSurfaceWidth/ (float) mVideoCodecCtx.getWidth();
-			float scale_y = (float) mSurfaceHeight/ (float) mVideoCodecCtx.getHeight();
-			c.scale(scale_x, scale_y);
-		}
-		
-		c.drawBitmap(mBitmap, 0, 0, null);
-		
-		if(D) {
-			calcFps();
-		}
-	}
-	
-	private long mStart;
-	private byte mScreenCounter;
-	private void calcFps() {
-		long now = System.currentTimeMillis();
-		if(mStart == 0) {
-			mStart = System.currentTimeMillis();
-		} else if(now > mStart + 1000) {
-			Log.d(TAG, "Fps: " + mScreenCounter);
-			mScreenCounter = 0;
-			mStart = 0;
-		} else {
-			mScreenCounter++;
-		}
-	}
-	
 	/*
 	private Thread	mEventThread = new Thread() {
 		
@@ -456,7 +407,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * sets native pointer of player surface view
 	 * @param surface
 	 */
-	private native void 					nativeSetSurface(Surface surface, int width, int height);
+	private native void 					nativeSetSurface(Surface surface);
 	
 	/**
 	 * release all native resources allocated by player 
