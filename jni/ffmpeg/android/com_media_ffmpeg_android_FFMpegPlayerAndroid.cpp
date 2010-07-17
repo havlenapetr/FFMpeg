@@ -290,9 +290,18 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 	int						result = -1;
 	int 					samples_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 	int16_t*				samples;
+	AVFrame*				pFrameRGB;
 	
 	// Allocate an AVFrame structure
-	AVFrame *pFrameRGB = FFMpegPlayerAndroid_createFrame(env);
+	if(ffmpeg_video.initzialized) {
+		pFrameRGB = FFMpegPlayerAndroid_createFrame(env);
+		if (pFrameRGB == NULL) {
+			jniThrowException(env,
+							  "java/io/IOException",
+							  "Couldn't crate frame buffer");
+			return;
+		}
+	}
 	
 	if(ffmpeg_audio.initzialized) {
 		samples = (int16_t *) av_malloc(samples_size);

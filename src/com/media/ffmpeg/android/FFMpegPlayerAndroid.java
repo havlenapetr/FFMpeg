@@ -50,7 +50,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private boolean							mPlaying;
 	private Bitmap							mBitmap;
 	private FFMpegAVFormatContext			mInputVideo;
-	private boolean 						mFitToScreen;
 	
 	public FFMpegPlayerAndroid(Context context) {
         super(context);
@@ -69,7 +68,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     
     private void initVideoView(Context context) {
     	mContext = context;
-    	mFitToScreen = true;
     	getHolder().addCallback(mSHCallback);
     }
     
