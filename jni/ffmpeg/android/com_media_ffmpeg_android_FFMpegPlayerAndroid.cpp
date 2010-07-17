@@ -442,7 +442,7 @@ static JNINativeMethod methods[] = {
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
 	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
-	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
+	{ "nativeSetSurface", "(Landroid/view/Surface;II)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },
 };
 	

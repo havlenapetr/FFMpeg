@@ -456,7 +456,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * sets native pointer of player surface view
 	 * @param surface
 	 */
-	private native void 					nativeSetSurface(Surface surface);
+	private native void 					nativeSetSurface(Surface surface, int width, int height);
 	
 	/**
 	 * release all native resources allocated by player 
