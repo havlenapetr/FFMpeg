@@ -187,6 +187,15 @@ public class FFMpegPlayerAndroid extends SurfaceView {
     	return nativePause(true);
     }
     
+    public boolean resume() {
+    	mPlaying = true;
+    	return nativePause(false);
+    }
+    
+    public void decodeAudio(boolean decode) {
+    	nativeDecodeAudio(decode);
+    }
+    
     /**
      * stops player
      * @throws InterruptedException
@@ -379,7 +388,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * @param pause if true play -> pause, if false pause -> play
 	 * @return true if operation was successful
 	 */
-	private native boolean					nativePause(boolean pause);
+	public native boolean					nativePause(boolean pause);
 	
 	/**
 	 * starts playing movie 
@@ -387,6 +396,10 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * @throws IOException
 	 */
 	private native void 					nativePlay() throws IOException;
+	
+	private native void 					nativeDecodeAudio(boolean decode);
+	
+	public native boolean 					isDecodingAudio();
 	
 	/**
 	 * stops playing movie

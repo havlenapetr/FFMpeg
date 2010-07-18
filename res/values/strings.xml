@@ -33,4 +33,6 @@
     
     <string name="player_menu_about">About</string>
     
+   	<string name="player_menu_decode_audio">Decode audio</string>
+    
 </resources>

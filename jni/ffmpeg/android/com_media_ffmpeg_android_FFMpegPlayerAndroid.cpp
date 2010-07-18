@@ -40,6 +40,7 @@ struct ffmpeg_video_t {
 
 struct ffmpeg_audio_t {
 	bool				initzialized;
+	bool				decode;
 	int 				stream;
 	AVCodecContext 		*codec_ctx;
 	AVCodec 			*codec;
@@ -145,7 +146,7 @@ static jobject FFMpegPlayerAndroid_initAudio(JNIEnv *env, jobject obj, jobject p
 						  "Could not open audio codec");
 		return NULL; // Could not open codec
 	}
-	ffmpeg_audio.initzialized = true;
+	ffmpeg_audio.initzialized = ffmpeg_audio.decode = true;
 	return AVCodecContext_create(env, ffmpeg_audio.codec_ctx);
 }
 
@@ -335,7 +336,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "Frame wasn't finished by video decoder");
 			}
 		} else if (packet.stream_index == ffmpeg_audio.stream &&
-				ffmpeg_audio.initzialized) {
+				ffmpeg_audio.initzialized && ffmpeg_audio.decode) {
 			if(FFMpegPlayerAndroid_processAudio(env, &packet, samples, samples_size) < 0 ) {
 				return; // exception occured so return to java
 			}
@@ -386,6 +387,14 @@ static jboolean FFMpegPlayerAndroid_pause(JNIEnv *env, jobject object, jboolean 
 		break;
 	}
 	return JNI_TRUE;
+}
+
+static void FFMpegPlayerAndroid_decodeAudio(JNIEnv *env, jobject object, jboolean decode) {
+	ffmpeg_audio.decode = decode;
+}
+
+static jboolean FFMpegPlayerAndroid_isDecodingAudio(JNIEnv *env, jobject object) {
+	return ffmpeg_audio.decode;
 }
 
 static void FFMpegPlayerAndroid_stop(JNIEnv *env, jobject object) {
@@ -441,6 +450,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeEnableErrorCallback", "()V", (void*) FFMpegPlayerAndroid_enableErrorCallback},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
+	{ "nativeDecodeAudio", "(Z)V", (void*) FFMpegPlayerAndroid_decodeAudio},
+	{ "isDecodingAudio", "()Z", (void*) FFMpegPlayerAndroid_isDecodingAudio},
 	{ "nativePlay", "()V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },

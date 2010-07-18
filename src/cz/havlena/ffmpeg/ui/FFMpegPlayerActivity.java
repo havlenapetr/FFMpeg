@@ -10,6 +10,7 @@ import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 
 public class FFMpegPlayerActivity extends Activity {
 	private static final String 	TAG = "FFMpegPlayerActivity";
+	private static final String 	LICENSE = "This software uses libraries from the FFmpeg project under the LGPLv2.1";
 	
 	private FFMpegPlayerAndroid 	mPlayer;
 	private WakeLock				mWakeLock;
@@ -63,10 +65,31 @@ public class FFMpegPlayerActivity extends Activity {
 	}
 	
 	@Override
+	public boolean onMenuOpened(int featureId, Menu menu) {
+		return mPlayer.pause();
+	}
+	
+	@Override
+	public void onOptionsMenuClosed(Menu menu) {
+		mPlayer.resume();
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.player_menu_about:
-			FFMpegMessageBox.show(this, "About", "Developed by Havlena Petr, player is using ffmpeg lib");
+			FFMpegMessageBox.show(this, "About", "Developed by Havlena Petr\n" + LICENSE);
+			return true;
+			
+		case R.id.player_menu_decode_audio:
+			mPlayer.decodeAudio(!mPlayer.isDecodingAudio());
+			Drawable d = null;
+			if(mPlayer.isDecodingAudio()) {
+				d = getResources().getDrawable(R.drawable.ic_menu_block);
+			} else {
+				d = getResources().getDrawable(R.drawable.ic_menu_mark);
+			}
+			item.setIcon(d);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
