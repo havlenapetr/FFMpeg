@@ -48,7 +48,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private MediaController					mMediaController;
 	private IFFMpegPlayer					mListener;
 	private boolean							mPlaying;
-	private Bitmap							mBitmap;
 	private FFMpegAVFormatContext			mInputVideo;
 	
 	public FFMpegPlayerAndroid(Context context) {
@@ -134,10 +133,6 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		
 		// we hasn't run player thread so we are launching
 		if(mRenderThread == null) {
-			mBitmap = Bitmap.createBitmap(mVideoCodecCtx.getWidth(), 
-										  mVideoCodecCtx.getHeight(), 
-										  Bitmap.Config.RGB_565);
-		
 			attachMediaController();
 			
 			mRenderThread = new Thread() {
@@ -148,7 +143,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 					}
 					
 					try {
-						nativePlay(mBitmap);
+						nativePlay();
 					} catch (IOException e) {
 						mPlaying = false;
 						if(mListener != null) {
@@ -350,10 +345,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 		}
 		
 		public int getDuration() {
-			if(mInputVideo != null) {
-				return mInputVideo.getDurationInSeconds();
-			}
-			return 0;
+			return mInputVideo.getDurationInMiliseconds();
 		}
 		
 		public int getCurrentPosition() {
@@ -394,7 +386,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	 * @param bitmap to which player will draw pixels
 	 * @throws IOException
 	 */
-	private native void 					nativePlay(Bitmap bitmap) throws IOException;
+	private native void 					nativePlay() throws IOException;
 	
 	/**
 	 * stops playing movie

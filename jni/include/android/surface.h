@@ -32,13 +32,13 @@
 extern "C" {
 #endif
 
-int AndroidSurface_register(JNIEnv* env, jobject jsurface, int width, int height);
+int AndroidSurface_register(JNIEnv* env, jobject jsurface);
 
-int AndroidSurface_getPixels(void** pixels);
+int AndroidSurface_getPixels(int width, int height, void** pixels);
 	
 int AndroidSurface_updateSurface();
 	
-int AndroidAudioTrack_unregister();
+int AndroidSurface_unregister();
 	
 #ifdef __cplusplus
 }

@@ -44,7 +44,7 @@ class FileExplorerAdapter extends BaseAdapter {
 			holder.icon.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_menu_back));
 		} 
 		else if (file.isDirectory()) {
-			holder.icon.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_folder));
+			holder.icon.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_menu_archive));
 		} 
 		else {
 			Drawable d = null;

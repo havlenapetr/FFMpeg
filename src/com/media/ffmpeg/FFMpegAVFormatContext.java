@@ -140,6 +140,10 @@ public class FFMpegAVFormatContext {
 		return (int) (duration / FFMpegAVFormatContext.AV_TIME_BASE);
 	}
 	
+	public int getDurationInMiliseconds() {
+		return (int) duration / 1000;
+	}
+	
 	private native void nativeRelease(int pointer);
 	
 	public class Duration {

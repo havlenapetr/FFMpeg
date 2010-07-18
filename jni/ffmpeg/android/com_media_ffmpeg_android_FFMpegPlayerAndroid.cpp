@@ -209,7 +209,9 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv* env) {
 		return NULL;
 	}
 	
-	if(AndroidSurface_getPixels(&pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(AndroidSurface_getPixels(ffmpeg_video.codec_ctx->width, 
+								ffmpeg_video.codec_ctx->height, 
+								&pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't get surface's pixels");
 		return NULL;
 	}
@@ -285,7 +287,7 @@ static int FFMpegPlayerAndroid_processVideo(JNIEnv *env, jobject obj, AVPacket *
 	return -1;
 }
 
-static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
+static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 	AVPacket				packet;
 	int						result = -1;
 	int 					samples_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
@@ -343,8 +345,13 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj, jobject bitmap) {
 		av_free_packet(&packet);
 	}
 	
-	AndroidAudioTrack_unregister();
-	
+	if(ffmpeg_video.initzialized) {
+		if(AndroidSurface_unregister() != ANDROID_SURFACE_RESULT_SUCCESS) {
+			jniThrowException(env,
+							  "java/io/IOException",
+							  "Couldn't unregister vide surface");
+		}
+	}
 	if(ffmpeg_audio.initzialized) {
 		if(AndroidAudioTrack_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
@@ -408,7 +415,7 @@ static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstrin
 static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject jsurface) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	if(AndroidSurface_register(env, jsurface, ffmpeg_video.codec_ctx->width, ffmpeg_video.codec_ctx->height) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(AndroidSurface_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't set surface");
 	}
 }
@@ -434,7 +441,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeEnableErrorCallback", "()V", (void*) FFMpegPlayerAndroid_enableErrorCallback},
 	{ "nativeSetInputFile", "(Ljava/lang/String;)Lcom/media/ffmpeg/FFMpegAVFormatContext;", (void*) FFMpegPlayerAndroid_setInputFile },
 	{ "nativePause", "(Z)Z", (void*) FFMpegPlayerAndroid_pause},
-	{ "nativePlay", "(Landroid/graphics/Bitmap;)V", (void*) FFMpegPlayerAndroid_play },
+	{ "nativePlay", "()V", (void*) FFMpegPlayerAndroid_play },
 	{ "nativeStop", "()V", (void*) FFMpegPlayerAndroid_stop },
 	{ "nativeSetSurface", "(Landroid/view/Surface;)V", (void*) FFMpegPlayerAndroid_setSurface },
 	{ "nativeRelease", "()V", (void*) FFMpegPlayerAndroid_release },

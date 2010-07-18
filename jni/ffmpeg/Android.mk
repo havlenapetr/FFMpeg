@@ -38,7 +38,7 @@ LOCAL_SRC_FILES += \
 #endif
 
 ifeq ($(IN_NDK),true)	
-LOCAL_LDLIBS := -llog -ljnigraphics
+LOCAL_LDLIBS := -llog
 else
 LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog

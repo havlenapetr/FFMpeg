@@ -216,6 +216,12 @@ public class FFMpeg {
 			mListener.onConversionProcessing(report);
 		}
 	}
+    
+    @Override
+    protected void finalize() throws Throwable {
+    	Log.d("FFMpeg", "finalizing ffmpeg main class");
+    	sLoaded = false;
+    }
 	
     public interface IFFMpegListener {
     	public void onConversionProcessing(FFMpegReport report);

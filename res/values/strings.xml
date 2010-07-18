@@ -31,4 +31,6 @@
     <!-- used between activities to pass input video path -->
     <string name="input_file">Input_file</string>
     
+    <string name="player_menu_about">About</string>
+    
 </resources>

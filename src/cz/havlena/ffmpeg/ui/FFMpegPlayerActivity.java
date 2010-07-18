@@ -14,6 +14,9 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 public class FFMpegPlayerActivity extends Activity {
 	private static final String 	TAG = "FFMpegPlayerActivity";
@@ -50,6 +53,23 @@ public class FFMpegPlayerActivity extends Activity {
 				finish();
 			}
 		}
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.layout.ffmpeg_player_menu, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.player_menu_about:
+			FFMpegMessageBox.show(this, "About", "Developed by Havlena Petr, player is using ffmpeg lib");
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 	
 	@Override
