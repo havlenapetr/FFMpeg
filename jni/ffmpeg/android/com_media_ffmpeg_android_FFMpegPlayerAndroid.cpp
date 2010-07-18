@@ -54,6 +54,25 @@ enum State {
 };
 static State status = STATE_STOPED;
 
+// create pointer on system methods for accessing audio and video system
+#ifdef ANDROID
+
+int (*AudioDriver_register) (void) = AndroidAudioTrack_register;
+int (*AudioDriver_set) (int,uint32_t,int,int,int) = AndroidAudioTrack_set;
+int (*AudioDriver_start) (void) = AndroidAudioTrack_start;
+int (*AudioDriver_flush) (void) = AndroidAudioTrack_flush;
+int (*AudioDriver_stop) (void) = AndroidAudioTrack_stop;
+int (*AudioDriver_reload) (void) = AndroidAudioTrack_reload;
+int (*AudioDriver_unregister) (void) = AndroidAudioTrack_unregister;
+int (*AudioDriver_write) (void *, int) = AndroidAudioTrack_write;
+
+int (*VideoDriver_register) (JNIEnv*, jobject) = AndroidSurface_register;
+int (*VideoDriver_getPixels) (int width, int height, void** pixels) = AndroidSurface_getPixels;
+int (*VideoDriver_updateSurface) (void) = AndroidSurface_updateSurface;
+int (*VideoDriver_unregister) (void) = AndroidSurface_unregister;
+
+#endif
+
 jclass FFMpegPlayerAndroid_getClass(JNIEnv *env) {
 	return env->FindClass("com/media/ffmpeg/android/FFMpegPlayerAndroid");
 }
@@ -210,7 +229,7 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv* env) {
 		return NULL;
 	}
 	
-	if(AndroidSurface_getPixels(ffmpeg_video.codec_ctx->width, 
+	if(VideoDriver_getPixels(ffmpeg_video.codec_ctx->width, 
 								ffmpeg_video.codec_ctx->height, 
 								&pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't get surface's pixels");
@@ -241,7 +260,7 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 	
 	if(!called) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "starting android audio track");
-		if(AndroidAudioTrack_set(MUSIC, 
+		if(AudioDriver_set(MUSIC, 
 								 ffmpeg_audio.codec_ctx->sample_rate,
 								 PCM_16_BIT,
 								 (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
@@ -251,7 +270,7 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 							  "Couldn't set audio track parametres");
 			return -1;
 		}
-		if(AndroidAudioTrack_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't start audio track");
@@ -260,13 +279,13 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		called = true;
 	}
 	
-	if(AndroidAudioTrack_write(samples, samples_size) <= 0) {
+	if(AudioDriver_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
 	}
-	AndroidAudioTrack_flush();
+	AudioDriver_flush();
 	return 0;
 }
 
@@ -282,7 +301,7 @@ static int FFMpegPlayerAndroid_processVideo(JNIEnv *env, jobject obj, AVPacket *
 		// Convert the image from its native format to RGB
 		sws_scale(ffmpeg_fields.img_convert_ctx, ffmpeg_fields.pFrame->data, ffmpeg_fields.pFrame->linesize, 0,
 							ffmpeg_video.codec_ctx->height, pFrameRGB->data, pFrameRGB->linesize);
-		AndroidSurface_updateSurface();
+		VideoDriver_updateSurface();
 		return 0;
 	}
 	return -1;
@@ -308,7 +327,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 	
 	if(ffmpeg_audio.initzialized) {
 		samples = (int16_t *) av_malloc(samples_size);
-		if(AndroidAudioTrack_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		if(AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't register audio track");
@@ -347,14 +366,14 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 	}
 	
 	if(ffmpeg_video.initzialized) {
-		if(AndroidSurface_unregister() != ANDROID_SURFACE_RESULT_SUCCESS) {
+		if(VideoDriver_unregister() != ANDROID_SURFACE_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't unregister vide surface");
 		}
 	}
 	if(ffmpeg_audio.initzialized) {
-		if(AndroidAudioTrack_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		if(AudioDriver_unregister() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't unregister audio track");
@@ -424,7 +443,7 @@ static jobject FFMpegPlayerAndroid_setInputFile(JNIEnv *env, jobject obj, jstrin
 static void FFMpegPlayerAndroid_setSurface(JNIEnv *env, jobject obj, jobject jsurface) {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "setting surface");
 
-	if(AndroidSurface_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "couldn't set surface");
 	}
 }
