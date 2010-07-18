@@ -245,7 +245,6 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv* env) {
 	return pFrame;
 }
 
-static bool called = false;
 static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16_t *samples, int samples_size) {
 	/*
 	int size = FFMAX(packet->size * sizeof(*samples), samples_size);
@@ -256,15 +255,16 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 		samples = (int16_t *) av_malloc(samples_size);
 	}
 	*/
+	static bool called = false;
+	static int temp_size = 0;
 	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
-	
 	if(!called) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "starting android audio track");
 		if(AudioDriver_set(MUSIC, 
-								 ffmpeg_audio.codec_ctx->sample_rate,
-								 PCM_16_BIT,
-								 (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
-								 samples_size) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+						   ffmpeg_audio.codec_ctx->sample_rate,
+						   PCM_16_BIT,
+						   (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
+						   samples_size) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't set audio track parametres");
@@ -276,15 +276,17 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 							  "Couldn't start audio track");
 			return -1;
 		}
+		temp_size = samples_size;
 		called = true;
 	}
-	
+
 	if(AudioDriver_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
 	}
+	
 	AudioDriver_flush();
 	return 0;
 }
