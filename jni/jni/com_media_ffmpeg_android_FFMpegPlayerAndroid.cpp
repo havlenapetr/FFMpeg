@@ -105,6 +105,32 @@ static void FFMpegPlayerAndroid_enableErrorCallback(JNIEnv *env, jobject obj) {
 	av_log_set_callback(FFMpegPlayerAndroid_handleErrors);
 }
 
+static jobject FFMpegPlayerAndroid_createAudioTrack(JNIEnv* env, 
+													jobject obj,
+													int streamType,
+													int sampleRate, 
+													int channels,
+													int audioFormat,
+													int buffSize) {
+	jclass clazz = env->FindClass("android/media/AudioTrack");
+	jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
+	if (constr == NULL) {
+		jniThrowException(env,
+	                      "java/lang/RuntimeException",
+	                      "can't create audio track");
+	}
+	
+	return env->NewObject(clazz, 
+						  constr, 
+						  streamType, 
+						  sampleRate, 
+						  channels, 
+						  audioFormat, 
+						  buffSize, 
+						  0 // mode static
+						  );
+}
+
 static jobject FFMpegPlayerAndroid_initAudio(JNIEnv *env, jobject obj, jobject pAVFormatContext) {
 	ffmpeg_audio.stream = -1;
 	for (int i = 0; i < ffmpeg_fields.pFormatCtx->nb_streams; i++) {
@@ -219,7 +245,7 @@ static AVFrame *FFMpegPlayerAndroid_createFrame(JNIEnv* env) {
 	return pFrame;
 }
 
-static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16_t *samples, int samples_size) {
+static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, jobject obj, AVPacket *packet, int16_t *samples, int samples_size) {
 	/*
 	int size = FFMAX(packet->size * sizeof(*samples), samples_size);
 	if(samples_size < size) {
@@ -230,38 +256,49 @@ static int FFMpegPlayerAndroid_processAudio(JNIEnv *env, AVPacket *packet, int16
 	}
 	*/
 	static bool called = false;
-	static int temp_size = 0;
 	int len = avcodec_decode_audio3(ffmpeg_audio.codec_ctx, samples, &samples_size, packet);
 	if(!called) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "starting android audio track");
-		if(AudioDriver_set(MUSIC, 
-						   ffmpeg_audio.codec_ctx->sample_rate,
-						   PCM_16_BIT,
-						   (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
-						   samples_size) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-			jniThrowException(env,
-							  "java/io/IOException",
-							  "Couldn't set audio track parametres");
-			return -1;
-		}
-		if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jobject jaudiotrack = FFMpegPlayerAndroid_createAudioTrack(env, 
+																   obj,
+																   MUSIC,
+																   ffmpeg_audio.codec_ctx->sample_rate,
+																   (ffmpeg_audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
+																   PCM_16_BIT,
+																   samples_size);
+		if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 			jniThrowException(env,
 							  "java/io/IOException",
 							  "Couldn't start audio track");
 			return -1;
-		}
-		temp_size = samples_size;
+		}														   
 		called = true;
 	}
 
+	if(AudioDriver_stop() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't stop audio track");
+		return -1;
+	}
+	if(AudioDriver_reload() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't reload audio track");
+		return -1;
+	}
 	if(AudioDriver_write(samples, samples_size) <= 0) {
 		jniThrowException(env,
 						  "java/io/IOException",
 						  "Couldn't write bytes to audio track");
 		return -1;
 	}
-	
-	AudioDriver_flush();
+	if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		jniThrowException(env,
+						  "java/io/IOException",
+						  "Couldn't play audio track");
+		return -1;
+	}
 	return 0;
 }
 
@@ -303,12 +340,6 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 	
 	if(ffmpeg_audio.initzialized) {
 		samples = (int16_t *) av_malloc(samples_size);
-		if(AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-			jniThrowException(env,
-							  "java/io/IOException",
-							  "Couldn't register audio track");
-			return;
-		}
 	}
 	
 	status = STATE_PLAYING;
@@ -332,7 +363,7 @@ static void FFMpegPlayerAndroid_play(JNIEnv *env, jobject obj) {
 			}
 		} else if (packet.stream_index == ffmpeg_audio.stream &&
 				ffmpeg_audio.initzialized && ffmpeg_audio.decode) {
-			if(FFMpegPlayerAndroid_processAudio(env, &packet, samples, samples_size) < 0 ) {
+			if(FFMpegPlayerAndroid_processAudio(env, obj, &packet, samples, samples_size) < 0 ) {
 				return; // exception occured so return to java
 			}
 		}
