@@ -36,23 +36,23 @@
 #include <signal.h>
 #include <limits.h>
 #include <unistd.h>
-#include "../libavformat/avformat.h"
-#include "../libavdevice/avdevice.h"
-#include "../libswscale/swscale.h"
-#include "../libavcodec/opt.h"
-#include "../libavcodec/audioconvert.h"
-#include "../libavcodec/colorspace.h"
-#include "../libavutil/fifo.h"
-#include "../libavutil/pixdesc.h"
-#include "../libavutil/avstring.h"
-#include "../libavutil/libm.h"
-#include "../libavformat/os_support.h"
+#include "libavformat/avformat.h"
+#include "libavdevice/avdevice.h"
+#include "libswscale/swscale.h"
+#include "libavcodec/opt.h"
+#include "libavcodec/audioconvert.h"
+#include "libavcodec/colorspace.h"
+#include "libavutil/fifo.h"
+#include "libavutil/pixdesc.h"
+#include "libavutil/avstring.h"
+#include "libavutil/libm.h"
+#include "libavformat/os_support.h"
 
 #if CONFIG_AVFILTER
-# include "../libavfilter/avfilter.h"
-# include "../libavfilter/avfiltergraph.h"
-# include "../libavfilter/graphparser.h"
-# include "../libavfilter/vsrc_buffer.h"
+# include "libavfilter/avfilter.h"
+# include "libavfilter/avfiltergraph.h"
+# include "libavfilter/graphparser.h"
+# include "libavfilter/vsrc_buffer.h"
 #endif
 
 #if HAVE_SYS_RESOURCE_H
@@ -81,7 +81,7 @@
 #endif
 #include <time.h>
 
-#include "../cmdutils.h"
+#include "cmdutils.h"
 
 #undef NDEBUG
 #include <assert.h>
