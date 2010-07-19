@@ -1,16 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <stdint.h>
 #include <unistd.h>
-#include <sys/mman.h>
-#include <sys/ioctl.h>
 
-#include <linux/ioctl.h>
+// map system drivers methods
+#include "drivers_map.h"
 
 #include <android/log.h>
-#include <android/audiotrack.h>
-#include <android/surface.h>
 #include "jniUtils.h"
 #include "methods.h"
 
@@ -53,25 +46,6 @@ enum State {
 	STATE_PAUSE
 };
 static State status = STATE_STOPED;
-
-// create pointer on system methods for accessing audio and video system
-#ifdef ANDROID
-
-int (*AudioDriver_register) (void) = AndroidAudioTrack_register;
-int (*AudioDriver_set) (int,uint32_t,int,int,int) = AndroidAudioTrack_set;
-int (*AudioDriver_start) (void) = AndroidAudioTrack_start;
-int (*AudioDriver_flush) (void) = AndroidAudioTrack_flush;
-int (*AudioDriver_stop) (void) = AndroidAudioTrack_stop;
-int (*AudioDriver_reload) (void) = AndroidAudioTrack_reload;
-int (*AudioDriver_unregister) (void) = AndroidAudioTrack_unregister;
-int (*AudioDriver_write) (void *, int) = AndroidAudioTrack_write;
-
-int (*VideoDriver_register) (JNIEnv*, jobject) = AndroidSurface_register;
-int (*VideoDriver_getPixels) (int width, int height, void** pixels) = AndroidSurface_getPixels;
-int (*VideoDriver_updateSurface) (void) = AndroidSurface_updateSurface;
-int (*VideoDriver_unregister) (void) = AndroidSurface_unregister;
-
-#endif
 
 jclass FFMpegPlayerAndroid_getClass(JNIEnv *env) {
 	return env->FindClass("com/media/ffmpeg/android/FFMpegPlayerAndroid");
