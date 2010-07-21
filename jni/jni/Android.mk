@@ -35,7 +35,8 @@ endif
 		
 #ifeq ($(WITH_PLAYER),true)
 LOCAL_SRC_FILES += \
-	com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
+	com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp \
+	../libmediaplayer/mediaplayer.cpp
 #endif
 
 ifeq ($(IN_NDK),true)	
@@ -52,3 +53,5 @@ LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscal
 LOCAL_MODULE := libffmpeg_jni
 
 include $(BUILD_SHARED_LIBRARY)
+
+#include $(LOCAL_PATH)/../libmediaplayer/Android.mk
