@@ -6,6 +6,8 @@
 #include <jni.h>
 #include <android/Errors.h>
 
+#include "packetqueue.h"
+
 using namespace android;
 
 enum media_event_type {
@@ -168,6 +170,7 @@ private:
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
 	
 	pthread_mutex_t             mLock;
+	PacketQueue*				mPacketQueue;
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;

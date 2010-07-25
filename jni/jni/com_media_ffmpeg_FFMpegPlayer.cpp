@@ -15,10 +15,7 @@
 ** limitations under the License.
 */
 
-//#define LOG_NDEBUG 0
 #define TAG "FFMpegPlayer-JNI"
-
-#include <unistd.h>
 
 #include <android/log.h>
 #include "jniUtils.h"
@@ -119,7 +116,6 @@ com_media_ffmpeg_FFMpegPlayer_setDataSource(JNIEnv *env, jobject thiz, jstring p
 static void
 com_media_ffmpeg_FFMpegPlayer_setVideoSurface(JNIEnv *env, jobject thiz, jobject jsurface)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "setVideoSurface");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -136,7 +132,6 @@ com_media_ffmpeg_FFMpegPlayer_setVideoSurface(JNIEnv *env, jobject thiz, jobject
 static void
 com_media_ffmpeg_FFMpegPlayer_prepare(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "prepare");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -148,7 +143,6 @@ com_media_ffmpeg_FFMpegPlayer_prepare(JNIEnv *env, jobject thiz)
 static void
 com_media_ffmpeg_FFMpegPlayer_start(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "start");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -182,7 +176,6 @@ com_media_ffmpeg_FFMpegPlayer_pause(JNIEnv *env, jobject thiz)
 static jboolean
 com_media_ffmpeg_FFMpegPlayer_isPlaying(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "isPlaying");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -206,7 +199,6 @@ com_media_ffmpeg_FFMpegPlayer_seekTo(JNIEnv *env, jobject thiz, int msec)
 static int
 com_media_ffmpeg_FFMpegPlayer_getVideoWidth(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "get video width");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -222,7 +214,6 @@ com_media_ffmpeg_FFMpegPlayer_getVideoWidth(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getVideoHeight(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "get video height");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -239,7 +230,6 @@ com_media_ffmpeg_FFMpegPlayer_getVideoHeight(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getCurrentPosition(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "getCurrrentPosition");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -253,7 +243,6 @@ com_media_ffmpeg_FFMpegPlayer_getCurrentPosition(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getDuration(JNIEnv *env, jobject thiz)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "getDuration");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -286,9 +275,8 @@ com_media_ffmpeg_FFMpegPlayer_setAudioStreamType(JNIEnv *env, jobject thiz, int 
     process_media_player_call( env, thiz, mp->setAudioStreamType(streamtype) , NULL, NULL );
 }
 
-// This function gets some field IDs, which in turn causes class initialization.
-// It is called from a static block in MediaPlayer, which won't run until the
-// first time an instance of this class is used.
+// ----------------------------------------------------------------------------
+
 static void
 com_media_ffmpeg_FFMpegPlayer_native_init(JNIEnv *env)
 {

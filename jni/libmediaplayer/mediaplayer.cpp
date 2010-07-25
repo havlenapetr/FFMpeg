@@ -42,11 +42,13 @@ MediaPlayer::MediaPlayer()
 	pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
+	mPacketQueue = new PacketQueue();
 	//sPlayer = this;
 }
 
 MediaPlayer::~MediaPlayer()
 {
+	free(mPacketQueue);
 }
 
 status_t MediaPlayer::prepareAudio()
