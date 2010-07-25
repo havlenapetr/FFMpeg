@@ -97,6 +97,13 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 		Log.d(TAG, "released");
     }
     
+    public boolean onTouchEvent(android.view.MotionEvent event) {
+    	if(!mMediaController.isShowing()) {
+			mMediaController.show(3000);
+		}
+		return true;
+    }
+    
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
             startVideo();
@@ -120,7 +127,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
 		
 		public void start() {
-			//mPlayer.resume();
+			mPlayer.resume();
 		}
 		
 		public void seekTo(int pos) {
@@ -128,15 +135,15 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 		}
 		
 		public void pause() {
-			//mPlayer.pause();
+			mPlayer.pause();
 		}
 		
 		public boolean isPlaying() {
-			return true;//mPlayer.isPlaying();
+			return mPlayer.isPlaying();
 		}
 		
 		public int getDuration() {
-			return 0;//mPlayer.getDuration();
+			return mPlayer.getDuration();
 		}
 		
 		public int getCurrentPosition() {

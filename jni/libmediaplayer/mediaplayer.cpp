@@ -385,7 +385,7 @@ bool MediaPlayer::isPlaying()
 
 status_t MediaPlayer::getVideoWidth(int *w)
 {
-	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+	if (mCurrentState < MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
 	*w = mVideoWidth;
@@ -394,7 +394,7 @@ status_t MediaPlayer::getVideoWidth(int *w)
 
 status_t MediaPlayer::getVideoHeight(int *h)
 {
-	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+	if (mCurrentState < MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
 	*h = mVideoHeight;
@@ -408,7 +408,7 @@ status_t MediaPlayer::getCurrentPosition(int *msec)
 
 status_t MediaPlayer::getDuration(int *msec)
 {
-	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+	if (mCurrentState < MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
 	*msec = mDuration / 1000;
