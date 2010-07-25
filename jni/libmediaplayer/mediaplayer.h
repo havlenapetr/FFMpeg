@@ -1,6 +1,8 @@
 #ifndef FFMPEG_MEDIAPLAYER_H
 #define FFMPEG_MEDIAPLAYER_H
 
+#include <pthread.h>
+
 #include <jni.h>
 #include <android/Errors.h>
 
@@ -160,8 +162,11 @@ private:
 	
 	status_t					prepareAudio();
 	status_t					prepareVideo();
+	status_t					processVideo(AVPacket *packet, AVFrame *pFrame);
+	status_t					processAudio(AVPacket *packet, int16_t *samples, int samples_size);
+	status_t					createAndroidFrame(AVFrame* frame);
 	
-    //Mutex                       mLock;
+    pthread_mutex_t             mLock;
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;

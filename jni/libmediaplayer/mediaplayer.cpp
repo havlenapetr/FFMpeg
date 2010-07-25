@@ -39,6 +39,7 @@ MediaPlayer::MediaPlayer()
     mPrepareSync = false;
     mPrepareStatus = NO_ERROR;
     mLoop = false;
+	pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
 }
@@ -111,18 +112,19 @@ status_t MediaPlayer::prepareVideo()
 	// Allocate video frame
 	mFFmpegStorage.pFrame = avcodec_alloc_frame();
 	
-	int w = mFFmpegStorage.video.codec_ctx->width;
-	int h = mFFmpegStorage.video.codec_ctx->height;
-	mFFmpegStorage.img_convert_ctx = sws_getContext(w, 
-												   h, 
-												   mFFmpegStorage.video.codec_ctx->pix_fmt, 
-												   w, 
-												   h,
-												   PIX_FMT_RGB565, 
-												   SWS_POINT, 
-												   NULL, 
-												   NULL, 
-												   NULL);
+	mVideoWidth = mFFmpegStorage.video.codec_ctx->width;
+	mVideoHeight = mFFmpegStorage.video.codec_ctx->height;
+	mDuration =  mFFmpegStorage.pFormatCtx->duration;
+	mFFmpegStorage.img_convert_ctx = sws_getContext(mVideoWidth, 
+												    mVideoHeight, 
+												    mFFmpegStorage.video.codec_ctx->pix_fmt, 
+												    mVideoWidth, 
+												    mVideoHeight,
+												    PIX_FMT_RGB565, 
+												    SWS_POINT, 
+												    NULL, 
+												    NULL, 
+												    NULL);
 	
 	return NO_ERROR;
 }
@@ -162,14 +164,45 @@ status_t MediaPlayer::setDataSource(const char *url)
 	if(av_find_stream_info(mFFmpegStorage.pFormatCtx) < 0) {
 		return INVALID_OPERATION;
 	}
+	mCurrentState = MEDIA_PLAYER_INITIALIZED;
     return NO_ERROR;
+}
+
+status_t MediaPlayer::createAndroidFrame(AVFrame* frame)
+{
+	void* pixels;
+	
+	frame = avcodec_alloc_frame();
+	if (frame == NULL) {
+		return INVALID_OPERATION;
+	}
+	
+	if(VideoDriver_getPixels(mVideoWidth, 
+							 mVideoHeight, 
+							 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+	
+	// Assign appropriate parts of buffer to image planes in pFrameRGB
+	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+	// of AVPicture
+	avpicture_fill((AVPicture *) frame, 
+				   (uint8_t *)pixels, 
+				   PIX_FMT_RGB565, 
+				   mVideoWidth, 
+				   mVideoHeight);
+	
+	return NO_ERROR;
 }
 
 status_t MediaPlayer::suspend() {
-    return NO_ERROR;
+    return INVALID_OPERATION;
 }
 
 status_t MediaPlayer::resume() {
+	pthread_mutex_lock(&mLock);
+	mCurrentState = MEDIA_PLAYER_STARTED;
+	pthread_mutex_unlock(&mLock);
     return NO_ERROR;
 }
 
@@ -181,33 +214,142 @@ status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
     return NO_ERROR;
 }
 
+status_t MediaPlayer::processVideo(AVPacket *packet, AVFrame *pFrame)
+{
+	int	complete;
+	
+	// Decode video frame
+	avcodec_decode_video(mFFmpegStorage.video.codec_ctx, 
+						 mFFmpegStorage.pFrame, 
+						 &complete,
+						 packet->data, 
+						 packet->size);
+	
+	// Did we get a video frame?
+	if (complete) {
+		// Convert the image from its native format to RGB
+		sws_scale(mFFmpegStorage.img_convert_ctx, 
+				  mFFmpegStorage.pFrame->data, 
+				  mFFmpegStorage.pFrame->linesize, 
+				  0,
+				  mFFmpegStorage.video.codec_ctx->height, 
+				  pFrame->data, 
+				  pFrame->linesize);
+		VideoDriver_updateSurface();
+		return INVALID_OPERATION;
+	}
+	return NO_ERROR;
+}
+
+status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int samples_size) 
+{
+	int size = samples_size;
+	int len = avcodec_decode_audio3(mFFmpegStorage.audio.codec_ctx, samples, &size, packet);
+	
+	if(AudioDriver_stop() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+	if(AudioDriver_reload() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+	if(AudioDriver_write(samples, size) <= 0) {
+		return INVALID_OPERATION;
+	}
+	if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+	return NO_ERROR;
+}
+
 status_t MediaPlayer::start()
 {
-	return INVALID_OPERATION;
+	AVPacket				pPacket;
+	int16_t*				pAudioSamples;
+	AVFrame*				pFrameRGB;
+	
+	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+		return INVALID_OPERATION;
+	}
+	
+	if(createAndroidFrame(pFrameRGB) != NO_ERROR) {
+		return INVALID_OPERATION;
+	}
+	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+	
+	mCurrentState = MEDIA_PLAYER_STARTED;
+	while (mCurrentState != MEDIA_PLAYER_STOPPED) {
+		
+		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
+			usleep(50);
+			continue;
+		}
+		
+		if(av_read_frame(mFFmpegStorage.pFormatCtx, &pPacket) < 0) {
+			mCurrentState = MEDIA_PLAYER_STOPPED;
+			continue;
+		}
+		
+		pthread_mutex_lock(&mLock);
+		
+		// Is this a packet from the video stream?
+		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
+			if(processVideo(&pPacket, pFrameRGB) != NO_ERROR) {
+				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+				return INVALID_OPERATION;
+			}
+		} else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+			if(processAudio(&pPacket, pAudioSamples, AVCODEC_MAX_AUDIO_FRAME_SIZE) != NO_ERROR) {
+				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+				return INVALID_OPERATION;
+			}
+		}
+		
+		// Free the packet that was allocated by av_read_frame
+		av_free_packet(&pPacket);
+		
+		pthread_mutex_unlock(&mLock);
+	}
+	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
+	
+	return NO_ERROR;
 }
 
 status_t MediaPlayer::stop()
 {
-    return INVALID_OPERATION;
+	pthread_mutex_lock(&mLock);
+	mCurrentState = MEDIA_PLAYER_STOPPED;
+	pthread_mutex_unlock(&mLock);
+    return NO_ERROR;
 }
 
 status_t MediaPlayer::pause()
 {
-	return INVALID_OPERATION;
+	pthread_mutex_lock(&mLock);
+	mCurrentState = MEDIA_PLAYER_PAUSED;
+	pthread_mutex_unlock(&mLock);
+	return NO_ERROR;
 }
 
 bool MediaPlayer::isPlaying()
 {
-    return false;
+    return mCurrentState == MEDIA_PLAYER_STARTED;
 }
 
 status_t MediaPlayer::getVideoWidth(int *w)
 {
+	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+		return INVALID_OPERATION;
+	}
+	*w = mVideoWidth;
     return NO_ERROR;
 }
 
 status_t MediaPlayer::getVideoHeight(int *h)
 {
+	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+		return INVALID_OPERATION;
+	}
+	*h = mVideoHeight;
     return NO_ERROR;
 }
 
@@ -218,7 +360,11 @@ status_t MediaPlayer::getCurrentPosition(int *msec)
 
 status_t MediaPlayer::getDuration(int *msec)
 {
-    return INVALID_OPERATION;
+	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
+		return INVALID_OPERATION;
+	}
+	*msec = mDuration / 1000;
+    return NO_ERROR;
 }
 
 status_t MediaPlayer::seekTo(int msec)

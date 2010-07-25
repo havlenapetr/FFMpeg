@@ -4,10 +4,11 @@ include $(CLEAR_VARS)
 LOCAL_CFLAGS := -D__STDC_CONSTANT_MACROS
 
 WITH_CONVERTOR := true
+WITH_PLAYER := true
 
-#ifeq ($(WITH_PLAYER),true)
+ifeq ($(WITH_PLAYER),true)
 LOCAL_CFLAGS += -DBUILD_WITH_PLAYER
-#endif
+endif
 
 ifeq ($(WITH_CONVERTOR),true)
 LOCAL_CFLAGS += -DBUILD_WITH_CONVERTOR
@@ -33,11 +34,10 @@ LOCAL_SRC_FILES += \
 	../libffmpeg/cmdutils.c
 endif
 		
-#ifeq ($(WITH_PLAYER),true)
+ifeq ($(WITH_PLAYER),true)
 LOCAL_SRC_FILES += \
-	com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp \
-	../libmediaplayer/mediaplayer.cpp
-#endif
+	com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
+endif
 
 ifeq ($(IN_NDK),true)	
 LOCAL_LDLIBS := -llog
@@ -48,10 +48,8 @@ endif
 
 LOCAL_SHARED_LIBRARIES := libjniaudio libjnivideo
 
-LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale
+LOCAL_STATIC_LIBRARIES := libavcodec libavformat libavutil libpostproc libswscale libmediaplayer
 
 LOCAL_MODULE := libffmpeg_jni
 
 include $(BUILD_SHARED_LIBRARY)
-
-#include $(LOCAL_PATH)/../libmediaplayer/Android.mk
