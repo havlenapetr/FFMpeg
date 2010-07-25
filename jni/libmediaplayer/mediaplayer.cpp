@@ -28,7 +28,7 @@ extern "C" {
 
 MediaPlayer::MediaPlayer()
 {
-    //__android_log_print(ANDROID_LOG_INFO, TAG, "constructor");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "constructor");
     mListener = NULL;
     mCookie = NULL;
     mDuration = -1;
@@ -42,17 +42,16 @@ MediaPlayer::MediaPlayer()
 	pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
+	//sPlayer = this;
 }
 
 MediaPlayer::~MediaPlayer()
 {
-    //__android_log_print(ANDROID_LOG_INFO, TAG, "destructor");
-    //disconnect();
-    //IPCThreadState::self()->flushCommands();
 }
 
 status_t MediaPlayer::prepareAudio()
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "prepareAudio");
 	mFFmpegStorage.audio.stream = -1;
 	for (int i = 0; i < mFFmpegStorage.pFormatCtx->nb_streams; i++) {
 		if (mFFmpegStorage.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
@@ -83,6 +82,7 @@ status_t MediaPlayer::prepareAudio()
 
 status_t MediaPlayer::prepareVideo()
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "prepareVideo");
 	// Find the first video stream
 	mFFmpegStorage.video.stream = -1;
 	for (int i = 0; i < mFFmpegStorage.pFormatCtx->nb_streams; i++) {
@@ -133,6 +133,7 @@ status_t MediaPlayer::prepare()
 {
 	status_t ret;
 	mCurrentState = MEDIA_PLAYER_PREPARING;
+	av_log_set_callback(ffmpegNotify);
 	if ((ret = prepareVideo()) != NO_ERROR) {
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
@@ -196,7 +197,17 @@ status_t MediaPlayer::createAndroidFrame(AVFrame* frame)
 }
 
 status_t MediaPlayer::suspend() {
-    return INVALID_OPERATION;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "suspend");
+	// Free the YUV frame
+	av_free(mFFmpegStorage.pFrame);
+	
+	// Close the codec
+	avcodec_close(mFFmpegStorage.video.codec_ctx);
+	avcodec_close(mFFmpegStorage.audio.codec_ctx);
+	
+	// Close the video file
+	av_close_input_file(mFFmpegStorage.pFormatCtx);
+    return NO_ERROR;
 }
 
 status_t MediaPlayer::resume() {
@@ -209,6 +220,24 @@ status_t MediaPlayer::resume() {
 status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 {
 	if(VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+	
+	/**
+	 * TO-DO remove this ugly hack for creating android audio track
+	 **/
+	jclass clazz = env->FindClass("android/media/AudioTrack");
+	jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
+	jobject jaudiotrack = env->NewObject(clazz, 
+										 constr, 
+										 MUSIC, 
+										 mFFmpegStorage.audio.codec_ctx->sample_rate, 
+										 (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
+										 PCM_16_BIT,
+										 AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+										 0 // mode static
+										 );
+	if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
 	}
     return NO_ERROR;
@@ -277,7 +306,8 @@ status_t MediaPlayer::start()
 	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
-	while (mCurrentState != MEDIA_PLAYER_STOPPED) {
+	while (mCurrentState != MEDIA_PLAYER_STOPPED && 
+			mCurrentState != MEDIA_PLAYER_STATE_ERROR) {
 		
 		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
 			usleep(50);
@@ -295,12 +325,10 @@ status_t MediaPlayer::start()
 		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
 			if(processVideo(&pPacket, pFrameRGB) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-				return INVALID_OPERATION;
 			}
 		} else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
 			if(processAudio(&pPacket, pAudioSamples, AVCODEC_MAX_AUDIO_FRAME_SIZE) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-				return INVALID_OPERATION;
 			}
 		}
 		
@@ -309,8 +337,18 @@ status_t MediaPlayer::start()
 		
 		pthread_mutex_unlock(&mLock);
 	}
-	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
 	
+	VideoDriver_unregister();
+	AudioDriver_unregister();
+	   
+	av_free(pAudioSamples);
+	// Free the RGB image
+	av_free(pFrameRGB);
+	
+	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
+		return INVALID_OPERATION;
+	}
+	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
 	return NO_ERROR;
 }
 
@@ -380,6 +418,55 @@ status_t MediaPlayer::reset()
 status_t MediaPlayer::setAudioStreamType(int type)
 {
 	return NO_ERROR;
+}
+
+void MediaPlayer::ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl) {
+	
+	switch(level) {
+			/**
+			 * Something went really wrong and we will crash now.
+			 */
+		case AV_LOG_PANIC:
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_PANIC: %s", fmt);
+			//sPlayer->mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+			break;
+			
+			/**
+			 * Something went wrong and recovery is not possible.
+			 * For example, no header was found for a format which depends
+			 * on headers or an illegal combination of parameters is used.
+			 */
+		case AV_LOG_FATAL:
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_FATAL: %s", fmt);
+			//sPlayer->mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+			break;
+			
+			/**
+			 * Something went wrong and cannot losslessly be recovered.
+			 * However, not all future data is affected.
+			 */
+		case AV_LOG_ERROR:
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_ERROR: %s", fmt);
+			//sPlayer->mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+			break;
+			
+			/**
+			 * Something somehow does not look correct. This may or may not
+			 * lead to problems. An example would be the use of '-vstrict -2'.
+			 */
+		case AV_LOG_WARNING:
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "AV_LOG_WARNING: %s", fmt);
+			break;
+			
+		case AV_LOG_INFO:
+			__android_log_print(ANDROID_LOG_INFO, TAG, "%s", fmt);
+			break;
+			
+		case AV_LOG_DEBUG:
+			__android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", fmt);
+			break;
+			
+	}
 }
 
 void MediaPlayer::notify(int msg, int ext1, int ext2)

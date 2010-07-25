@@ -165,8 +165,9 @@ private:
 	status_t					processVideo(AVPacket *packet, AVFrame *pFrame);
 	status_t					processAudio(AVPacket *packet, int16_t *samples, int samples_size);
 	status_t					createAndroidFrame(AVFrame* frame);
+	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
 	
-    pthread_mutex_t             mLock;
+	pthread_mutex_t             mLock;
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;

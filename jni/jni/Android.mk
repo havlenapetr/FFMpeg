@@ -16,6 +16,7 @@ endif
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../libffmpeg \
+	$(LOCAL_PATH)/../libmediaplayer \
 	$(LOCAL_PATH)/../include
 
 LOCAL_SRC_FILES := \
@@ -36,7 +37,8 @@ endif
 		
 ifeq ($(WITH_PLAYER),true)
 LOCAL_SRC_FILES += \
-	com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
+	com_media_ffmpeg_FFMpegPlayer.cpp
+#com_media_ffmpeg_android_FFMpegPlayerAndroid.cpp
 endif
 
 ifeq ($(IN_NDK),true)	
