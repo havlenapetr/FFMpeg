@@ -10,11 +10,14 @@
 PacketQueue::PacketQueue()
 {
 	pthread_mutex_init(&mLock, NULL);
+	pthread_cond_init(&mCondition, NULL);
 }
 
 PacketQueue::~PacketQueue()
 {
 	flush();
+	pthread_mutex_destroy(&mLock);
+	pthread_cond_destroy(&mCondition);
 }
 
 void PacketQueue::flush()
@@ -61,6 +64,7 @@ int PacketQueue::put(AVPacket* pkt)
     mNbPackets++;
     mSize += pkt1->pkt.size + sizeof(*pkt1);
 	
+	pthread_cond_signal(&mCondition);
     pthread_mutex_unlock(&mLock);
     return 0;
 	
@@ -94,7 +98,10 @@ int PacketQueue::get(AVPacket *pkt, bool block)
         } else if (!block) {
             ret = 0;
             break;
-        }
+        } else {
+			pthread_cond_wait(&mCondition, &mLock);
+		}
+
     }
     pthread_mutex_unlock(&mLock);
     return ret;

@@ -30,6 +30,7 @@ private:
     int					mSize;
     bool				mAbortRequest;
 	pthread_mutex_t     mLock;
+	pthread_cond_t		mCondition;
 };
 
 #endif // FFMPEG_MEDIAPLAYER_H
