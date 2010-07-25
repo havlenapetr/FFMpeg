@@ -329,6 +329,7 @@ status_t MediaPlayer::start()
 		
 		// Is this a packet from the video stream?
 		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
+			//mPacketQueue->put(&pPacket);
 			if(processVideo(&pPacket, pFrameRGB) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 			}
