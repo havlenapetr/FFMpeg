@@ -14,7 +14,7 @@ import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 
 public class FFMpegMovieViewAndroid extends SurfaceView {
-	private static final String 	TAG = "FFMpegPlayerAndroid"; 
+	private static final String 	TAG = "FFMpegMovieViewAndroid"; 
 	
 	private Context					mContext;
 	private FFMpegPlayer			mPlayer;
@@ -60,10 +60,20 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
      * initzialize player
      */
     private void openVideo() {
-    	mPlayer.setDisplay(mSurfaceHolder);
+    	Log.d(TAG, "opening video");
+    	try {
+    		mPlayer.setDisplay(mSurfaceHolder);
+			mPlayer.prepare();
+		} catch (IllegalStateException e) {
+			Log.e(TAG, "Couldn't prepare player: " + e.getMessage());
+		} catch (IOException e) {
+			Log.e(TAG, "Couldn't prepare player: " + e.getMessage());
+		}
     }
     
     private void startVideo() {
+    	Log.d(TAG, "starting video");
+    	
     	attachMediaController();
     	
     	// we hasn't run player thread so we are launching
@@ -115,7 +125,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
 		
 		public void start() {
-			mPlayer.resume();
+			//mPlayer.resume();
 		}
 		
 		public void seekTo(int pos) {
@@ -123,15 +133,15 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 		}
 		
 		public void pause() {
-			mPlayer.pause();
+			//mPlayer.pause();
 		}
 		
 		public boolean isPlaying() {
-			return mPlayer.isPlaying();
+			return true;//mPlayer.isPlaying();
 		}
 		
 		public int getDuration() {
-			return mPlayer.getDuration();
+			return 0;//mPlayer.getDuration();
 		}
 		
 		public int getCurrentPosition() {

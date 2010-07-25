@@ -117,6 +117,7 @@ com_media_ffmpeg_FFMpegPlayer_setDataSource(JNIEnv *env, jobject thiz, jstring p
 static void
 com_media_ffmpeg_FFMpegPlayer_setVideoSurface(JNIEnv *env, jobject thiz, jobject jsurface)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "setVideoSurface");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -126,12 +127,14 @@ com_media_ffmpeg_FFMpegPlayer_setVideoSurface(JNIEnv *env, jobject thiz, jobject
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return;
     }
-	mp->setVideoSurface(env, jsurface);
+	process_media_player_call( env, thiz, mp->setVideoSurface(env, jsurface), 
+							  "java/io/IOException", "Set video surface failed.");
 }
 
 static void
 com_media_ffmpeg_FFMpegPlayer_prepare(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "prepare");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -143,6 +146,7 @@ com_media_ffmpeg_FFMpegPlayer_prepare(JNIEnv *env, jobject thiz)
 static void
 com_media_ffmpeg_FFMpegPlayer_start(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "start");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -176,6 +180,7 @@ com_media_ffmpeg_FFMpegPlayer_pause(JNIEnv *env, jobject thiz)
 static jboolean
 com_media_ffmpeg_FFMpegPlayer_isPlaying(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "isPlaying");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -199,6 +204,7 @@ com_media_ffmpeg_FFMpegPlayer_seekTo(JNIEnv *env, jobject thiz, int msec)
 static int
 com_media_ffmpeg_FFMpegPlayer_getVideoWidth(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "get video width");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -214,6 +220,7 @@ com_media_ffmpeg_FFMpegPlayer_getVideoWidth(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getVideoHeight(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "get video height");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -230,6 +237,7 @@ com_media_ffmpeg_FFMpegPlayer_getVideoHeight(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getCurrentPosition(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "getCurrrentPosition");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -243,6 +251,7 @@ com_media_ffmpeg_FFMpegPlayer_getCurrentPosition(JNIEnv *env, jobject thiz)
 static int
 com_media_ffmpeg_FFMpegPlayer_getDuration(JNIEnv *env, jobject thiz)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "getDuration");
     MediaPlayer* mp = getMediaPlayer(env, thiz);
     if (mp == NULL ) {
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -281,8 +290,8 @@ com_media_ffmpeg_FFMpegPlayer_setAudioStreamType(JNIEnv *env, jobject thiz, int 
 static void
 com_media_ffmpeg_FFMpegPlayer_native_init(JNIEnv *env)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "native_init");
     jclass clazz;
-
     clazz = env->FindClass("com/media/ffmpeg/FFMpegPlayer");
     if (clazz == NULL) {
         jniThrowException(env, "java/lang/RuntimeException", "Can't find android/media/MediaPlayer");
@@ -299,6 +308,7 @@ com_media_ffmpeg_FFMpegPlayer_native_init(JNIEnv *env)
 static void
 com_media_ffmpeg_FFMpegPlayer_native_setup(JNIEnv *env, jobject thiz, jobject weak_this)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "native_setup");
     MediaPlayer* mp = new MediaPlayer();
     if (mp == NULL) {
         jniThrowException(env, "java/lang/RuntimeException", "Out of memory");

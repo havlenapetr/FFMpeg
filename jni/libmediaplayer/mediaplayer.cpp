@@ -173,6 +173,7 @@ status_t MediaPlayer::createAndroidFrame(AVFrame* frame)
 {
 	void* pixels;
 	
+	__android_log_print(ANDROID_LOG_INFO, TAG, "createAndroidFrame");
 	frame = avcodec_alloc_frame();
 	if (frame == NULL) {
 		return INVALID_OPERATION;
@@ -225,7 +226,7 @@ status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 	
 	/**
 	 * TO-DO remove this ugly hack for creating android audio track
-	 **/
+	 **
 	jclass clazz = env->FindClass("android/media/AudioTrack");
 	jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
 	jobject jaudiotrack = env->NewObject(clazz, 
@@ -239,7 +240,7 @@ status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 										 );
 	if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
-	}
+	}*/
     return NO_ERROR;
 }
 
@@ -265,9 +266,9 @@ status_t MediaPlayer::processVideo(AVPacket *packet, AVFrame *pFrame)
 				  pFrame->data, 
 				  pFrame->linesize);
 		VideoDriver_updateSurface();
-		return INVALID_OPERATION;
+		return NO_ERROR;
 	}
-	return NO_ERROR;
+	return INVALID_OPERATION;
 }
 
 status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int samples_size) 
@@ -306,9 +307,10 @@ status_t MediaPlayer::start()
 	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "playing");
 	while (mCurrentState != MEDIA_PLAYER_STOPPED && 
 			mCurrentState != MEDIA_PLAYER_STATE_ERROR) {
-		
+
 		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
 			usleep(50);
 			continue;
@@ -327,9 +329,11 @@ status_t MediaPlayer::start()
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 			}
 		} else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+			/*
 			if(processAudio(&pPacket, pAudioSamples, AVCODEC_MAX_AUDIO_FRAME_SIZE) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 			}
+			*/
 		}
 		
 		// Free the packet that was allocated by av_read_frame
@@ -339,16 +343,18 @@ status_t MediaPlayer::start()
 	}
 	
 	VideoDriver_unregister();
-	AudioDriver_unregister();
+	//AudioDriver_unregister();
 	   
 	av_free(pAudioSamples);
 	// Free the RGB image
 	av_free(pFrameRGB);
 	
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
 		return INVALID_OPERATION;
 	}
 	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 	return NO_ERROR;
 }
 

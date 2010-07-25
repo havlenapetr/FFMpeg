@@ -1,6 +1,5 @@
 package com.media.ffmpeg;
 
-import android.content.Context;
 import android.os.PowerManager;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -94,8 +93,9 @@ public class FFMpegPlayer
      * result in only the audio track being played.
      *
      * @param sh the SurfaceHolder to use for video display
+     * @throws IOException 
      */
-    public void setDisplay(SurfaceHolder sh) {
+    public void setDisplay(SurfaceHolder sh) throws IOException {
         mSurfaceHolder = sh;
         if (sh != null) {
             mSurface = sh.getSurface();
@@ -103,7 +103,7 @@ public class FFMpegPlayer
             mSurface = null;
         }
         _setVideoSurface(mSurface);
-        updateSurfaceScreenOn();
+        //updateSurfaceScreenOn();
     }
 
 
@@ -159,6 +159,7 @@ public class FFMpegPlayer
      * @param mode    the power/wake mode to set
      * @see android.os.PowerManager
      */
+    /*
     public void setWakeMode(Context context, int mode) {
         boolean washeld = false;
         if (mWakeLock != null) {
@@ -176,6 +177,7 @@ public class FFMpegPlayer
             mWakeLock.acquire();
         }
     }
+    */
 
     /**
      * Control whether we should use the attached SurfaceHolder to keep the
@@ -190,7 +192,7 @@ public class FFMpegPlayer
     public void setScreenOnWhilePlaying(boolean screenOn) {
         if (mScreenOnWhilePlaying != screenOn) {
             mScreenOnWhilePlaying = screenOn;
-            updateSurfaceScreenOn();
+           // updateSurfaceScreenOn();
         }
     }
 
@@ -208,16 +210,18 @@ public class FFMpegPlayer
     }
     */
 
+    /*
     private void updateSurfaceScreenOn() {
         if (mSurfaceHolder != null) {
             mSurfaceHolder.setKeepScreenOn(mScreenOnWhilePlaying && mStayAwake);
         }
     }
+    */
 
     /**
      * Update the MediaPlayer ISurface. Call after updating mSurface.
      */
-    private native void _setVideoSurface(Surface surface);
+    private native void _setVideoSurface(Surface surface) throws IOException;
     
     /**
      * Sets the data source (file-path or http/rtsp URL) to use.
@@ -329,7 +333,7 @@ public class FFMpegPlayer
      */
     public void release() {
         //stayAwake(false);
-        updateSurfaceScreenOn();
+        //updateSurfaceScreenOn();
         _release();
     }
 
