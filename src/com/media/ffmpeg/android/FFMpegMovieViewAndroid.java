@@ -60,7 +60,6 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
      * initzialize player
      */
     private void openVideo() {
-    	Log.d(TAG, "opening video");
     	try {
     		mPlayer.setDisplay(mSurfaceHolder);
 			mPlayer.prepare();
@@ -72,8 +71,6 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     }
     
     private void startVideo() {
-    	Log.d(TAG, "starting video");
-    	
     	attachMediaController();
     	
     	// we hasn't run player thread so we are launching
@@ -82,6 +79,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     		mRenderThread = new Thread() {
     			public void run() {
     				mPlayer.start();
+    				Log.d(TAG, "video ended");
     			};
     		};
     		mRenderThread.start();
@@ -101,18 +99,15 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        	Log.d(TAG, "Surface changed");
             startVideo();
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
-        	Log.d(TAG, "Surface created");
             mSurfaceHolder = holder;
             openVideo();
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-        	Log.d(TAG, "Surface destroyed");
 			release();
 			if(mMediaController.isShowing()) {
 				mMediaController.hide();

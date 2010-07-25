@@ -23,7 +23,8 @@
 #include <android/log.h>
 #include "jniUtils.h"
 #include "methods.h"
-#include "mediaplayer.h"
+
+#include <mediaplayer.h>
 
 struct fields_t {
     jfieldID    context;
@@ -41,6 +42,7 @@ static MediaPlayer* setMediaPlayer(JNIEnv* env, jobject thiz, MediaPlayer* playe
 {
     MediaPlayer* old = (MediaPlayer*)env->GetIntField(thiz, fields.context);
     if (old != NULL) {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "freeing old mediaplayer object");
 		free(old);
 	}
     env->SetIntField(thiz, fields.context, (int)player);

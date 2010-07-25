@@ -22,7 +22,7 @@ extern "C" {
 #include <android/log.h>
 
 // map system drivers methods
-#include "drivers_map.h"
+#include <drivers_map.h>
 
 #include "mediaplayer.h"
 
@@ -138,10 +138,12 @@ status_t MediaPlayer::prepare()
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
 	}
+	/*
 	if ((ret = prepareAudio()) != NO_ERROR) {
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
 	}
+	*/
 	mCurrentState = MEDIA_PLAYER_PREPARED;
 	return NO_ERROR;
 }
@@ -169,20 +171,20 @@ status_t MediaPlayer::setDataSource(const char *url)
     return NO_ERROR;
 }
 
-status_t MediaPlayer::createAndroidFrame(AVFrame* frame)
+AVFrame* MediaPlayer::createAndroidFrame()
 {
-	void* pixels;
+	void*		pixels;
+	AVFrame*	frame;
 	
-	__android_log_print(ANDROID_LOG_INFO, TAG, "createAndroidFrame");
 	frame = avcodec_alloc_frame();
 	if (frame == NULL) {
-		return INVALID_OPERATION;
+		return NULL;
 	}
 	
 	if(VideoDriver_getPixels(mVideoWidth, 
 							 mVideoHeight, 
 							 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
+		return NULL;
 	}
 	
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
@@ -194,7 +196,7 @@ status_t MediaPlayer::createAndroidFrame(AVFrame* frame)
 				   mVideoWidth, 
 				   mVideoHeight);
 	
-	return NO_ERROR;
+	return frame;
 }
 
 status_t MediaPlayer::suspend() {
@@ -218,53 +220,53 @@ status_t MediaPlayer::resume() {
     return NO_ERROR;
 }
 
+/**
+ * TO-DO remove this ugly hack for creating android audio track
+ **
+ jclass clazz = env->FindClass("android/media/AudioTrack");
+ jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
+ jobject jaudiotrack = env->NewObject(clazz, 
+ constr, 
+ MUSIC, 
+ mFFmpegStorage.audio.codec_ctx->sample_rate, 
+ (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
+ PCM_16_BIT,
+ AVCODEC_MAX_AUDIO_FRAME_SIZE, 
+ 0 // mode static
+ );
+ if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+ return INVALID_OPERATION;
+ }*/
+
 status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
-{
+{ 
 	if(VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
 	}
-	
-	/**
-	 * TO-DO remove this ugly hack for creating android audio track
-	 **
-	jclass clazz = env->FindClass("android/media/AudioTrack");
-	jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
-	jobject jaudiotrack = env->NewObject(clazz, 
-										 constr, 
-										 MUSIC, 
-										 mFFmpegStorage.audio.codec_ctx->sample_rate, 
-										 (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
-										 PCM_16_BIT,
-										 AVCODEC_MAX_AUDIO_FRAME_SIZE, 
-										 0 // mode static
-										 );
-	if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
-	}*/
     return NO_ERROR;
 }
 
 status_t MediaPlayer::processVideo(AVPacket *packet, AVFrame *pFrame)
 {
-	int	complete;
+	int	completed;
 	
 	// Decode video frame
 	avcodec_decode_video(mFFmpegStorage.video.codec_ctx, 
 						 mFFmpegStorage.pFrame, 
-						 &complete,
+						 &completed,
 						 packet->data, 
 						 packet->size);
 	
-	// Did we get a video frame?
-	if (complete) {
+	if (completed) {
 		// Convert the image from its native format to RGB
 		sws_scale(mFFmpegStorage.img_convert_ctx, 
 				  mFFmpegStorage.pFrame->data, 
 				  mFFmpegStorage.pFrame->linesize, 
 				  0,
-				  mFFmpegStorage.video.codec_ctx->height, 
+				  mVideoHeight, 
 				  pFrame->data, 
 				  pFrame->linesize);
+		
 		VideoDriver_updateSurface();
 		return NO_ERROR;
 	}
@@ -301,13 +303,13 @@ status_t MediaPlayer::start()
 		return INVALID_OPERATION;
 	}
 	
-	if(createAndroidFrame(pFrameRGB) != NO_ERROR) {
+	if((pFrameRGB = createAndroidFrame()) == NULL) {
 		return INVALID_OPERATION;
 	}
 	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "playing");
+	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
 	while (mCurrentState != MEDIA_PLAYER_STOPPED && 
 			mCurrentState != MEDIA_PLAYER_STATE_ERROR) {
 
@@ -348,6 +350,8 @@ status_t MediaPlayer::start()
 	av_free(pAudioSamples);
 	// Free the RGB image
 	av_free(pFrameRGB);
+	
+	//suspend();
 	
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
