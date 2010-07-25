@@ -8,7 +8,6 @@ import android.content.Context;
 import android.util.Log;
 
 import com.media.ffmpeg.android.FFMpegMovieViewAndroid;
-import com.media.ffmpeg.android.FFMpegPlayerAndroid;
 import com.media.ffmpeg.config.FFMpegConfig;
 
 
