@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegException;
 import com.media.ffmpeg.IFFMpegPlayer;
-import com.media.ffmpeg.android.FFMpegPlayerAndroid;
+import com.media.ffmpeg.android.FFMpegMovieViewAndroid;
 
 import android.app.Activity;
 import android.content.Context;
@@ -21,10 +21,10 @@ import android.view.MenuItem;
 
 public class FFMpegPlayerActivity extends Activity {
 	private static final String 	TAG = "FFMpegPlayerActivity";
-	private static final String 	LICENSE = "This software uses libraries from the FFmpeg project under the LGPLv2.1";
+	//private static final String 	LICENSE = "This software uses libraries from the FFmpeg project under the LGPLv2.1";
 	
-	private FFMpegPlayerAndroid 	mPlayer;
-	private WakeLock				mWakeLock;
+	private FFMpegMovieViewAndroid 	mMovieView;
+	//private WakeLock				mWakeLock;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,19 +36,25 @@ public class FFMpegPlayerActivity extends Activity {
 			Log.d(TAG, "Not specified video file");
 			finish();
 		} else {
-			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		    mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+			//PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		    //mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
 
 			try {
 				FFMpeg ffmpeg = new FFMpeg();
-				mPlayer = ffmpeg.getPlayer(this);
+				mMovieView = ffmpeg.getMovieView(this);
 				try {
-					mPlayer.setVideoPath(filePath);
-					mPlayer.setListener(new FFMpegPlayerHandler());
+					mMovieView.setVideoPath(filePath);
+				} catch (IllegalArgumentException e) {
+					Log.e(TAG, "Can't set video: " + e.getMessage());
+					FFMpegMessageBox.show(this, e);
+				} catch (IllegalStateException e) {
+					Log.e(TAG, "Can't set video: " + e.getMessage());
+					FFMpegMessageBox.show(this, e);
 				} catch (IOException e) {
+					Log.e(TAG, "Can't set video: " + e.getMessage());
 					FFMpegMessageBox.show(this, e);
 				}
-				setContentView(mPlayer);
+				setContentView(mMovieView);
 			} catch (FFMpegException e) {
 				Log.d(TAG, "Error when inicializing ffmpeg: " + e.getMessage());
 				FFMpegMessageBox.show(this, e);
@@ -57,6 +63,7 @@ public class FFMpegPlayerActivity extends Activity {
 		}
 	}
 	
+	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -142,4 +149,5 @@ public class FFMpegPlayerActivity extends Activity {
 		}
 		
 	}
+	*/
 }

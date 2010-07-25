@@ -116,7 +116,7 @@ public class FFMpegPlayer
      * @throws IllegalStateException if it is called in an invalid state
      */
     public  void start() throws IllegalStateException {
-        stayAwake(true);
+        //stayAwake(true);
         _start();
     }
 
@@ -127,7 +127,7 @@ public class FFMpegPlayer
      * initialized.
      */
     public void stop() throws IllegalStateException {
-        stayAwake(false);
+        //stayAwake(false);
         _stop();
     }
 
@@ -138,7 +138,7 @@ public class FFMpegPlayer
      * initialized.
      */
     public void pause() throws IllegalStateException {
-        stayAwake(false);
+        //stayAwake(false);
         _pause();
     }
 
@@ -194,6 +194,7 @@ public class FFMpegPlayer
         }
     }
 
+    /*
     private void stayAwake(boolean awake) {
         if (mWakeLock != null) {
             if (awake && !mWakeLock.isHeld()) {
@@ -205,6 +206,7 @@ public class FFMpegPlayer
         mStayAwake = awake;
         updateSurfaceScreenOn();
     }
+    */
 
     private void updateSurfaceScreenOn() {
         if (mSurfaceHolder != null) {
@@ -326,7 +328,7 @@ public class FFMpegPlayer
      * done using the MediaPlayer.
      */
     public void release() {
-        stayAwake(false);
+        //stayAwake(false);
         updateSurfaceScreenOn();
         _release();
     }
@@ -337,7 +339,7 @@ public class FFMpegPlayer
      * data source and calling prepare().
      */
     public void reset() {
-        stayAwake(false);
+        //stayAwake(false);
         _reset();
     }
 
@@ -356,7 +358,7 @@ public class FFMpegPlayer
             return false;
         }
 
-        stayAwake(false);
+        //stayAwake(false);
 
         // make sure none of the listeners get called anymore
         //mEventHandler.removeCallbacksAndMessages(null);
@@ -376,10 +378,12 @@ public class FFMpegPlayer
             return false;
         }
 
+        /*
         if (isPlaying()) {
             stayAwake(true);
         }
-
+		*/
+        
         return true;
     }
 

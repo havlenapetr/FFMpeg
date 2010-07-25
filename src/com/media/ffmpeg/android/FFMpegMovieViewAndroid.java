@@ -1,5 +1,7 @@
 package com.media.ffmpeg.android;
 
+import java.io.IOException;
+
 import com.media.ffmpeg.FFMpegPlayer;
 
 import android.content.Context;
@@ -49,6 +51,10 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
         mMediaController.setAnchorView(anchorView);
         mMediaController.setEnabled(true);
     }
+    
+    public void setVideoPath(String filePath) throws IllegalArgumentException, IllegalStateException, IOException {
+		mPlayer.setDataSource(filePath);
+	}
     
     /**
      * initzialize player
@@ -138,5 +144,4 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 			return 0;
 		}
 	};
-
 }
