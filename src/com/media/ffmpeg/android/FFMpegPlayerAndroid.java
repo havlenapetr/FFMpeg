@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.media.ffmpeg.FFMpegAVCodecContext;
 import com.media.ffmpeg.FFMpegAVCodecTag;
 import com.media.ffmpeg.FFMpegAVFormatContext;
-import com.media.ffmpeg.IFFMpegPlayer;
+import com.media.ffmpeg.FFMpegPlayer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -46,7 +46,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
 	private Context							mContext;
 	private SurfaceHolder					mSurfaceHolder;
 	private MediaController					mMediaController;
-	private IFFMpegPlayer					mListener;
+	private FFMpegPlayer.IFFMpegPlayer		mListener;
 	private boolean							mPlaying;
 	private FFMpegAVFormatContext			mInputVideo;
 	
@@ -79,7 +79,7 @@ public class FFMpegPlayerAndroid extends SurfaceView {
         mMediaController.setEnabled(true);
     }
     
-    public void setListener(IFFMpegPlayer listener) {
+    public void setListener(FFMpegPlayer.IFFMpegPlayer listener) {
     	mListener = listener;
     }
     

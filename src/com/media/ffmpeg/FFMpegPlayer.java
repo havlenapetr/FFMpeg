@@ -389,4 +389,11 @@ public class FFMpegPlayer
 
     @Override
     protected void finalize() { native_finalize(); }
+    
+    public interface IFFMpegPlayer {
+    	public void onPlay();
+    	public void onStop();
+    	public void onRelease();
+    	public void onError(String msg, Exception e);
+    }
 }

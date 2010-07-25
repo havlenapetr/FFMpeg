@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import com.media.ffmpeg.FFMpeg;
 import com.media.ffmpeg.FFMpegException;
-import com.media.ffmpeg.IFFMpegPlayer;
 import com.media.ffmpeg.android.FFMpegMovieViewAndroid;
 
 import android.app.Activity;
