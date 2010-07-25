@@ -42,13 +42,14 @@ MediaPlayer::MediaPlayer()
 	pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
-	mPacketQueue = new PacketQueue();
+	mVideoQueue = new PacketQueue();
+	sInstance = this;
 	//sPlayer = this;
 }
 
 MediaPlayer::~MediaPlayer()
 {
-	free(mPacketQueue);
+	free(mVideoQueue);
 }
 
 status_t MediaPlayer::prepareAudio()
@@ -295,6 +296,15 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 	return NO_ERROR;
 }
 
+void* MediaPlayer::decodeVideo(void* ptr)
+{
+	AVFrame*				pFrameRGB;
+	
+	if((pFrameRGB = sInstance->createAndroidFrame()) == NULL) {
+		sInstance->mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+	}
+}
+
 status_t MediaPlayer::start()
 {
 	AVPacket				pPacket;
@@ -309,6 +319,8 @@ status_t MediaPlayer::start()
 		return INVALID_OPERATION;
 	}
 	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+	
+	//pthread_create(&mVideoThread, NULL, decodeVideo, NULL);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
@@ -329,7 +341,7 @@ status_t MediaPlayer::start()
 		
 		// Is this a packet from the video stream?
 		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
-			//mPacketQueue->put(&pPacket);
+			//mVideoQueue->put(&pPacket);
 			if(processVideo(&pPacket, pFrameRGB) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 			}
