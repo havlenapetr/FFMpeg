@@ -168,7 +168,8 @@ private:
 	status_t					processAudio(AVPacket *packet, int16_t *samples, int samples_size);
 	AVFrame*					createAndroidFrame();
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
-	static void*				decodeVideo(void* ptr);
+        static void*                                    startVideoDecoding(void* ptr);
+        void						decodeVideo(void* ptr);
 	
 	static MediaPlayer*			sInstance;
 	pthread_mutex_t             mLock;

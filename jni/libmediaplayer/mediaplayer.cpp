@@ -26,6 +26,8 @@ extern "C" {
 
 #include "mediaplayer.h"
 
+static MediaPlayer* sPlayer;
+
 MediaPlayer::MediaPlayer()
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "constructor");
@@ -39,12 +41,11 @@ MediaPlayer::MediaPlayer()
     mPrepareSync = false;
     mPrepareStatus = NO_ERROR;
     mLoop = false;
-	pthread_mutex_init(&mLock, NULL);
+    pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
-	mVideoQueue = new PacketQueue();
-	sInstance = this;
-	//sPlayer = this;
+    mVideoQueue = new PacketQueue();
+    sPlayer = this;
 }
 
 MediaPlayer::~MediaPlayer()
@@ -296,31 +297,54 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 	return NO_ERROR;
 }
 
-void* MediaPlayer::decodeVideo(void* ptr)
+void MediaPlayer::decodeVideo(void* ptr)
 {
-	AVFrame*				pFrameRGB;
+    AVPacket                            pPacket;
+    AVFrame*				pFrameRGB;
 	
-	if((pFrameRGB = sInstance->createAndroidFrame()) == NULL) {
-		sInstance->mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-	}
+    if((pFrameRGB = createAndroidFrame()) == NULL) {
+        mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+    }
+
+    while (mCurrentState != MEDIA_PLAYER_PLAYBACK_COMPLETE &&
+                        mCurrentState != MEDIA_PLAYER_STATE_ERROR)
+    {
+        if(mVideoQueue->get(&pPacket, true) < 0)
+        {
+            mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+        }
+        if(processVideo(&pPacket, pFrameRGB) != NO_ERROR)
+        {
+            mCurrentState = MEDIA_PLAYER_STATE_ERROR;
+        }
+        // Free the packet that was allocated by av_read_frame
+        av_free_packet(&pPacket);
+    }
+
+    VideoDriver_unregister();
+
+    // Free the RGB image
+    av_free(pFrameRGB);
 }
+
+void*  MediaPlayer::startVideoDecoding(void* ptr)
+{
+    sPlayer->decodeVideo(ptr);
+}
+
 
 status_t MediaPlayer::start()
 {
 	AVPacket				pPacket;
 	int16_t*				pAudioSamples;
-	AVFrame*				pFrameRGB;
-	
+
 	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
-	
-	if((pFrameRGB = createAndroidFrame()) == NULL) {
-		return INVALID_OPERATION;
-	}
+
 	pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 	
-	//pthread_create(&mVideoThread, NULL, decodeVideo, NULL);
+        pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
@@ -340,31 +364,34 @@ status_t MediaPlayer::start()
 		pthread_mutex_lock(&mLock);
 		
 		// Is this a packet from the video stream?
-		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
-			//mVideoQueue->put(&pPacket);
-			if(processVideo(&pPacket, pFrameRGB) != NO_ERROR) {
-				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-			}
-		} else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+                if (pPacket.stream_index == mFFmpegStorage.video.stream)
+                {
+                        mVideoQueue->put(&pPacket);
+                } else if (pPacket.stream_index == mFFmpegStorage.audio.stream)
+                {
 			/*
 			if(processAudio(&pPacket, pAudioSamples, AVCODEC_MAX_AUDIO_FRAME_SIZE) != NO_ERROR) {
 				mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 			}
 			*/
-		}
-		
-		// Free the packet that was allocated by av_read_frame
-		av_free_packet(&pPacket);
+                } else
+                {
+                    // Free the packet that was allocated by av_read_frame
+                    av_free_packet(&pPacket);
+                }
 		
 		pthread_mutex_unlock(&mLock);
 	}
 	
-	VideoDriver_unregister();
+        //waits on end of video thread
+        int ret = -1;
+        if((ret = pthread_join(mVideoThread, NULL)) != 0) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
+        }
+        //VideoDriver_unregister();
 	//AudioDriver_unregister();
 	   
 	av_free(pAudioSamples);
-	// Free the RGB image
-	av_free(pFrameRGB);
 	
 	//suspend();
 	
