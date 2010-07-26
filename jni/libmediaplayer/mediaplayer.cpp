@@ -1,11 +1,12 @@
-/* mediaplayer.cpp
-**
-*/
+/*
+ * mediaplayer.cpp
+ */
 
 //#define LOG_NDEBUG 0
 #define TAG "FFMpegMediaPlayer"
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -300,11 +301,30 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 	return NO_ERROR;
 }
 
+void MediaPlayer::calcFrameRate(const char* msg)
+{
+    static timeval  pTime;
+    static int      frames = 0;
+    static double   t1 = -1;
+    static double   t2 = -1;
+
+    gettimeofday(&pTime, NULL);
+    t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
+    if(t1 == -1 || t2 > t1 + 1)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, TAG, msg, frames);
+        t1=t2;
+        frames = 0;
+    }
+    frames++;
+}
+
 void MediaPlayer::decodeVideo(void* ptr)
 {
-    AVPacket pPacket;
-    AVFrame* pFrameRGB;
-	
+    AVPacket        pPacket;
+    AVFrame*        pFrameRGB;
+    const char*     rateMsg = "Video frame rate: %ifps";
+
     if((pFrameRGB = createAndroidFrame()) == NULL) {
         mCurrentState = MEDIA_PLAYER_STATE_ERROR;
     }
@@ -312,6 +332,8 @@ void MediaPlayer::decodeVideo(void* ptr)
     while (mCurrentState != MEDIA_PLAYER_PLAYBACK_COMPLETE &&
                         mCurrentState != MEDIA_PLAYER_STATE_ERROR)
     {
+        calcFrameRate(rateMsg);
+
         if(mVideoQueue->get(&pPacket, true) < 0)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
@@ -320,6 +342,7 @@ void MediaPlayer::decodeVideo(void* ptr)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
         }
+
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&pPacket);
     }
@@ -332,14 +355,17 @@ void MediaPlayer::decodeVideo(void* ptr)
 
 void MediaPlayer::decodeAudio(void* ptr)
 {
-    AVPacket pPacket;
-    int16_t* pAudioSamples;
+    AVPacket        pPacket;
+    int16_t*        pAudioSamples;
+    const char*     rateMsg = "Audio frame rate: %ifps";
 
     pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 
     while (mCurrentState != MEDIA_PLAYER_PLAYBACK_COMPLETE &&
                         mCurrentState != MEDIA_PLAYER_STATE_ERROR)
     {
+        calcFrameRate(rateMsg);
+
         if(mAudioQueue->get(&pPacket, true) < 0)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;

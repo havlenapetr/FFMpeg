@@ -170,6 +170,7 @@ private:
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
         static void*                                    startVideoDecoding(void* ptr);
         static void*                                    startAudioDecoding(void* ptr);
+        static void                                     calcFrameRate(const char* msg);
         void						decodeVideo(void* ptr);
         void						decodeAudio(void* ptr);
 	
