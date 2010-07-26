@@ -8,8 +8,8 @@ extern "C" {
 #endif
 
 // methods for access to audio on OS
-typedef int (*audioDriver_register_t) (JNIEnv*, jobject);
-typedef int (*audioDriver_set_t) (int,uint32_t,int,int,int);
+typedef int (*audioDriver_register_t) ();
+typedef int (*audioDriver_set_t) (int,uint32_t,int,int);
 typedef int (*audioDriver_start_t) (void);
 typedef int (*audioDriver_flush_t) (void);
 typedef int (*audioDriver_stop_t) (void);

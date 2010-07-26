@@ -88,13 +88,12 @@ enum audio_channels {
 extern "C" {
 #endif
 
-int AndroidAudioTrack_register(JNIEnv* env, jobject jaudioTrack);
+int AndroidAudioTrack_register();
 	
 int AndroidAudioTrack_set(int streamType,
 						  uint32_t sampleRate,
 						  int format,
-						  int channels,
-						  int buffSizeInBytes);
+						  int channels);
 	
 int AndroidAudioTrack_start();
 

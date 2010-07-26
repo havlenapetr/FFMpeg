@@ -227,35 +227,20 @@ status_t MediaPlayer::suspend() {
 }
 
 status_t MediaPlayer::resume() {
-	pthread_mutex_lock(&mLock);
+	//pthread_mutex_lock(&mLock);
 	mCurrentState = MEDIA_PLAYER_STARTED;
-	pthread_mutex_unlock(&mLock);
+	//pthread_mutex_unlock(&mLock);
     return NO_ERROR;
 }
-
-/**
- * TO-DO remove this ugly hack for creating android audio track
- **
- jclass clazz = env->FindClass("android/media/AudioTrack");
- jmethodID constr = env->GetMethodID(clazz, "<init>", "(IIIIII)V");
- jobject jaudiotrack = env->NewObject(clazz, 
- constr, 
- MUSIC, 
- mFFmpegStorage.audio.codec_ctx->sample_rate, 
- (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO,
- PCM_16_BIT,
- AVCODEC_MAX_AUDIO_FRAME_SIZE, 
- 0 // mode static
- );
- if(AudioDriver_register(env, jaudiotrack) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
- return INVALID_OPERATION;
- }*/
 
 status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 { 
 	if(VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
 	}
+	if(AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}	
     return NO_ERROR;
 }
 
@@ -290,21 +275,9 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 {
 	int size = samples_size;
 	int len = avcodec_decode_audio3(mFFmpegStorage.audio.codec_ctx, samples, &size, packet);
-	
-        /*
-	if(AudioDriver_stop() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
-	}
-	if(AudioDriver_reload() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
-	}
 	if(AudioDriver_write(samples, size) <= 0) {
 		return INVALID_OPERATION;
 	}
-	if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
-	}
-        */
 	return NO_ERROR;
 }
 
@@ -381,8 +354,22 @@ void MediaPlayer::decodeAudio(void* ptr)
     double			t1 = -1;
     double			t2 = -1;
 	bool			run = true;
-
+	
     pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+	
+	int streamType = MUSIC;
+	int sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
+	int format = PCM_16_BIT;
+	int channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
+	if(AudioDriver_set(streamType,
+					   sampleRate, 
+					   format,
+					   channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		goto end;
+	}
+	if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		goto end;
+	}
 
 	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio");
 	
@@ -419,6 +406,7 @@ void MediaPlayer::decodeAudio(void* ptr)
         av_free_packet(&pPacket);
     }
 	
+end:
 	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio ended");
 
     AudioDriver_unregister();
@@ -432,14 +420,14 @@ void MediaPlayer::decodeMovie(void* ptr)
 	AVPacket pPacket;
 	
 	pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
-	//pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
+	pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
 	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
 		   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
 	{
-		if (mVideoQueue->size() > 10/* && mAudioQueue->size() > 10*/) {
+		if (mVideoQueue->size() > 10 && mAudioQueue->size() > 10) {
 			usleep(200);
 			continue;
 		}
@@ -453,9 +441,9 @@ void MediaPlayer::decodeMovie(void* ptr)
 		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
 			mVideoQueue->put(&pPacket);
 		} 
-		/*else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+		else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
 			mAudioQueue->put(&pPacket);
-		}*/
+		}
 		else {
 			// Free the packet that was allocated by av_read_frame
 			av_free_packet(&pPacket);
@@ -469,10 +457,10 @@ void MediaPlayer::decodeMovie(void* ptr)
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
 	}
 	
-	/*__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
 	if((ret = pthread_join(mAudioThread, NULL)) != 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
-	}*/
+	}
 	
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
