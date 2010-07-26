@@ -21,6 +21,9 @@ public:
 	
 	/* return < 0 if aborted, 0 if no packet and > 0 if packet.  */
 	int get(AVPacket *pkt, bool block);
+	
+	int size();
+	
 	void abort();
 	
 private:

@@ -20,7 +20,6 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 	private FFMpegPlayer			mPlayer;
 	private SurfaceHolder			mSurfaceHolder;
 	private MediaController			mMediaController;
-	private Thread					mRenderThread;
 	
 	public FFMpegMovieViewAndroid(Context context) {
         super(context);
@@ -72,27 +71,13 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     
     private void startVideo() {
     	attachMediaController();
-    	
-    	// we hasn't run player thread so we are launching
-    	if(mRenderThread == null) {
-    		
-    		mRenderThread = new Thread() {
-    			public void run() {
-    				mPlayer.start();
-    				Log.d(TAG, "video ended");
-    			};
-    		};
-    		mRenderThread.start();
-    	}
+    	mPlayer.start();
     }
     
     private void release() {
     	Log.d(TAG, "releasing player");
     	
-    	mPlayer.stop();
-    	try {
-			mRenderThread.join();
-		} catch (InterruptedException e) {}
+    	mPlayer.suspend();
 		
 		Log.d(TAG, "released");
     }

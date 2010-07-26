@@ -53,6 +53,7 @@ MediaPlayer::MediaPlayer()
 MediaPlayer::~MediaPlayer()
 {
 	free(mVideoQueue);
+	free(mAudioQueue);
 }
 
 status_t MediaPlayer::prepareAudio()
@@ -144,12 +145,10 @@ status_t MediaPlayer::prepare()
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
 	}
-	/*
 	if ((ret = prepareAudio()) != NO_ERROR) {
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
 	}
-	*/
 	mCurrentState = MEDIA_PLAYER_PREPARED;
 	return NO_ERROR;
 }
@@ -207,6 +206,14 @@ AVFrame* MediaPlayer::createAndroidFrame()
 
 status_t MediaPlayer::suspend() {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "suspend");
+	
+	mCurrentState = MEDIA_PLAYER_STOPPED;
+	if(pthread_join(mPlayerThread, NULL) != 0) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel player thread");
+	}
+	
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "suspended");
+	
 	// Free the YUV frame
 	av_free(mFFmpegStorage.pFrame);
 	
@@ -301,39 +308,50 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 	return NO_ERROR;
 }
 
-void MediaPlayer::calcFrameRate(const char* msg)
+bool MediaPlayer::shouldCancel(PacketQueue* queue)
 {
-    static timeval  pTime;
-    static int      frames = 0;
-    static double   t1 = -1;
-    static double   t2 = -1;
-
-    gettimeofday(&pTime, NULL);
-    t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
-    if(t1 == -1 || t2 > t1 + 1)
-    {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, msg, frames);
-        t1=t2;
-        frames = 0;
-    }
-    frames++;
+	return (mCurrentState == MEDIA_PLAYER_STATE_ERROR || mCurrentState == MEDIA_PLAYER_STOPPED ||
+			 ((mCurrentState == MEDIA_PLAYER_DECODED || mCurrentState == MEDIA_PLAYER_STARTED) 
+			  && queue->size() == 0));
 }
 
 void MediaPlayer::decodeVideo(void* ptr)
 {
     AVPacket        pPacket;
     AVFrame*        pFrameRGB;
-    const char*     rateMsg = "Video frame rate: %ifps";
+	timeval			pTime;
+	int				frames = 0;
+    double			t1 = -1;
+    double			t2 = -1;
+	bool			run = true;
 
     if((pFrameRGB = createAndroidFrame()) == NULL) {
         mCurrentState = MEDIA_PLAYER_STATE_ERROR;
     }
+	
+	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
 
-    while (mCurrentState != MEDIA_PLAYER_PLAYBACK_COMPLETE &&
-                        mCurrentState != MEDIA_PLAYER_STATE_ERROR)
+    while (run)
     {
-        calcFrameRate(rateMsg);
-
+		/*
+        gettimeofday(&pTime, NULL);
+		t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
+		if(t1 == -1 || t2 > t1 + 1)
+		{
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "Video frame rate: %ifps", frames);
+			t1=t2;
+			frames = 0;
+		}
+		frames++;
+		*/
+		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
+			usleep(50);
+			continue;
+		}
+		if (shouldCancel(mVideoQueue)) {
+			run = false;
+			continue;
+		}
         if(mVideoQueue->get(&pPacket, true) < 0)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
@@ -342,10 +360,11 @@ void MediaPlayer::decodeVideo(void* ptr)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
         }
-
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&pPacket);
     }
+
+	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video ended");
 
     VideoDriver_unregister();
 
@@ -357,15 +376,37 @@ void MediaPlayer::decodeAudio(void* ptr)
 {
     AVPacket        pPacket;
     int16_t*        pAudioSamples;
-    const char*     rateMsg = "Audio frame rate: %ifps";
+    timeval			pTime;
+	int				frames = 0;
+    double			t1 = -1;
+    double			t2 = -1;
+	bool			run = true;
 
     pAudioSamples = (int16_t *) av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 
-    while (mCurrentState != MEDIA_PLAYER_PLAYBACK_COMPLETE &&
-                        mCurrentState != MEDIA_PLAYER_STATE_ERROR)
+	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio");
+	
+    while (run)
     {
-        calcFrameRate(rateMsg);
-
+		/*
+        gettimeofday(&pTime, NULL);
+		t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
+		if(t1 == -1 || t2 > t1 + 1)
+		{
+			__android_log_print(ANDROID_LOG_ERROR, TAG, "Audio frame rate: %ifps", frames);
+			t1=t2;
+			frames = 0;
+		}
+		frames++;
+		*/
+		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
+			usleep(50);
+			continue;
+		}
+		if (shouldCancel(mAudioQueue)) {
+			run = false;
+			continue;
+		}
         if(mAudioQueue->get(&pPacket, true) < 0)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
@@ -377,6 +418,8 @@ void MediaPlayer::decodeAudio(void* ptr)
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&pPacket);
     }
+	
+	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio ended");
 
     AudioDriver_unregister();
 
@@ -384,98 +427,107 @@ void MediaPlayer::decodeAudio(void* ptr)
     av_free(pAudioSamples);
 }
 
+void MediaPlayer::decodeMovie(void* ptr)
+{
+	AVPacket pPacket;
+	
+	pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
+	//pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
+	
+	mCurrentState = MEDIA_PLAYER_STARTED;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
+	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
+		   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
+	{
+		if (mVideoQueue->size() > 10/* && mAudioQueue->size() > 10*/) {
+			usleep(200);
+			continue;
+		}
+		
+		if(av_read_frame(mFFmpegStorage.pFormatCtx, &pPacket) < 0) {
+			mCurrentState = MEDIA_PLAYER_DECODED;
+			continue;
+		}
+		
+		// Is this a packet from the video stream?
+		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
+			mVideoQueue->put(&pPacket);
+		} 
+		/*else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+			mAudioQueue->put(&pPacket);
+		}*/
+		else {
+			// Free the packet that was allocated by av_read_frame
+			av_free_packet(&pPacket);
+		}
+	}
+	
+	//waits on end of video thread
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on video thread");
+	int ret = -1;
+	if((ret = pthread_join(mVideoThread, NULL)) != 0) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
+	}
+	
+	/*__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
+	if((ret = pthread_join(mAudioThread, NULL)) != 0) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
+	}*/
+	
+	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
+	}
+	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
+}
+
 void*  MediaPlayer::startVideoDecoding(void* ptr)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "starting video thread");
     sPlayer->decodeVideo(ptr);
 }
 
 void*  MediaPlayer::startAudioDecoding(void* ptr)
 {
+	__android_log_print(ANDROID_LOG_INFO, TAG, "starting audio thread");
     sPlayer->decodeAudio(ptr);
 }
 
+void* MediaPlayer::startPlayer(void* ptr)
+{
+	__android_log_print(ANDROID_LOG_INFO, TAG, "starting main player thread");
+    sPlayer->decodeMovie(ptr);
+}
 
 status_t MediaPlayer::start()
 {
-        AVPacket pPacket;
-
 	if (mCurrentState != MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
-	
-        pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
-        pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
-	
-	mCurrentState = MEDIA_PLAYER_STARTED;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
-	while (mCurrentState != MEDIA_PLAYER_STOPPED && 
-			mCurrentState != MEDIA_PLAYER_STATE_ERROR) {
-
-		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
-			usleep(50);
-			continue;
-		}
-		
-		if(av_read_frame(mFFmpegStorage.pFormatCtx, &pPacket) < 0) {
-			mCurrentState = MEDIA_PLAYER_STOPPED;
-			continue;
-		}
-		
-		pthread_mutex_lock(&mLock);
-		
-		// Is this a packet from the video stream?
-                if (pPacket.stream_index == mFFmpegStorage.video.stream)
-                {
-                        mVideoQueue->put(&pPacket);
-                } else if (pPacket.stream_index == mFFmpegStorage.audio.stream)
-                {
-                        mAudioQueue->put(&pPacket);
-                } else
-                {
-                    // Free the packet that was allocated by av_read_frame
-                    av_free_packet(&pPacket);
-                }
-		
-		pthread_mutex_unlock(&mLock);
-	}
-	
-        //waits on end of video thread
-        int ret = -1;
-        if((ret = pthread_join(mVideoThread, NULL)) != 0) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
-        }
-        if((ret = pthread_join(mAudioThread, NULL)) != 0) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
-        }
-
-	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
-		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
-		return INVALID_OPERATION;
-	}
-	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
+	pthread_create(&mPlayerThread, NULL, startPlayer, NULL);
 	return NO_ERROR;
 }
 
 status_t MediaPlayer::stop()
 {
-	pthread_mutex_lock(&mLock);
+	//pthread_mutex_lock(&mLock);
 	mCurrentState = MEDIA_PLAYER_STOPPED;
-	pthread_mutex_unlock(&mLock);
+	//pthread_mutex_unlock(&mLock);
     return NO_ERROR;
 }
 
 status_t MediaPlayer::pause()
 {
-	pthread_mutex_lock(&mLock);
+	//pthread_mutex_lock(&mLock);
 	mCurrentState = MEDIA_PLAYER_PAUSED;
-	pthread_mutex_unlock(&mLock);
+	//pthread_mutex_unlock(&mLock);
 	return NO_ERROR;
 }
 
 bool MediaPlayer::isPlaying()
 {
-    return mCurrentState == MEDIA_PLAYER_STARTED;
+    return mCurrentState == MEDIA_PLAYER_STARTED || 
+		mCurrentState == MEDIA_PLAYER_DECODED;
 }
 
 status_t MediaPlayer::getVideoWidth(int *w)

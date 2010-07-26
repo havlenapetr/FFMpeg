@@ -11,6 +11,11 @@ PacketQueue::PacketQueue()
 {
 	pthread_mutex_init(&mLock, NULL);
 	pthread_cond_init(&mCondition, NULL);
+	mFirst = NULL;
+	mLast = NULL;
+	mNbPackets = 0;;
+    mSize = 0;
+    mAbortRequest = false;
 }
 
 PacketQueue::~PacketQueue()
@@ -18,6 +23,14 @@ PacketQueue::~PacketQueue()
 	flush();
 	pthread_mutex_destroy(&mLock);
 	pthread_cond_destroy(&mCondition);
+}
+
+int PacketQueue::size()
+{
+	pthread_mutex_lock(&mLock);
+    int size = mNbPackets;
+    pthread_mutex_unlock(&mLock);
+	return size;
 }
 
 void PacketQueue::flush()
@@ -53,19 +66,22 @@ int PacketQueue::put(AVPacket* pkt)
     pkt1->pkt = *pkt;
     pkt1->next = NULL;
 	
-	
     pthread_mutex_lock(&mLock);
 	
-    if (!mLast)
+    if (!mLast) {
         mFirst = pkt1;
-    else
+	}
+    else {
         mLast->next = pkt1;
+	}
+	
     mLast = pkt1;
     mNbPackets++;
     mSize += pkt1->pkt.size + sizeof(*pkt1);
 	
 	pthread_cond_signal(&mCondition);
     pthread_mutex_unlock(&mLock);
+	
     return 0;
 	
 }

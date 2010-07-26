@@ -93,10 +93,11 @@ enum media_player_states {
     MEDIA_PLAYER_INITIALIZED        = 1 << 1,
     MEDIA_PLAYER_PREPARING          = 1 << 2,
     MEDIA_PLAYER_PREPARED           = 1 << 3,
-    MEDIA_PLAYER_STARTED            = 1 << 4,
-    MEDIA_PLAYER_PAUSED             = 1 << 5,
-    MEDIA_PLAYER_STOPPED            = 1 << 6,
-    MEDIA_PLAYER_PLAYBACK_COMPLETE  = 1 << 7
+	MEDIA_PLAYER_DECODED            = 1 << 4,
+    MEDIA_PLAYER_STARTED            = 1 << 5,
+    MEDIA_PLAYER_PAUSED             = 1 << 6,
+    MEDIA_PLAYER_STOPPED            = 1 << 7,
+    MEDIA_PLAYER_PLAYBACK_COMPLETE  = 1 << 8
 };
 
 // ----------------------------------------------------------------------------
@@ -167,17 +168,19 @@ private:
 	status_t					processVideo(AVPacket *packet, AVFrame *pFrame);
 	status_t					processAudio(AVPacket *packet, int16_t *samples, int samples_size);
 	AVFrame*					createAndroidFrame();
+	bool						shouldCancel(PacketQueue* queue);
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
-        static void*                                    startVideoDecoding(void* ptr);
-        static void*                                    startAudioDecoding(void* ptr);
-        static void                                     calcFrameRate(const char* msg);
-        void						decodeVideo(void* ptr);
-        void						decodeAudio(void* ptr);
+	static void*                startVideoDecoding(void* ptr);
+	static void*                startAudioDecoding(void* ptr);
+	static void*				startPlayer(void* ptr);
+	void						decodeMovie(void* ptr);
+	void						decodeVideo(void* ptr);
+	void						decodeAudio(void* ptr);
 	
-	static MediaPlayer*			sInstance;
 	pthread_mutex_t             mLock;
 	pthread_t					mVideoThread;
 	pthread_t					mAudioThread;
+	pthread_t					mPlayerThread;
 	PacketQueue*				mVideoQueue;
 	PacketQueue*				mAudioQueue;
     //Mutex                       mNotifyLock;
