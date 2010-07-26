@@ -169,7 +169,9 @@ private:
 	AVFrame*					createAndroidFrame();
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
         static void*                                    startVideoDecoding(void* ptr);
+        static void*                                    startAudioDecoding(void* ptr);
         void						decodeVideo(void* ptr);
+        void						decodeAudio(void* ptr);
 	
 	static MediaPlayer*			sInstance;
 	pthread_mutex_t             mLock;
