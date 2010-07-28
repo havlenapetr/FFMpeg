@@ -25,8 +25,55 @@
 
 struct fields_t {
     jfieldID    context;
+    jmethodID   post_event;
 };
 static fields_t fields;
+
+static const char* const kClassPathName = "com/media/ffmpeg/FFMpegPlayer";
+
+// ----------------------------------------------------------------------------
+// ref-counted object for callbacks
+class JNIFFmpegMediaPlayerListener: public MediaPlayerListener
+{
+public:
+	JNIFFmpegMediaPlayerListener(JNIEnv* env, jobject thiz, jobject weak_thiz);
+    ~JNIFFmpegMediaPlayerListener();
+    void notify(int msg, int ext1, int ext2);
+private:
+    JNIFFmpegMediaPlayerListener();
+    jclass      mClass;     // Reference to MediaPlayer class
+    jobject     mObject;    // Weak ref to MediaPlayer Java object to call on
+};
+
+JNIFFmpegMediaPlayerListener::JNIFFmpegMediaPlayerListener(JNIEnv* env, jobject thiz, jobject weak_thiz)
+{
+    // Hold onto the MediaPlayer class for use in calling the static method
+    // that posts events to the application thread.
+    jclass clazz = env->GetObjectClass(thiz);
+    if (clazz == NULL) {
+        jniThrowException(env, "java/lang/Exception", kClassPathName);
+        return;
+    }
+    mClass = (jclass)env->NewGlobalRef(clazz);
+
+    // We use a weak reference so the MediaPlayer object can be garbage collected.
+    // The reference is only used as a proxy for callbacks.
+    mObject  = env->NewGlobalRef(weak_thiz);
+}
+
+JNIFFmpegMediaPlayerListener::~JNIFFmpegMediaPlayerListener()
+{
+    // remove global references
+    JNIEnv *env = getJNIEnv();
+    env->DeleteGlobalRef(mObject);
+    env->DeleteGlobalRef(mClass);
+}
+
+void JNIFFmpegMediaPlayerListener::notify(int msg, int ext1, int ext2)
+{
+    JNIEnv *env = getJNIEnv();
+    env->CallStaticVoidMethod(mClass, fields.post_event, mObject, msg, ext1, ext2, 0);
+}
 
 // ----------------------------------------------------------------------------
 
@@ -293,6 +340,12 @@ com_media_ffmpeg_FFMpegPlayer_native_init(JNIEnv *env)
         jniThrowException(env, "java/lang/RuntimeException", "Can't find MediaPlayer.mNativeContext");
         return;
     }
+    fields.post_event = env->GetStaticMethodID(clazz, "postEventFromNative",
+                                                   "(Ljava/lang/Object;IIILjava/lang/Object;)V");
+    if (fields.post_event == NULL) {
+        jniThrowException(env, "java/lang/RuntimeException", "Can't find FFMpegMediaPlayer.postEventFromNative");
+        return;
+    }
 }
 
 static void
@@ -305,8 +358,8 @@ com_media_ffmpeg_FFMpegPlayer_native_setup(JNIEnv *env, jobject thiz, jobject we
         return;
     }
     // create new listener and give it to MediaPlayer
-    //sp<JNIMediaPlayerListener> listener = new JNIMediaPlayerListener(env, thiz, weak_this);
-    //mp->setListener(listener);
+    JNIFFmpegMediaPlayerListener* listener = new JNIFFmpegMediaPlayerListener(env, thiz, weak_this);
+    mp->setListener(listener);
 
     // Stow our new C++ MediaPlayer in an opaque field in the Java object.
     setMediaPlayer(env, thiz, mp);
@@ -367,8 +420,6 @@ static JNINativeMethod gMethods[] = {
     {"native_finalize",     "()V",                              (void *)com_media_ffmpeg_FFMpegPlayer_native_finalize},
     {"native_suspend_resume", "(Z)I",                           (void *)com_media_ffmpeg_FFMpegPlayer_native_suspend_resume},
 };
-
-static const char* const kClassPathName = "com/media/ffmpeg/FFMpegPlayer";
 
 int register_android_media_FFMpegPlayerAndroid(JNIEnv *env) {
 	return jniRegisterNativeMethods(env, kClassPathName, gMethods, sizeof(gMethods) / sizeof(gMethods[0]));

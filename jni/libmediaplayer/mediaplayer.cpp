@@ -53,6 +53,9 @@ MediaPlayer::~MediaPlayer()
 {
 	free(mVideoQueue);
 	free(mAudioQueue);
+	if(mListener != NULL) {
+		free(mListener);
+	}
 }
 
 status_t MediaPlayer::prepareAudio()
@@ -630,10 +633,15 @@ void MediaPlayer::ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl
 void MediaPlayer::notify(int msg, int ext1, int ext2)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "message received msg=%d, ext1=%d, ext2=%d", msg, ext1, ext2);
-	/*
     bool send = true;
     bool locked = false;
 
+    if ((mListener != 0) && send) {
+       __android_log_print(ANDROID_LOG_INFO, TAG, "callback application");
+       mListener->notify(msg, ext1, ext2);
+       __android_log_print(ANDROID_LOG_INFO, TAG, "back from callback");
+	}
+    /*
     // TODO: In the future, we might be on the same thread if the app is
     // running in the same process as the media server. In that case,
     // this will deadlock.

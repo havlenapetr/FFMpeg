@@ -88,6 +88,18 @@ public class FFMpegPlayer
     }
 
     /**
+     * Called from native code when an interesting event happens.  This method
+     * just uses the EventHandler system to post the event back to the main app thread.
+     * We use a weak reference to the original MediaPlayer object so that the native
+     * code is safe from the object disappearing from underneath it.  (This is
+     * the cookie passed to native_setup().)
+     */
+    private static void postEventFromNative(Object mediaplayer_ref,
+                                            int what, int arg1, int arg2, Object obj)
+    {	
+    }
+    
+    /**
      * Sets the SurfaceHolder to use for displaying the video portion of the media.
      * This call is optional. Not calling it when playing back a video will
      * result in only the audio track being played.
