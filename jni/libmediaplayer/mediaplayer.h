@@ -8,6 +8,8 @@
 
 #include "packetqueue.h"
 
+#define FFMPEG_PLAYER_MAX_QUEUE_SIZE 10
+
 using namespace android;
 
 enum media_event_type {
@@ -177,6 +179,7 @@ private:
 	void						decodeVideo(void* ptr);
 	void						decodeAudio(void* ptr);
 	
+	double 						mTime;
 	pthread_mutex_t             mLock;
 	pthread_t					mVideoThread;
 	pthread_t					mAudioThread;

@@ -31,7 +31,6 @@ static MediaPlayer* sPlayer;
 
 MediaPlayer::MediaPlayer()
 {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "constructor");
     mListener = NULL;
     mCookie = NULL;
     mDuration = -1;
@@ -333,6 +332,15 @@ void MediaPlayer::decodeVideo(void* ptr)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
         }
+
+        AVStream* vs = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.video.stream];
+        if(pPacket.dts != AV_NOPTS_VALUE) {
+        	mTime = pPacket.dts;
+        } else {
+        	mTime = 0;
+        }
+        mTime *= av_q2d(vs->time_base);
+        //__android_log_print(ANDROID_LOG_INFO, TAG, "time: %i", pts);
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&pPacket);
     }
@@ -427,7 +435,8 @@ void MediaPlayer::decodeMovie(void* ptr)
 	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
 		   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
 	{
-		if (mVideoQueue->size() > 10 && mAudioQueue->size() > 10) {
+		if (mVideoQueue->size() > FFMPEG_PLAYER_MAX_QUEUE_SIZE &&
+				mAudioQueue->size() > FFMPEG_PLAYER_MAX_QUEUE_SIZE) {
 			usleep(200);
 			continue;
 		}
@@ -538,7 +547,11 @@ status_t MediaPlayer::getVideoHeight(int *h)
 
 status_t MediaPlayer::getCurrentPosition(int *msec)
 {
-	return INVALID_OPERATION;
+	if (mCurrentState < MEDIA_PLAYER_PREPARED) {
+		return INVALID_OPERATION;
+	}
+	*msec = mTime * 1000;
+	return NO_ERROR;
 }
 
 status_t MediaPlayer::getDuration(int *msec)

@@ -132,8 +132,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 		}
 		
 		public int getCurrentPosition() {
-			//Log.d(TAG, "want get current position");
-			return 0;
+			return mPlayer.getCurrentPosition();
 		}
 		
 		public int getBufferPercentage() {
