@@ -126,7 +126,8 @@ int PacketQueue::get(AVPacket *pkt, bool block)
 
 void PacketQueue::abort()
 {
-	pthread_mutex_lock(&mLock);
+    pthread_mutex_lock(&mLock);
     mAbortRequest = true;
+    pthread_cond_signal(&mCondition);
     pthread_mutex_unlock(&mLock);
 }

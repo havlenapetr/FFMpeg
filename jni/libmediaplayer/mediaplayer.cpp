@@ -290,43 +290,45 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 			  && queue->size() == 0));
 }
 
+
+/*
+  timeval	    pTime;
+  int				frames = 0;
+    double			t1 = -1;
+    double			t2 = -1;
+
+        gettimeofday(&pTime, NULL);
+                t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
+                if(t1 == -1 || t2 > t1 + 1)
+                {
+                        __android_log_print(ANDROID_LOG_ERROR, TAG, "Video frame rate: %ifps", frames);
+                        t1=t2;
+                        frames = 0;
+                }
+                frames++;
+                */
 void MediaPlayer::decodeVideo(void* ptr)
 {
     AVPacket        pPacket;
     AVFrame*        pFrameRGB;
-	timeval			pTime;
-	int				frames = 0;
-    double			t1 = -1;
-    double			t2 = -1;
-	bool			run = true;
+    bool            run = true;
 
     if((pFrameRGB = createAndroidFrame()) == NULL) {
         mCurrentState = MEDIA_PLAYER_STATE_ERROR;
     }
 	
-	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
 
     while (run)
     {
-		/*
-        gettimeofday(&pTime, NULL);
-		t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
-		if(t1 == -1 || t2 > t1 + 1)
-		{
-			__android_log_print(ANDROID_LOG_ERROR, TAG, "Video frame rate: %ifps", frames);
-			t1=t2;
-			frames = 0;
-		}
-		frames++;
-		*/
-		if(mCurrentState == MEDIA_PLAYER_PAUSED) {
-			usleep(50);
-			continue;
-		}
-		if (shouldCancel(mVideoQueue)) {
-			run = false;
-			continue;
-		}
+        if(mCurrentState == MEDIA_PLAYER_PAUSED) {
+            usleep(50);
+            continue;
+        }
+        if (shouldCancel(mVideoQueue)) {
+            run = false;
+            continue;
+        }
         if(mVideoQueue->get(&pPacket, true) < 0)
         {
             mCurrentState = MEDIA_PLAYER_STATE_ERROR;
@@ -495,7 +497,7 @@ void*  MediaPlayer::startAudioDecoding(void* ptr)
 
 void* MediaPlayer::startPlayer(void* ptr)
 {
-	__android_log_print(ANDROID_LOG_INFO, TAG, "starting main player thread");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "starting main player thread");
     sPlayer->decodeMovie(ptr);
 }
 

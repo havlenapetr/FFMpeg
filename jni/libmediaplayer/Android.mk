@@ -9,7 +9,8 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SRC_FILES += \
 	mediaplayer.cpp \
-	packetqueue.cpp
+	packetqueue.cpp \
+	decoder_audio.cpp
 
 LOCAL_LDLIBS := -llog
 
