@@ -431,9 +431,24 @@ end:
 void MediaPlayer::decodeMovie(void* ptr)
 {
 	AVPacket pPacket;
+        char err[256];
 	
 	pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
-	pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
+        pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
+
+        /*
+        DecoderAudioConfig cfg;
+        cfg.streamType = MUSIC;
+        cfg.sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
+        cfg.format = PCM_16_BIT;
+        cfg.channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
+        mDecoderAudio = new DecoderAudio(mAudioQueue, mFFmpegStorage.audio.codec_ctx, &cfg);
+        if(!mDecoderAudio->startAsync(err))
+        {
+            __android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start audio decoder: %s", err);
+            return;
+        }
+        */
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
@@ -471,10 +486,16 @@ void MediaPlayer::decodeMovie(void* ptr)
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
 	}
 	
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
+        if((ret = pthread_join(mAudioThread, NULL)) != 0) {
+                __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
+        }
+        /*
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
-	if((ret = pthread_join(mAudioThread, NULL)) != 0) {
+        if((ret = mDecoderAudio->wait()) != 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
 	}
+        */
 	
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");

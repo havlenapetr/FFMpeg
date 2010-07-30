@@ -1,9 +1,6 @@
 #include <android/log.h>
 #include "decoder_audio.h"
 
-// map system drivers methods
-#include <drivers_map.h>
-
 extern "C" {
 
 #include "libavcodec/avcodec.h"
@@ -53,12 +50,17 @@ bool DecoderAudio::startAsync(const char* err)
     return true;
 }
 
+int DecoderAudio::wait()
+{
+    return pthread_join(mThread, NULL);
+}
+
 void DecoderAudio::stop()
 {
     mQueue->abort();
     __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of audio decoder");
     int ret = -1;
-    if((ret = pthread_join(mThread, NULL)) != 0) {
+    if((ret = wait()) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio decoder: %i", ret);
         return;
     }

@@ -1,5 +1,5 @@
-#ifndef _DRIVERS_MAP_H_
-#define _DRIVERS_MAP_H_
+#ifndef FFMPEG_DRIVERS_MAP_H_
+#define FFMPEG_DRIVERS_MAP_H_
 
 #include <jni.h>
 
@@ -43,10 +43,10 @@ videoDriver_getPixels_t VideoDriver_getPixels = AndroidSurface_getPixels;
 videoDriver_updateSurface_t VideoDriver_updateSurface = AndroidSurface_updateSurface;
 videoDriver_unregister_t VideoDriver_unregister = AndroidSurface_unregister;
 
-#ifdef __cplusplus
-} // end of cpluplus
 #endif
 
+#ifdef __cplusplus
+} // end of cpluplus
 #endif
 
 #endif

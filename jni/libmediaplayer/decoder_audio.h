@@ -3,6 +3,9 @@
 
 #include <pthread.h>
 
+// map system drivers methods
+#include <drivers_map.h>
+
 #include "packetqueue.h"
 
 struct DecoderAudioConfig
@@ -24,6 +27,7 @@ public:
 
     bool start(const char* err);
     bool startAsync(const char* err);
+    int wait();
     void stop();
 
 private:
