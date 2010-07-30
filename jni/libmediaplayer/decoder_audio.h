@@ -23,6 +23,7 @@ public:
     ~DecoderAudio();
 
     bool start(const char* err);
+    bool startAsync(const char* err);
     void stop();
 
 private:
@@ -35,7 +36,7 @@ private:
     int                         mSamplesSize;
 
     bool                        prepare(const char *err);
-    void                        decode(void* ptr);
+    bool                        decode(void* ptr);
     bool                        process(AVPacket *packet);
     static void*                startDecoding(void* ptr);
 };

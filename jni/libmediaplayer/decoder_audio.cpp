@@ -39,6 +39,15 @@ bool DecoderAudio::start(const char* err)
     {
         return false;
     }
+    return decode(NULL);
+}
+
+bool DecoderAudio::startAsync(const char* err)
+{
+    if(!prepare(err))
+    {
+        return false;
+    }
 
     pthread_create(&mThread, NULL, startDecoding, NULL);
     return true;
@@ -91,7 +100,7 @@ bool DecoderAudio::process(AVPacket *packet)
     return true;
 }
 
-void DecoderAudio::decode(void* ptr)
+bool DecoderAudio::decode(void* ptr)
 {
     AVPacket        pPacket;
 
@@ -103,12 +112,12 @@ void DecoderAudio::decode(void* ptr)
         if(mQueue->get(&pPacket, true) < 0)
         {
             mDecoding = false;
-            continue;
+            return false;
         }
         if(!process(&pPacket))
         {
             mDecoding = false;
-            continue;
+            return false;
         }
         // Free the packet that was allocated by av_read_frame
         av_free_packet(&pPacket);
@@ -120,4 +129,5 @@ void DecoderAudio::decode(void* ptr)
 
     // Free audio samples buffer
     av_free(mSamples);
+    return true;
 }
