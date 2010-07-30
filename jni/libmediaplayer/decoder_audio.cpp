@@ -14,10 +14,10 @@ static DecoderAudio* sInstance;
 
 DecoderAudio::DecoderAudio(PacketQueue*               queue,
                            AVCodecContext*            codec_ctx,
-                           struct DecoderAudioConfig* config)
+			   struct DecoderAudioConfig* config)
 {
     mQueue = queue;
-    mCodecCtx = codec_ctx;
+    mCodecCtx = codec_ctx; 
     mConfig = config;
     sInstance = this;
 }

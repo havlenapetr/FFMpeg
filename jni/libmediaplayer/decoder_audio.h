@@ -6,6 +6,7 @@
 // map system drivers methods
 #include <drivers_map.h>
 
+#include "decoder.h"
 #include "packetqueue.h"
 
 struct DecoderAudioConfig
@@ -16,7 +17,7 @@ struct DecoderAudioConfig
      int                channels;
 };
 
-class DecoderAudio
+class DecoderAudio : public IDecoder
 {
 public:
     DecoderAudio(PacketQueue*               queue,
@@ -31,11 +32,7 @@ public:
     void stop();
 
 private:
-    PacketQueue*                mQueue;
-    AVCodecContext*             mCodecCtx;
     struct DecoderAudioConfig*  mConfig;
-    bool                        mDecoding;
-    pthread_t                   mThread;
     int16_t*                    mSamples;
     int                         mSamplesSize;
 
