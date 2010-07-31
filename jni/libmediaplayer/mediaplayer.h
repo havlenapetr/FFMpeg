@@ -7,7 +7,8 @@
 #include <android/Errors.h>
 
 #include "packetqueue.h"
-//#include "decoder_audio.h"
+#include "decoder_audio.h"
+//#include "decoder_video.h"
 
 #define FFMPEG_PLAYER_MAX_QUEUE_SIZE 10
 
@@ -190,7 +191,8 @@ private:
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;
-    //DecoderAudio*               mDecoderAudio;
+    DecoderAudio*				mDecoderAudio;
+	//DecoderVideo*             mDecoderVideo;
     void*                       mCookie;
     media_player_states         mCurrentState;
     int                         mDuration;

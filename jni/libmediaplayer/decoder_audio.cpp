@@ -1,7 +1,7 @@
 #include <android/log.h>
 #include "decoder_audio.h"
 
-#include <drivers_map.h>
+#include "output.h"
 
 #define TAG "FFMpegAudioDecoder"
 
@@ -29,14 +29,14 @@ bool DecoderAudio::prepare(const char *err)
     mSamplesSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
     mSamples = (int16_t *) av_malloc(mSamplesSize);
 
-    if(AudioDriver_set(mConfig->streamType,
+    if(Output::AudioDriver_set(mConfig->streamType,
                        mConfig->sampleRate,
                        mConfig->format,
                        mConfig->channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
        err = "Couldnt' set audio track";
        return false;
     }
-    if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+    if(Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
        err = "Couldnt' start audio track";
        return false;
     }
@@ -47,7 +47,7 @@ bool DecoderAudio::process(AVPacket *packet)
 {
     int size = mSamplesSize;
     int len = avcodec_decode_audio3(mCodecCtx, mSamples, &size, packet);
-    if(AudioDriver_write(mSamples, size) <= 0) {
+    if(Output::AudioDriver_write(mSamples, size) <= 0) {
         return false;
     }
     return true;
@@ -78,7 +78,7 @@ bool DecoderAudio::decode(void* ptr)
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio ended");
 
-    AudioDriver_unregister();
+    Output::AudioDriver_unregister();
 
     // Free audio samples buffer
     av_free(mSamples);

@@ -10,6 +10,7 @@ LOCAL_C_INCLUDES += \
 LOCAL_SRC_FILES += \
 	mediaplayer.cpp \
 	packetqueue.cpp \
+	output.cpp \
 	decoder.cpp \
 	decoder_audio.cpp \
 	decoder_video.cpp

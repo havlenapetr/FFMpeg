@@ -22,10 +22,8 @@ extern "C" {
 
 #include <android/log.h>
 
-// map system drivers methods
-#include <drivers_map.h>
-
 #include "mediaplayer.h"
+#include "output.h"
 
 static MediaPlayer* sPlayer;
 
@@ -188,7 +186,7 @@ AVFrame* MediaPlayer::createAndroidFrame()
 		return NULL;
 	}
 	
-	if(VideoDriver_getPixels(mVideoWidth, 
+	if(Output::VideoDriver_getPixels(mVideoWidth, 
 							 mVideoHeight, 
 							 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		return NULL;
@@ -237,10 +235,10 @@ status_t MediaPlayer::resume() {
 
 status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 { 
-	if(VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(Output::VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
 	}
-	if(AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+	if(Output::AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		return INVALID_OPERATION;
 	}	
     return NO_ERROR;
@@ -267,7 +265,7 @@ status_t MediaPlayer::processVideo(AVPacket *packet, AVFrame *pFrame)
 				  pFrame->data, 
 				  pFrame->linesize);
 		
-		VideoDriver_updateSurface();
+		Output::VideoDriver_updateSurface();
 		return NO_ERROR;
 	}
 	return INVALID_OPERATION;
@@ -277,7 +275,7 @@ status_t MediaPlayer::processAudio(AVPacket *packet, int16_t *samples, int sampl
 {
 	int size = samples_size;
 	int len = avcodec_decode_audio3(mFFmpegStorage.audio.codec_ctx, samples, &size, packet);
-	if(AudioDriver_write(samples, size) <= 0) {
+	if(Output::AudioDriver_write(samples, size) <= 0) {
 		return INVALID_OPERATION;
 	}
 	return NO_ERROR;
@@ -352,7 +350,7 @@ void MediaPlayer::decodeVideo(void* ptr)
 
 	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video ended");
 
-    VideoDriver_unregister();
+    Output::VideoDriver_unregister();
 
     // Free the RGB image
     av_free(pFrameRGB);
@@ -374,13 +372,13 @@ void MediaPlayer::decodeAudio(void* ptr)
 	int sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
 	int format = PCM_16_BIT;
 	int channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
-	if(AudioDriver_set(streamType,
+	if(Output::AudioDriver_set(streamType,
 					   sampleRate, 
 					   format,
 					   channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		goto end;
 	}
-	if(AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+	if(Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
 		goto end;
 	}
 
@@ -422,7 +420,7 @@ void MediaPlayer::decodeAudio(void* ptr)
 end:
 	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio ended");
 
-    AudioDriver_unregister();
+    Output::AudioDriver_unregister();
 
     // Free audio samples buffer
     av_free(pAudioSamples);
@@ -436,19 +434,19 @@ void MediaPlayer::decodeMovie(void* ptr)
 	pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
         pthread_create(&mAudioThread, NULL, startAudioDecoding, NULL);
 
-        /*
+	/*
         DecoderAudioConfig cfg;
         cfg.streamType = MUSIC;
         cfg.sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
         cfg.format = PCM_16_BIT;
         cfg.channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
-        mDecoderAudio = new DecoderAudio(mAudioQueue, mFFmpegStorage.audio.codec_ctx, &cfg);
+        mDecoderAudio = new DecoderAudio(mFFmpegStorage.audio.codec_ctx, &cfg);
         if(!mDecoderAudio->startAsync(err))
         {
             __android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start audio decoder: %s", err);
             return;
         }
-        */
+	*/
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
