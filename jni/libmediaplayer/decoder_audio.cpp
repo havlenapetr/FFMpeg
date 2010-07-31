@@ -5,15 +5,12 @@
 
 #define TAG "FFMpegAudioDecoder"
 
-static DecoderAudio* sInstance;
-
 DecoderAudio::DecoderAudio(AVCodecContext*            codec_ctx,
 						   struct DecoderAudioConfig* config)
 {
     mQueue = new PacketQueue();
     mCodecCtx = codec_ctx; 
     mConfig = config;
-    sInstance = this;
 }
 
 DecoderAudio::~DecoderAudio()

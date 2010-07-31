@@ -3,13 +3,10 @@
 
 #define TAG "FFMpegVideoDecoder"
 
-static DecoderVideo* sInstance;
-
 DecoderVideo::DecoderVideo(AVCodecContext* codec_ctx)
 {
     mQueue = new PacketQueue();
     mCodecCtx = codec_ctx; 
-    sInstance = this;
 }
 
 DecoderVideo::~DecoderVideo()
