@@ -11,7 +11,8 @@ LOCAL_SRC_FILES += \
 	mediaplayer.cpp \
 	packetqueue.cpp \
 	decoder.cpp \
-	decoder_audio.cpp
+	decoder_audio.cpp \
+	decoder_video.cpp
 
 LOCAL_LDLIBS := -llog
 

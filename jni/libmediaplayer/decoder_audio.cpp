@@ -1,12 +1,7 @@
 #include <android/log.h>
 #include "decoder_audio.h"
 
-extern "C" {
-
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-
-} // end of extern C
+#include <drivers_map.h>
 
 #define TAG "FFMpegAudioDecoder"
 
