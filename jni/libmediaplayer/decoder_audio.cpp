@@ -59,7 +59,6 @@ bool DecoderAudio::decode(void* ptr)
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio");
 
-    mDecoding = true;
     while(mDecoding)
     {
         if(mQueue->get(&pPacket, true) < 0)

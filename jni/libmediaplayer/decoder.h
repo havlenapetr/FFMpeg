@@ -3,8 +3,12 @@
 
 #include <pthread.h>
 
+extern "C" {
+	
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
+
+}
 
 #include "packetqueue.h"
 
@@ -19,6 +23,7 @@ public:
     int							wait();
     void						stop();
 	void						enqueue(AVPacket* packet);
+	int							packets();
 
 protected:
     PacketQueue*                mQueue;

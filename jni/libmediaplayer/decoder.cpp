@@ -25,6 +25,11 @@ void IDecoder::enqueue(AVPacket* packet)
 	mQueue->put(packet);
 }
 
+int IDecoder::packets()
+{
+	return mQueue->size();
+}
+
 bool IDecoder::start(const char* err)
 {
     if(!prepare(err))
@@ -47,6 +52,9 @@ bool IDecoder::startAsync(const char* err)
 
 int IDecoder::wait()
 {
+	if (!mDecoding) {
+		return 0;
+	}
     return pthread_join(mThread, NULL);
 }
 
@@ -59,13 +67,15 @@ void IDecoder::stop()
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio IDecoder: %i", ret);
         return;
     }
-    __android_log_print(ANDROID_LOG_INFO, TAG, "audio IDecoder stopped");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "audio IDecoder ended");
 }
 
 void* IDecoder::startDecoding(void* ptr)
 {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "starting audio thread");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "starting decoder thread");
+	sInstance->mDecoding = true;
     sInstance->decode(ptr);
+	sInstance->mDecoding = false;
 }
 
 bool IDecoder::prepare(const char *err)

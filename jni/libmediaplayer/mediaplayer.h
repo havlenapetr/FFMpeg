@@ -170,24 +170,19 @@ private:
 	status_t					prepareAudio();
 	status_t					prepareVideo();
 	status_t					processVideo(AVPacket *packet, AVFrame *pFrame);
-	status_t					processAudio(AVPacket *packet, int16_t *samples, int samples_size);
 	AVFrame*					createAndroidFrame();
 	bool						shouldCancel(PacketQueue* queue);
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
 	static void*                startVideoDecoding(void* ptr);
-	static void*                startAudioDecoding(void* ptr);
 	static void*				startPlayer(void* ptr);
 	void						decodeMovie(void* ptr);
 	void						decodeVideo(void* ptr);
-	void						decodeAudio(void* ptr);
 	
 	double 						mTime;
 	pthread_mutex_t             mLock;
 	pthread_t					mVideoThread;
-	pthread_t					mAudioThread;
 	pthread_t					mPlayerThread;
 	PacketQueue*				mVideoQueue;
-	PacketQueue*				mAudioQueue;
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;
