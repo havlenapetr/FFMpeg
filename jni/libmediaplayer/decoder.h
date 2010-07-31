@@ -3,18 +3,22 @@
 
 #include <pthread.h>
 
-// map system drivers methods
-#include <drivers_map.h>
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
 
 #include "packetqueue.h"
 
 class IDecoder
 {
 public:
-    virtual bool start(const char* err);
-    virtual bool startAsync(const char* err);
-    virtual int wait();
-    virtual void stop();
+	IDecoder();
+	~IDecoder();
+	
+	bool						start(const char* err);
+    bool						startAsync(const char* err);
+    int							wait();
+    void						stop();
+	void						enqueue(AVPacket* packet);
 
 protected:
     PacketQueue*                mQueue;
@@ -22,6 +26,7 @@ protected:
     bool                        mDecoding;
     pthread_t                   mThread;
 
+	static void*				startDecoding(void* ptr);
     virtual bool                prepare(const char *err);
     virtual bool                decode(void* ptr);
     virtual bool                process(AVPacket *packet);

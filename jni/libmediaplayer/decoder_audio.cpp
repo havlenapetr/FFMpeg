@@ -12,11 +12,10 @@ extern "C" {
 
 static DecoderAudio* sInstance;
 
-DecoderAudio::DecoderAudio(PacketQueue*               queue,
-                           AVCodecContext*            codec_ctx,
-			   struct DecoderAudioConfig* config)
+DecoderAudio::DecoderAudio(AVCodecContext*            codec_ctx,
+						   struct DecoderAudioConfig* config)
 {
-    mQueue = queue;
+    mQueue = new PacketQueue();
     mCodecCtx = codec_ctx; 
     mConfig = config;
     sInstance = this;
@@ -28,49 +27,6 @@ DecoderAudio::~DecoderAudio()
     {
         stop();
     }
-}
-
-bool DecoderAudio::start(const char* err)
-{
-    if(!prepare(err))
-    {
-        return false;
-    }
-    return decode(NULL);
-}
-
-bool DecoderAudio::startAsync(const char* err)
-{
-    if(!prepare(err))
-    {
-        return false;
-    }
-
-    pthread_create(&mThread, NULL, startDecoding, NULL);
-    return true;
-}
-
-int DecoderAudio::wait()
-{
-    return pthread_join(mThread, NULL);
-}
-
-void DecoderAudio::stop()
-{
-    mQueue->abort();
-    __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of audio decoder");
-    int ret = -1;
-    if((ret = wait()) != 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio decoder: %i", ret);
-        return;
-    }
-    __android_log_print(ANDROID_LOG_INFO, TAG, "audio decoder stopped");
-}
-
-void* DecoderAudio::startDecoding(void* ptr)
-{
-    __android_log_print(ANDROID_LOG_INFO, TAG, "starting audio thread");
-    sInstance->decode(ptr);
 }
 
 bool DecoderAudio::prepare(const char *err)
