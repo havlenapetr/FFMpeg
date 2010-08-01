@@ -3,12 +3,9 @@
 
 #define TAG "FFMpegIDecoder"
 
-static IDecoder* sInstance;
-
 IDecoder::IDecoder()
 {
 	mQueue = new PacketQueue();
-    sInstance = this;
 }
 
 IDecoder::~IDecoder()
@@ -46,7 +43,7 @@ bool IDecoder::startAsync(const char* err)
         return false;
     }
 
-    pthread_create(&mThread, NULL, startDecoding, NULL);
+    pthread_create(&mThread, NULL, startDecoding, this);
     return true;
 }
 
@@ -73,9 +70,10 @@ void IDecoder::stop()
 void* IDecoder::startDecoding(void* ptr)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "starting decoder thread");
-	sInstance->mDecoding = true;
-    sInstance->decode(ptr);
-	sInstance->mDecoding = false;
+	IDecoder* decoder = (IDecoder *) ptr;
+	decoder->mDecoding = true;
+    decoder->decode(ptr);
+	decoder->mDecoding = false;
 }
 
 bool IDecoder::prepare(const char *err)
