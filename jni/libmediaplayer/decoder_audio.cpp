@@ -8,7 +8,6 @@
 DecoderAudio::DecoderAudio(AVCodecContext*            codec_ctx,
 						   struct DecoderAudioConfig* config)
 {
-    mQueue = new PacketQueue();
     mCodecCtx = codec_ctx; 
     mConfig = config;
 }
@@ -27,9 +26,9 @@ bool DecoderAudio::prepare(const char *err)
     mSamples = (int16_t *) av_malloc(mSamplesSize);
 
     if(Output::AudioDriver_set(mConfig->streamType,
-                       mConfig->sampleRate,
-                       mConfig->format,
-                       mConfig->channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+							   mConfig->sampleRate,
+							   mConfig->format,
+							   mConfig->channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
        err = "Couldnt' set audio track";
        return false;
     }
