@@ -8,13 +8,12 @@ struct DecoderVideoConfig
 	int					width;
 	int					height;
 	struct SwsContext*	img_convert_ctx;
-	AVFrame*			frame;
 };
 
 class DecoderVideo : public IDecoder
 {
 public:
-    DecoderVideo(AVCodecContext*			codec_ctx,
+    DecoderVideo(AVStream*					stream,
 				 struct DecoderVideoConfig*	config);
 
     ~DecoderVideo();

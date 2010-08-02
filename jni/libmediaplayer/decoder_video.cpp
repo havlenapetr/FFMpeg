@@ -9,10 +9,9 @@ extern "C" {
 
 #define TAG "FFMpegVideoDecoder"
 
-DecoderVideo::DecoderVideo(AVCodecContext*				codec_ctx,
-						   struct DecoderVideoConfig*	config) : IDecoder(NULL)
+DecoderVideo::DecoderVideo(AVStream*            		stream,
+						   struct DecoderVideoConfig*	config) : IDecoder(stream)
 {
-    mCodecCtx = codec_ctx;
 	mConfig = config;
 }
 
