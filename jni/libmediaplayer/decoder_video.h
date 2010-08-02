@@ -21,6 +21,7 @@ public:
 private:
 	struct DecoderVideoConfig*	mConfig;
 	AVFrame*					mFrame;
+	AVFrame*					mTempFrame;
     bool                        prepare(const char *err);
     bool                        decode(void* ptr);
     bool                        process(AVPacket *packet);

@@ -29,12 +29,20 @@ bool DecoderVideo::prepare(const char *err)
 	
 	mFrame = avcodec_alloc_frame();
 	if (mFrame == NULL) {
+		err = "Couldn't allocate mFrame";
 		return false;
 	}
 	
+	mTempFrame = avcodec_alloc_frame();
+	if (mTempFrame == NULL) {
+		err = "Couldn't allocate mTempFrame";
+		return false;
+	}
+
 	if(Output::VideoDriver_getPixels(mConfig->width, 
 									 mConfig->height, 
 									 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		err = "Couldn't get pixels from android surface wrapper";
 		return false;
 	}
 	
@@ -56,7 +64,7 @@ bool DecoderVideo::process(AVPacket *packet)
 	
 	// Decode video frame
 	avcodec_decode_video(mCodecCtx, 
-						 mConfig->frame, 
+						 mTempFrame,
 						 &completed,
 						 packet->data, 
 						 packet->size);
@@ -64,8 +72,8 @@ bool DecoderVideo::process(AVPacket *packet)
 	if (completed) {
 		// Convert the image from its native format to RGB
 		sws_scale(mConfig->img_convert_ctx, 
-				  mConfig->frame->data, 
-				  mConfig->frame->linesize, 
+			      mTempFrame->data,
+			      mTempFrame->linesize,
 				  0,
 				  mConfig->height, 
 				  mFrame->data,
@@ -105,5 +113,8 @@ bool DecoderVideo::decode(void* ptr)
 	
     // Free the RGB image
     av_free(mFrame);
+    // Free the RGB image
+    av_free(mTempFrame);
+
     return true;
 }
