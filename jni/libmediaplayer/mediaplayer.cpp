@@ -361,7 +361,8 @@ void MediaPlayer::decodeMovie(void* ptr)
 	cfg.sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
 	cfg.format = PCM_16_BIT;
 	cfg.channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
-	mDecoderAudio = new DecoderAudio(mFFmpegStorage.audio.codec_ctx, &cfg);
+	AVStream* stream = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.audio.stream];
+	mDecoderAudio = new DecoderAudio(stream, &cfg);
 	if(!mDecoderAudio->startAsync(err))
 	{
 		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start audio decoder: %s", err);

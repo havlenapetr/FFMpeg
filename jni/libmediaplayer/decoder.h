@@ -15,7 +15,7 @@ extern "C" {
 class IDecoder
 {
 public:
-	IDecoder();
+	IDecoder(AVStream* stream);
 	~IDecoder();
 	
 	bool						start(const char* err);
@@ -27,7 +27,8 @@ public:
 
 protected:
     PacketQueue*                mQueue;
-    AVCodecContext*             mCodecCtx;
+    AVStream*             		mStream;
+    AVCodecContext*				mCodecCtx;
     bool                        mDecoding;
     pthread_t                   mThread;
 

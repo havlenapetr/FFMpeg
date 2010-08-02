@@ -3,9 +3,10 @@
 
 #define TAG "FFMpegIDecoder"
 
-IDecoder::IDecoder()
+IDecoder::IDecoder(AVStream* stream)
 {
 	mQueue = new PacketQueue();
+	mStream = stream;
 }
 
 IDecoder::~IDecoder()
@@ -58,13 +59,12 @@ int IDecoder::wait()
 void IDecoder::stop()
 {
     mQueue->abort();
-    __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of audio IDecoder");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of decoder thread");
     int ret = -1;
     if((ret = wait()) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio IDecoder: %i", ret);
         return;
     }
-    __android_log_print(ANDROID_LOG_INFO, TAG, "audio IDecoder ended");
 }
 
 void* IDecoder::startDecoding(void* ptr)
@@ -74,6 +74,7 @@ void* IDecoder::startDecoding(void* ptr)
 	decoder->mDecoding = true;
     decoder->decode(ptr);
 	decoder->mDecoding = false;
+	__android_log_print(ANDROID_LOG_INFO, TAG, "decoder thread ended");
 }
 
 bool IDecoder::prepare(const char *err)

@@ -14,7 +14,7 @@ struct DecoderAudioConfig
 class DecoderAudio : public IDecoder
 {
 public:
-    DecoderAudio(AVCodecContext*            codec_ctx,
+    DecoderAudio(AVStream*            		stream,
                  struct DecoderAudioConfig* config);
 
     ~DecoderAudio();

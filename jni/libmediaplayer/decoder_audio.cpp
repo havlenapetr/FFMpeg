@@ -5,10 +5,9 @@
 
 #define TAG "FFMpegAudioDecoder"
 
-DecoderAudio::DecoderAudio(AVCodecContext*            codec_ctx,
-						   struct DecoderAudioConfig* config)
+DecoderAudio::DecoderAudio(AVStream*            		stream,
+						   struct DecoderAudioConfig* 	config)  : IDecoder(stream)
 {
-    mCodecCtx = codec_ctx; 
     mConfig = config;
 }
 
@@ -42,7 +41,7 @@ bool DecoderAudio::prepare(const char *err)
 bool DecoderAudio::process(AVPacket *packet)
 {
     int size = mSamplesSize;
-    int len = avcodec_decode_audio3(mCodecCtx, mSamples, &size, packet);
+    int len = avcodec_decode_audio3(mStream->codec, mSamples, &size, packet);
     if(Output::AudioDriver_write(mSamples, size) <= 0) {
         return false;
     }
