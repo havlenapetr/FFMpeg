@@ -8,7 +8,7 @@
 
 #include "packetqueue.h"
 #include "decoder_audio.h"
-//#include "decoder_video.h"
+#include "decoder_video.h"
 
 #define FFMPEG_PLAYER_MAX_QUEUE_SIZE 10
 
@@ -169,14 +169,10 @@ private:
 	
 	status_t					prepareAudio();
 	status_t					prepareVideo();
-	status_t					processVideo(AVPacket *packet, AVFrame *pFrame);
-	AVFrame*					createAndroidFrame();
 	bool						shouldCancel(PacketQueue* queue);
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
-	static void*                startVideoDecoding(void* ptr);
 	static void*				startPlayer(void* ptr);
 	void						decodeMovie(void* ptr);
-	void						decodeVideo(void* ptr);
 	
 	double 						mTime;
 	pthread_mutex_t             mLock;
@@ -187,7 +183,7 @@ private:
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;
     DecoderAudio*				mDecoderAudio;
-	//DecoderVideo*             mDecoderVideo;
+	DecoderVideo*             	mDecoderVideo;
     void*                       mCookie;
     media_player_states         mCurrentState;
     int                         mDuration;

@@ -28,7 +28,6 @@ public:
 protected:
     PacketQueue*                mQueue;
     AVStream*             		mStream;
-    AVCodecContext*				mCodecCtx;
     bool                        mDecoding;
     pthread_t                   mThread;
 

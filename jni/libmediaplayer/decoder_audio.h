@@ -3,24 +3,14 @@
 
 #include "decoder.h"
 
-struct DecoderAudioConfig
-{
-     int                streamType;
-     int                sampleRate;
-     int                format;
-     int                channels;
-};
-
 class DecoderAudio : public IDecoder
 {
 public:
-    DecoderAudio(AVStream*            		stream,
-                 struct DecoderAudioConfig* config);
+    DecoderAudio(AVStream* stream);
 
     ~DecoderAudio();
 
 private:
-    struct DecoderAudioConfig*  mConfig;
     int16_t*                    mSamples;
     int                         mSamplesSize;
 

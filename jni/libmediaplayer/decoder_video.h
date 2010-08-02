@@ -3,25 +3,17 @@
 
 #include "decoder.h"
 
-struct DecoderVideoConfig
-{
-	int					width;
-	int					height;
-	struct SwsContext*	img_convert_ctx;
-};
-
 class DecoderVideo : public IDecoder
 {
 public:
-    DecoderVideo(AVStream*					stream,
-				 struct DecoderVideoConfig*	config);
-
+    DecoderVideo(AVStream* stream);
     ~DecoderVideo();
 
 private:
-	struct DecoderVideoConfig*	mConfig;
 	AVFrame*					mFrame;
 	AVFrame*					mTempFrame;
+	struct SwsContext*			mConvertCtx;
+
     bool                        prepare(const char *err);
     bool                        decode(void* ptr);
     bool                        process(AVPacket *packet);

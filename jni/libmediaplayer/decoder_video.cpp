@@ -9,10 +9,8 @@ extern "C" {
 
 #define TAG "FFMpegVideoDecoder"
 
-DecoderVideo::DecoderVideo(AVStream*            		stream,
-						   struct DecoderVideoConfig*	config) : IDecoder(stream)
+DecoderVideo::DecoderVideo(AVStream* stream) : IDecoder(stream)
 {
-	mConfig = config;
 }
 
 DecoderVideo::~DecoderVideo()
@@ -39,8 +37,23 @@ bool DecoderVideo::prepare(const char *err)
 		return false;
 	}
 
-	if(Output::VideoDriver_getPixels(mConfig->width, 
-									 mConfig->height, 
+	mConvertCtx = sws_getContext(mStream->codec->width,
+								 mStream->codec->height,
+								 mStream->codec->pix_fmt,
+								 mStream->codec->width,
+								 mStream->codec->height,
+								 PIX_FMT_RGB565,
+								 SWS_POINT,
+								 NULL,
+								 NULL,
+								 NULL);
+	if (mConvertCtx == NULL) {
+		err = "Couldn't allocate mConvertCtx";
+		return false;
+	}
+
+	if(Output::VideoDriver_getPixels(mStream->codec->width,
+									 mStream->codec->height,
 									 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
 		err = "Couldn't get pixels from android surface wrapper";
 		return false;
@@ -52,8 +65,8 @@ bool DecoderVideo::prepare(const char *err)
 	avpicture_fill((AVPicture *) mFrame, 
 				   (uint8_t *)pixels, 
 				   PIX_FMT_RGB565, 
-				   mConfig->width, 
-				   mConfig->height);
+				   mStream->codec->width,
+				   mStream->codec->height);
 	
 	return true;
 }
@@ -63,7 +76,7 @@ bool DecoderVideo::process(AVPacket *packet)
     int	completed;
 	
 	// Decode video frame
-	avcodec_decode_video(mCodecCtx, 
+	avcodec_decode_video(mStream->codec,
 						 mTempFrame,
 						 &completed,
 						 packet->data, 
@@ -71,14 +84,14 @@ bool DecoderVideo::process(AVPacket *packet)
 	
 	if (completed) {
 		// Convert the image from its native format to RGB
-		sws_scale(mConfig->img_convert_ctx, 
+		sws_scale(mConvertCtx,
 			      mTempFrame->data,
 			      mTempFrame->linesize,
 				  0,
-				  mConfig->height, 
+				  mStream->codec->height,
 				  mFrame->data,
 				  mFrame->linesize);
-		
+
 		Output::VideoDriver_updateSurface();
 		return true;
 	}

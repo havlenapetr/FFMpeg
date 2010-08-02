@@ -5,10 +5,8 @@
 
 #define TAG "FFMpegAudioDecoder"
 
-DecoderAudio::DecoderAudio(AVStream*            		stream,
-						   struct DecoderAudioConfig* 	config)  : IDecoder(stream)
+DecoderAudio::DecoderAudio(AVStream* stream) : IDecoder(stream)
 {
-    mConfig = config;
 }
 
 DecoderAudio::~DecoderAudio()
@@ -24,10 +22,12 @@ bool DecoderAudio::prepare(const char *err)
     mSamplesSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
     mSamples = (int16_t *) av_malloc(mSamplesSize);
 
-    if(Output::AudioDriver_set(mConfig->streamType,
-							   mConfig->sampleRate,
-							   mConfig->format,
-							   mConfig->channels) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+    if(Output::AudioDriver_set(MUSIC,
+							   mStream->codec->sample_rate,
+							   PCM_16_BIT,
+							   (mStream->codec->channels == 2) ?
+									   CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO) != ANDROID_AUDIOTRACK_RESULT_SUCCESS)
+    {
        err = "Couldnt' set audio track";
        return false;
     }

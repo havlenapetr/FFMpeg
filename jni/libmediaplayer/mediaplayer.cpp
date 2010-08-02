@@ -174,41 +174,15 @@ status_t MediaPlayer::setDataSource(const char *url)
     return NO_ERROR;
 }
 
-AVFrame* MediaPlayer::createAndroidFrame()
-{
-	void*		pixels;
-	AVFrame*	frame;
-	
-	frame = avcodec_alloc_frame();
-	if (frame == NULL) {
-		return NULL;
-	}
-	
-	if(Output::VideoDriver_getPixels(mVideoWidth, 
-							 mVideoHeight, 
-							 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
-		return NULL;
-	}
-	
-	// Assign appropriate parts of buffer to image planes in pFrameRGB
-	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-	// of AVPicture
-	avpicture_fill((AVPicture *) frame, 
-				   (uint8_t *)pixels, 
-				   PIX_FMT_RGB565, 
-				   mVideoWidth, 
-				   mVideoHeight);
-	
-	return frame;
-}
-
 status_t MediaPlayer::suspend() {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "suspend");
 	
 	mCurrentState = MEDIA_PLAYER_STOPPED;
-	if(mDecoderAudio != NULL)
-	{
+	if(mDecoderAudio != NULL) {
 		mDecoderAudio->stop();
+	}
+	if(mDecoderVideo != NULL) {
+		mDecoderVideo->stop();
 	}
 	
 	if(pthread_join(mPlayerThread, NULL) != 0) {
@@ -247,33 +221,6 @@ status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
     return NO_ERROR;
 }
 
-status_t MediaPlayer::processVideo(AVPacket *packet, AVFrame *pFrame)
-{
-	int	completed;
-	
-	// Decode video frame
-	avcodec_decode_video(mFFmpegStorage.video.codec_ctx, 
-						 mFFmpegStorage.pFrame, 
-						 &completed,
-						 packet->data, 
-						 packet->size);
-	
-	if (completed) {
-		// Convert the image from its native format to RGB
-		sws_scale(mFFmpegStorage.img_convert_ctx, 
-				  mFFmpegStorage.pFrame->data, 
-				  mFFmpegStorage.pFrame->linesize, 
-				  0,
-				  mVideoHeight, 
-				  pFrame->data, 
-				  pFrame->linesize);
-		
-		Output::VideoDriver_updateSurface();
-		return NO_ERROR;
-	}
-	return INVALID_OPERATION;
-}
-
 bool MediaPlayer::shouldCancel(PacketQueue* queue)
 {
 	return (mCurrentState == MEDIA_PLAYER_STATE_ERROR || mCurrentState == MEDIA_PLAYER_STOPPED ||
@@ -298,83 +245,34 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
                 }
                 frames++;
                 */
-void MediaPlayer::decodeVideo(void* ptr)
-{
-    AVPacket        pPacket;
-    AVFrame*        pFrameRGB;
-    bool            run = true;
-
-    if((pFrameRGB = createAndroidFrame()) == NULL) {
-        mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-    }
-	
-    __android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
-
-    while (run)
-    {
-        if(mCurrentState == MEDIA_PLAYER_PAUSED) {
-            usleep(50);
-            continue;
-        }
-        if (shouldCancel(mVideoQueue)) {
-            run = false;
-            continue;
-        }
-        if(mVideoQueue->get(&pPacket, true) < 0)
-        {
-            mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-        }
-        if(processVideo(&pPacket, pFrameRGB) != NO_ERROR)
-        {
-            mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-        }
-
-        AVStream* vs = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.video.stream];
-        if(pPacket.dts != AV_NOPTS_VALUE) {
-        	mTime = pPacket.dts;
-        } else {
-        	mTime = 0;
-        }
-        mTime *= av_q2d(vs->time_base);
-        //__android_log_print(ANDROID_LOG_INFO, TAG, "time: %i", pts);
-        // Free the packet that was allocated by av_read_frame
-        av_free_packet(&pPacket);
-    }
-
-	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video ended");
-
-    Output::VideoDriver_unregister();
-
-    // Free the RGB image
-    av_free(pFrameRGB);
-}
 
 void MediaPlayer::decodeMovie(void* ptr)
 {
 	AVPacket pPacket;
-        char err[256];
+    char err[256];
 	
-	pthread_create(&mVideoThread, NULL, startVideoDecoding, NULL);
-
-	DecoderAudioConfig cfg;
-	cfg.streamType = MUSIC;
-	cfg.sampleRate = mFFmpegStorage.audio.codec_ctx->sample_rate;
-	cfg.format = PCM_16_BIT;
-	cfg.channels = (mFFmpegStorage.audio.codec_ctx->channels == 2) ? CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO;
-	AVStream* stream = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.audio.stream];
-	mDecoderAudio = new DecoderAudio(stream, &cfg);
+	AVStream* stream_audio = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.audio.stream];
+	mDecoderAudio = new DecoderAudio(stream_audio);
 	if(!mDecoderAudio->startAsync(err))
 	{
 		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start audio decoder: %s", err);
 		return;
 	}
 	
+	AVStream* stream_video = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.video.stream];
+	mDecoderVideo = new DecoderVideo(stream_video);
+	if(!mDecoderVideo->startAsync(err))
+	{
+		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start video decoder: %s", err);
+		return;
+	}
+
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
 	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
 		   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
 	{
-		if (mVideoQueue->size() > FFMPEG_PLAYER_MAX_QUEUE_SIZE &&
+		if (mDecoderVideo->packets()/*mVideoQueue->size()*/ > FFMPEG_PLAYER_MAX_QUEUE_SIZE &&
 				mDecoderAudio->packets() > FFMPEG_PLAYER_MAX_QUEUE_SIZE) {
 			usleep(200);
 			continue;
@@ -387,7 +285,7 @@ void MediaPlayer::decodeMovie(void* ptr)
 		
 		// Is this a packet from the video stream?
 		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
-			mVideoQueue->put(&pPacket);
+			mDecoderVideo->enqueue(&pPacket);
 		} 
 		else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
 			mDecoderAudio->enqueue(&pPacket);
@@ -401,7 +299,7 @@ void MediaPlayer::decodeMovie(void* ptr)
 	//waits on end of video thread
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on video thread");
 	int ret = -1;
-	if((ret = pthread_join(mVideoThread, NULL)) != 0) {
+	if((ret = mDecoderVideo->wait()) != 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
 	}
 	
@@ -415,12 +313,6 @@ void MediaPlayer::decodeMovie(void* ptr)
 	}
 	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
-}
-
-void*  MediaPlayer::startVideoDecoding(void* ptr)
-{
-	__android_log_print(ANDROID_LOG_INFO, TAG, "starting video thread");
-    sPlayer->decodeVideo(ptr);
 }
 
 void* MediaPlayer::startPlayer(void* ptr)
