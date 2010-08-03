@@ -1,8 +1,6 @@
 #ifndef FFMPEG_DECODER_H
 #define FFMPEG_DECODER_H
 
-#include <pthread.h>
-
 extern "C" {
 	
 #include "libavcodec/avcodec.h"
@@ -10,17 +8,15 @@ extern "C" {
 
 }
 
+#include "thread.h"
 #include "packetqueue.h"
 
-class IDecoder
+class IDecoder : public Thread
 {
 public:
 	IDecoder(AVStream* stream);
 	~IDecoder();
 	
-	bool						start(const char* err);
-    bool						startAsync(const char* err);
-    int							wait();
     void						stop();
 	void						enqueue(AVPacket* packet);
 	int							packets();
@@ -28,13 +24,11 @@ public:
 protected:
     PacketQueue*                mQueue;
     AVStream*             		mStream;
-    bool                        mDecoding;
-    pthread_t                   mThread;
 
-	static void*				startDecoding(void* ptr);
-    virtual bool                prepare(const char *err);
+    virtual bool                prepare();
     virtual bool                decode(void* ptr);
     virtual bool                process(AVPacket *packet);
+	void						handleRun(void* ptr);
 };
 
 #endif //FFMPEG_DECODER_H

@@ -15,7 +15,7 @@ private:
 	struct SwsContext*			mConvertCtx;
 	double						mVideoClock;
 
-    bool                        prepare(const char *err);
+    bool                        prepare();
     double 						synchronize(AVFrame *src_frame, double pts);
     bool                        decode(void* ptr);
     bool                        process(AVPacket *packet);

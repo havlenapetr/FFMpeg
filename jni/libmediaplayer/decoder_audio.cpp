@@ -13,7 +13,7 @@ DecoderAudio::~DecoderAudio()
 {
 }
 
-bool DecoderAudio::prepare(const char *err)
+bool DecoderAudio::prepare()
 {
     mSamplesSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
     mSamples = (int16_t *) av_malloc(mSamplesSize);
@@ -24,11 +24,11 @@ bool DecoderAudio::prepare(const char *err)
 							   (mStream->codec->channels == 2) ?
 									   CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO) != ANDROID_AUDIOTRACK_RESULT_SUCCESS)
     {
-       err = "Couldnt' set audio track";
+       //err = "Couldnt' set audio track";
        return false;
     }
     if(Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-       err = "Couldnt' start audio track";
+       //err = "Couldnt' start audio track";
        return false;
     }
     return true;
@@ -50,16 +50,16 @@ bool DecoderAudio::decode(void* ptr)
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio");
 
-    while(mDecoding)
+    while(mRunning)
     {
         if(mQueue->get(&pPacket, true) < 0)
         {
-            mDecoding = false;
+            mRunning = false;
             return false;
         }
         if(!process(&pPacket))
         {
-            mDecoding = false;
+            mRunning = false;
             return false;
         }
         // Free the packet that was allocated by av_read_frame

@@ -230,24 +230,15 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 void MediaPlayer::decodeMovie(void* ptr)
 {
 	AVPacket pPacket;
-    char err[256];
 	
 	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
 	mDecoderAudio = new DecoderAudio(stream_audio);
-	if(!mDecoderAudio->startAsync(err))
-	{
-		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start audio decoder: %s", err);
-		return;
-	}
+	mDecoderAudio->startAsync();
 	
 	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
 	mDecoderVideo = new DecoderVideo(stream_video);
-	if(!mDecoderVideo->startAsync(err))
-	{
-		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't start video decoder: %s", err);
-		return;
-	}
-
+	mDecoderVideo->startAsync();
+	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
 	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&

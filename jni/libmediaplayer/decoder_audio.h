@@ -14,7 +14,7 @@ private:
     int16_t*                    mSamples;
     int                         mSamplesSize;
 
-    bool                        prepare(const char *err);
+    bool                        prepare();
     bool                        decode(void* ptr);
     bool                        process(AVPacket *packet);
 };

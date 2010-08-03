@@ -11,7 +11,7 @@ IDecoder::IDecoder(AVStream* stream)
 
 IDecoder::~IDecoder()
 {
-	if(mDecoding)
+	if(mRunning)
     {
         stop();
     }
@@ -29,34 +29,6 @@ int IDecoder::packets()
 	return mQueue->size();
 }
 
-bool IDecoder::start(const char* err)
-{
-    if(!prepare(err))
-    {
-        return false;
-    }
-    return decode(NULL);
-}
-
-bool IDecoder::startAsync(const char* err)
-{
-    if(!prepare(err))
-    {
-        return false;
-    }
-
-    pthread_create(&mThread, NULL, startDecoding, this);
-    return true;
-}
-
-int IDecoder::wait()
-{
-	if (!mDecoding) {
-		return 0;
-	}
-    return pthread_join(mThread, NULL);
-}
-
 void IDecoder::stop()
 {
     mQueue->abort();
@@ -68,19 +40,18 @@ void IDecoder::stop()
     }
 }
 
-void* IDecoder::startDecoding(void* ptr)
+void IDecoder::handleRun(void* ptr)
 {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "starting decoder thread");
-	IDecoder* decoder = (IDecoder *) ptr;
-	decoder->mDecoding = true;
-    decoder->decode(ptr);
-	decoder->mDecoding = false;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "decoder thread ended");
+	if(!prepare())
+    {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't prepare decoder");
+        return;
+    }
+	decode(ptr);
 }
 
-bool IDecoder::prepare(const char *err)
+bool IDecoder::prepare()
 {
-	err = "Not implemented";
     return false;
 }
 

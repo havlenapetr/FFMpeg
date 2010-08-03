@@ -21,19 +21,19 @@ DecoderVideo::~DecoderVideo()
 {
 }
 
-bool DecoderVideo::prepare(const char *err)
+bool DecoderVideo::prepare()
 {
 	void*		pixels;
 	
 	mFrame = avcodec_alloc_frame();
 	if (mFrame == NULL) {
-		err = "Couldn't allocate mFrame";
+		//err = "Couldn't allocate mFrame";
 		return false;
 	}
 	
 	mTempFrame = avcodec_alloc_frame();
 	if (mTempFrame == NULL) {
-		err = "Couldn't allocate mTempFrame";
+		//err = "Couldn't allocate mTempFrame";
 		return false;
 	}
 
@@ -48,14 +48,14 @@ bool DecoderVideo::prepare(const char *err)
 								 NULL,
 								 NULL);
 	if (mConvertCtx == NULL) {
-		err = "Couldn't allocate mConvertCtx";
+		//err = "Couldn't allocate mConvertCtx";
 		return false;
 	}
 
 	if(Output::VideoDriver_getPixels(mStream->codec->width,
 									 mStream->codec->height,
 									 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
-		err = "Couldn't get pixels from android surface wrapper";
+		//err = "Couldn't get pixels from android surface wrapper";
 		return false;
 	}
 	
@@ -135,16 +135,16 @@ bool DecoderVideo::decode(void* ptr)
 	
 	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
 	
-    while(mDecoding)
+    while(mRunning)
     {
         if(mQueue->get(&pPacket, true) < 0)
         {
-            mDecoding = false;
+            mRunning = false;
             return false;
         }
         if(!process(&pPacket))
         {
-            mDecoding = false;
+            mRunning = false;
             return false;
         }
         // Free the packet that was allocated by av_read_frame

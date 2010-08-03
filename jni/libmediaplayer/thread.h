@@ -6,9 +6,6 @@
 class Thread
 {
 public:
-	Thread();
-	~Thread();
-	
 	void						start();
     void						startAsync();
     int							wait();
