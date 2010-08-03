@@ -15,6 +15,10 @@ void Thread::startAsync()
 
 int Thread::wait()
 {
+	if(!mRunning)
+	{
+		return 0;
+	}
     return pthread_join(mThread, NULL);
 }
 

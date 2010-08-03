@@ -35,7 +35,7 @@ void IDecoder::stop()
     __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of decoder thread");
     int ret = -1;
     if((ret = wait()) != 0) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio IDecoder: %i", ret);
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel IDecoder: %i", ret);
         return;
     }
 }
