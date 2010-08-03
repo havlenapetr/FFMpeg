@@ -160,9 +160,7 @@ private:
 	
 	// ffmpeg store struct
 	struct ffmpeg_fields_t {
-		AVFrame					*pFrame;
 		AVFormatContext			*pFormatCtx;
-		struct SwsContext		*img_convert_ctx;
 		struct ffmpeg_video_t	video;
 		struct ffmpeg_audio_t	audio;
 	} mFFmpegStorage;

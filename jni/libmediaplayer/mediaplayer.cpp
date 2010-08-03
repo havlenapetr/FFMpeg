@@ -114,22 +114,10 @@ status_t MediaPlayer::prepareVideo()
 	if (avcodec_open(mFFmpegStorage.video.codec_ctx, mFFmpegStorage.video.codec) < 0) {
 		return INVALID_OPERATION;
 	}
-	// Allocate video frame
-	mFFmpegStorage.pFrame = avcodec_alloc_frame();
 	
 	mVideoWidth = mFFmpegStorage.video.codec_ctx->width;
 	mVideoHeight = mFFmpegStorage.video.codec_ctx->height;
 	mDuration =  mFFmpegStorage.pFormatCtx->duration;
-	mFFmpegStorage.img_convert_ctx = sws_getContext(mVideoWidth, 
-												    mVideoHeight, 
-												    mFFmpegStorage.video.codec_ctx->pix_fmt, 
-												    mVideoWidth, 
-												    mVideoHeight,
-												    PIX_FMT_RGB565, 
-												    SWS_POINT, 
-												    NULL, 
-												    NULL, 
-												    NULL);
 	
 	return NO_ERROR;
 }
@@ -190,9 +178,6 @@ status_t MediaPlayer::suspend() {
 	}
 	
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "suspended");
-	
-	// Free the YUV frame
-	av_free(mFFmpegStorage.pFrame);
 	
 	// Close the codec
 	avcodec_close(mFFmpegStorage.video.codec_ctx);
