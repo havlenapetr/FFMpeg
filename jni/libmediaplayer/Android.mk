@@ -13,7 +13,8 @@ LOCAL_SRC_FILES += \
 	mediaplayer.cpp \
 	decoder.cpp \
 	decoder_audio.cpp \
-	decoder_video.cpp
+	decoder_video.cpp \
+	renderer.cpp
 
 LOCAL_LDLIBS := -llog
 

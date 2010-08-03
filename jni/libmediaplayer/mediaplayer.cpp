@@ -178,8 +178,6 @@ status_t MediaPlayer::suspend() {
 	// Close the codec
 	free(mDecoderAudio);
 	free(mDecoderVideo);
-	//avcodec_close(mFFmpegStorage.video.codec_ctx);
-	//avcodec_close(mFFmpegStorage.audio.codec_ctx);
 	
 	// Close the video file
 	av_close_input_file(mMovieFile);
