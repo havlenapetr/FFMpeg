@@ -16,6 +16,7 @@ IDecoder::~IDecoder()
         stop();
     }
 	free(mQueue);
+	avcodec_close(mStream->codec);
 }
 
 void IDecoder::enqueue(AVPacket* packet)

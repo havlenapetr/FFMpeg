@@ -141,30 +141,8 @@ public:
 //            status_t        getMetadata(bool update_only, bool apply_filter, Parcel *metadata);
 	status_t        suspend();
 	status_t        resume();
+
 private:
-	
-	struct ffmpeg_video_t {
-		bool				initzialized;
-		int 				stream;
-		AVCodecContext 		*codec_ctx;
-		AVCodec 			*codec;
-	};
-	
-	struct ffmpeg_audio_t {
-		bool				initzialized;
-		bool				decode;
-		int 				stream;
-		AVCodecContext 		*codec_ctx;
-		AVCodec 			*codec;
-	};
-	
-	// ffmpeg store struct
-	struct ffmpeg_fields_t {
-		AVFormatContext			*pFormatCtx;
-		struct ffmpeg_video_t	video;
-		struct ffmpeg_audio_t	audio;
-	} mFFmpegStorage;
-	
 	status_t					prepareAudio();
 	status_t					prepareVideo();
 	bool						shouldCancel(PacketQueue* queue);
@@ -180,6 +158,9 @@ private:
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;
+    AVFormatContext*			mMovieFile;
+    int 						mAudioStreamIndex;
+    int 						mVideoStreamIndex;
     DecoderAudio*				mDecoderAudio;
 	DecoderVideo*             	mDecoderVideo;
     void*                       mCookie;

@@ -11,10 +11,6 @@ DecoderAudio::DecoderAudio(AVStream* stream) : IDecoder(stream)
 
 DecoderAudio::~DecoderAudio()
 {
-    if(mDecoding)
-    {
-        stop();
-    }
 }
 
 bool DecoderAudio::prepare(const char *err)

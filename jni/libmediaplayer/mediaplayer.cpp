@@ -57,31 +57,29 @@ MediaPlayer::~MediaPlayer()
 status_t MediaPlayer::prepareAudio()
 {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "prepareAudio");
-	mFFmpegStorage.audio.stream = -1;
-	for (int i = 0; i < mFFmpegStorage.pFormatCtx->nb_streams; i++) {
-		if (mFFmpegStorage.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
-			mFFmpegStorage.audio.stream = i;
-		}
-		if(mFFmpegStorage.audio.stream != -1) {
+	mAudioStreamIndex = -1;
+	for (int i = 0; i < mMovieFile->nb_streams; i++) {
+		if (mMovieFile->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO) {
+			mAudioStreamIndex = i;
 			break;
 		}
 	}
 	
-	if (mFFmpegStorage.audio.stream == -1) {
+	if (mAudioStreamIndex == -1) {
 		return INVALID_OPERATION;
 	}
 	
 	// Get a pointer to the codec context for the video stream
-	mFFmpegStorage.audio.codec_ctx = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.audio.stream]->codec;
-	mFFmpegStorage.audio.codec = avcodec_find_decoder(mFFmpegStorage.audio.codec_ctx->codec_id);
-	if (mFFmpegStorage.audio.codec == NULL) {
+	AVCodecContext* codec_ctx = mMovieFile->streams[mAudioStreamIndex]->codec;
+	AVCodec* codec = avcodec_find_decoder(codec_ctx->codec_id);
+	if (codec == NULL) {
 		return INVALID_OPERATION;
 	}
 	
 	// Open codec
-	if (avcodec_open(mFFmpegStorage.audio.codec_ctx, 
-					 mFFmpegStorage.audio.codec) < 0) {
-		return INVALID_OPERATION;	}
+	if (avcodec_open(codec_ctx, codec) < 0) {
+		return INVALID_OPERATION;
+	}
 	return NO_ERROR;
 }
 
@@ -89,35 +87,33 @@ status_t MediaPlayer::prepareVideo()
 {
 	__android_log_print(ANDROID_LOG_INFO, TAG, "prepareVideo");
 	// Find the first video stream
-	mFFmpegStorage.video.stream = -1;
-	for (int i = 0; i < mFFmpegStorage.pFormatCtx->nb_streams; i++) {
-		if (mFFmpegStorage.pFormatCtx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
-			mFFmpegStorage.video.stream = i;
-		}
-		if(mFFmpegStorage.video.stream != -1) {
+	mVideoStreamIndex = -1;
+	for (int i = 0; i < mMovieFile->nb_streams; i++) {
+		if (mMovieFile->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
+			mVideoStreamIndex = i;
 			break;
 		}
 	}
 	
-	if (mFFmpegStorage.video.stream == -1) {
+	if (mVideoStreamIndex == -1) {
 		return INVALID_OPERATION;
 	}
 	
 	// Get a pointer to the codec context for the video stream
-	mFFmpegStorage.video.codec_ctx = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.video.stream]->codec;
-	mFFmpegStorage.video.codec = avcodec_find_decoder(mFFmpegStorage.video.codec_ctx->codec_id);
-	if (mFFmpegStorage.video.codec == NULL) {
+	AVCodecContext* codec_ctx = mMovieFile->streams[mVideoStreamIndex]->codec;
+	AVCodec* codec = avcodec_find_decoder(codec_ctx->codec_id);
+	if (codec == NULL) {
 		return INVALID_OPERATION;
 	}
 	
 	// Open codec
-	if (avcodec_open(mFFmpegStorage.video.codec_ctx, mFFmpegStorage.video.codec) < 0) {
+	if (avcodec_open(codec_ctx, codec) < 0) {
 		return INVALID_OPERATION;
 	}
 	
-	mVideoWidth = mFFmpegStorage.video.codec_ctx->width;
-	mVideoHeight = mFFmpegStorage.video.codec_ctx->height;
-	mDuration =  mFFmpegStorage.pFormatCtx->duration;
+	mVideoWidth = codec_ctx->width;
+	mVideoHeight = codec_ctx->height;
+	mDuration =  mMovieFile->duration;
 	
 	return NO_ERROR;
 }
@@ -151,11 +147,11 @@ status_t MediaPlayer::setDataSource(const char *url)
     __android_log_print(ANDROID_LOG_INFO, TAG, "setDataSource(%s)", url);
     status_t err = BAD_VALUE;
 	// Open video file
-	if(av_open_input_file(&mFFmpegStorage.pFormatCtx, url, NULL, 0, NULL) != 0) {
+	if(av_open_input_file(&mMovieFile, url, NULL, 0, NULL) != 0) {
 		return INVALID_OPERATION;
 	}
 	// Retrieve stream information
-	if(av_find_stream_info(mFFmpegStorage.pFormatCtx) < 0) {
+	if(av_find_stream_info(mMovieFile) < 0) {
 		return INVALID_OPERATION;
 	}
 	mCurrentState = MEDIA_PLAYER_INITIALIZED;
@@ -180,11 +176,13 @@ status_t MediaPlayer::suspend() {
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "suspended");
 	
 	// Close the codec
-	avcodec_close(mFFmpegStorage.video.codec_ctx);
-	avcodec_close(mFFmpegStorage.audio.codec_ctx);
+	free(mDecoderAudio);
+	free(mDecoderVideo);
+	//avcodec_close(mFFmpegStorage.video.codec_ctx);
+	//avcodec_close(mFFmpegStorage.audio.codec_ctx);
 	
 	// Close the video file
-	av_close_input_file(mFFmpegStorage.pFormatCtx);
+	av_close_input_file(mMovieFile);
     return NO_ERROR;
 }
 
@@ -236,7 +234,7 @@ void MediaPlayer::decodeMovie(void* ptr)
 	AVPacket pPacket;
     char err[256];
 	
-	AVStream* stream_audio = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.audio.stream];
+	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
 	mDecoderAudio = new DecoderAudio(stream_audio);
 	if(!mDecoderAudio->startAsync(err))
 	{
@@ -244,7 +242,7 @@ void MediaPlayer::decodeMovie(void* ptr)
 		return;
 	}
 	
-	AVStream* stream_video = mFFmpegStorage.pFormatCtx->streams[mFFmpegStorage.video.stream];
+	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
 	mDecoderVideo = new DecoderVideo(stream_video);
 	if(!mDecoderVideo->startAsync(err))
 	{
@@ -257,22 +255,22 @@ void MediaPlayer::decodeMovie(void* ptr)
 	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
 		   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
 	{
-		if (mDecoderVideo->packets()/*mVideoQueue->size()*/ > FFMPEG_PLAYER_MAX_QUEUE_SIZE &&
+		if (mDecoderVideo->packets() > FFMPEG_PLAYER_MAX_QUEUE_SIZE &&
 				mDecoderAudio->packets() > FFMPEG_PLAYER_MAX_QUEUE_SIZE) {
 			usleep(200);
 			continue;
 		}
 		
-		if(av_read_frame(mFFmpegStorage.pFormatCtx, &pPacket) < 0) {
+		if(av_read_frame(mMovieFile, &pPacket) < 0) {
 			mCurrentState = MEDIA_PLAYER_DECODED;
 			continue;
 		}
 		
 		// Is this a packet from the video stream?
-		if (pPacket.stream_index == mFFmpegStorage.video.stream) {
+		if (pPacket.stream_index == mVideoStreamIndex) {
 			mDecoderVideo->enqueue(&pPacket);
 		} 
-		else if (pPacket.stream_index == mFFmpegStorage.audio.stream) {
+		else if (pPacket.stream_index == mAudioStreamIndex) {
 			mDecoderAudio->enqueue(&pPacket);
 		}
 		else {
@@ -360,7 +358,8 @@ status_t MediaPlayer::getCurrentPosition(int *msec)
 	if (mCurrentState < MEDIA_PLAYER_PREPARED) {
 		return INVALID_OPERATION;
 	}
-	*msec = mTime * 1000;
+	*msec = 0/*av_gettime()*/;
+	//__android_log_print(ANDROID_LOG_INFO, TAG, "position %i", *msec);
 	return NO_ERROR;
 }
 
