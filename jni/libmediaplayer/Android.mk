@@ -14,6 +14,7 @@ LOCAL_SRC_FILES += \
 	decoder.cpp \
 	decoder_audio.cpp \
 	decoder_video.cpp \
+	thread.cpp \
 	renderer.cpp
 
 LOCAL_LDLIBS := -llog
