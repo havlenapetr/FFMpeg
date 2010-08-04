@@ -6,7 +6,6 @@
 #include <jni.h>
 #include <android/Errors.h>
 
-#include "renderer.h"
 #include "decoder_audio.h"
 #include "decoder_video.h"
 
@@ -162,7 +161,7 @@ private:
     int 						mVideoStreamIndex;
     DecoderAudio*				mDecoderAudio;
 	DecoderVideo*             	mDecoderVideo;
-	Renderer*					mRenderer;
+
     void*                       mCookie;
     media_player_states         mCurrentState;
     int                         mDuration;
