@@ -10,8 +10,8 @@
 
 using namespace android;
 
-#define	EVENT_TYPE_VIDEO 1;
-#define	EVENT_TYPE_AUDIO 2;
+#define	EVENT_TYPE_VIDEO 1
+#define	EVENT_TYPE_AUDIO 2
 
 class Renderer : public Thread
 {
@@ -25,17 +25,29 @@ public:
 
 	class VideoEvent : public Event
 	{
-		VideoEvent()
+	public:
+		AVFrame* 				frame;
+		double					pts;
+
+		VideoEvent(AVFrame* f, double p)
 		{
 			type = EVENT_TYPE_VIDEO;
+			frame = f;
+			pts = p;
 		}
 	};
 
 	class AudioEvent : public Event
 	{
-		AudioEvent()
+	public:
+		int16_t*                    samples;
+		int                         samples_size;
+
+		AudioEvent(int16_t* data, int data_size)
 		{
 			type = EVENT_TYPE_AUDIO;
+			samples = data;
+			samples_size = data_size;
 		}
 	};
 
@@ -53,7 +65,12 @@ private:
 	AVStream*					mVideoStream;
 	Vector<Event*>				mEventBuffer;
 	
+	AVFrame*					mFrame;
+	struct SwsContext*			mConvertCtx;
+
+	bool						processAudio(Event* event);
+	bool 						processVideo(Event* event);
 	void						handleRun(void* ptr);
 };
 
-#endif //FFMPEG_DECODER_H
+#endif //FFMPEG_RENDERER_H
