@@ -8,13 +8,14 @@ extern "C" {
 
 }
 
+#include "renderer.h"
 #include "thread.h"
 #include "packetqueue.h"
 
 class IDecoder : public Thread
 {
 public:
-	IDecoder(AVStream* stream);
+	IDecoder(Renderer* renderer);
 	~IDecoder();
 	
     void						stop();
@@ -23,6 +24,7 @@ public:
 
 protected:
     PacketQueue*                mQueue;
+    Renderer* 					mRenderer;
     AVStream*             		mStream;
 
     virtual bool                prepare();

@@ -17,6 +17,7 @@ Renderer::Renderer(AVStream* video_stream, AVStream* audio_stream)
 {
 	mVideoStream = video_stream;
 	mAudioStream = audio_stream;
+	pthread_mutex_init(&mLock, NULL);
 }
 
 Renderer::~Renderer()
@@ -61,14 +62,20 @@ bool Renderer::prepare(const char* err)
 								 NULL);
 
 	if (mConvertCtx == NULL) {
-		//err = "Couldn't allocate mConvertCtx";
+		err = "Couldn't allocate mConvertCtx";
 		return false;
 	}
 
 	if (Output::VideoDriver_getPixels(mVideoStream->codec->width,
 									  mVideoStream->codec->height,
 								      &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
-		//err = "Couldn't get pixels from android surface wrapper";
+		err = "Couldn't get pixels from android surface wrapper";
+		return false;
+	}
+
+	mFrame = avcodec_alloc_frame();
+	if (mFrame == NULL) {
+		err = "Couldn't allocate mFrame";
 		return false;
 	}
 
@@ -81,10 +88,28 @@ bool Renderer::prepare(const char* err)
 	return true;
 }
 
+void Renderer::close()
+{
+	Output::VideoDriver_unregister();
+	Output::AudioDriver_unregister();
+}
+
+AVStream* Renderer::getVideoStream()
+{
+	return mVideoStream;
+}
+
+AVStream* Renderer::getAudioStream()
+{
+	return mAudioStream;
+}
+
 void Renderer::enqueue(Event* event)
 {
+	pthread_mutex_lock(&mLock);
 	mEventBuffer.add(event);
 	notify();
+	pthread_mutex_unlock(&mLock);
 }
 
 bool Renderer::processAudio(Event* event)
@@ -115,13 +140,28 @@ void Renderer::handleRun(void* ptr)
 {
 	AVPacket        pPacket;
 	
-	while(true)
+	mRendering = true;
+
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "Renderer running");
+
+	while(mRendering)
     {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on event");
+
 		waitOnNotify();
+		if(!mRendering) {
+			continue;
+		}
+
+		pthread_mutex_lock(&mLock);
 
 		int length = mEventBuffer.size();
 		Event** events = mEventBuffer.editArray();
 		mEventBuffer.clear();
+
+		pthread_mutex_unlock(&mLock);
+
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "processing event");
 
 		// execute this events
 		for (int i = 0; i < length; i++) {
@@ -139,10 +179,16 @@ void Renderer::handleRun(void* ptr)
 			free(e);
 		}
     }
+
+    // Free the RGB image
+    av_free(mFrame);
+
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "Renderer stopped");
 }
 
 void Renderer::stop()
 {
+	mRendering = false;
 	notify();
     __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of renderer thread");
     int ret = -1;

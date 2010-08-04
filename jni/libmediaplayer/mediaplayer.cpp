@@ -42,6 +42,7 @@ MediaPlayer::MediaPlayer()
     pthread_mutex_init(&mLock, NULL);
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
+    mRenderer = NULL;
     sPlayer = this;
 }
 
@@ -129,6 +130,11 @@ status_t MediaPlayer::prepare()
 		mCurrentState = MEDIA_PLAYER_STATE_ERROR;
 		return ret;
 	}
+
+	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
+	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
+	mRenderer = new Renderer(stream_video, stream_audio);
+
 	mCurrentState = MEDIA_PLAYER_PREPARED;
 	return NO_ERROR;
 }
@@ -143,6 +149,7 @@ status_t MediaPlayer::setListener(MediaPlayerListener* listener)
 status_t MediaPlayer::setDataSource(const char *url)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "setDataSource(%s)", url);
+
     status_t err = BAD_VALUE;
 	// Open video file
 	if(av_open_input_file(&mMovieFile, url, NULL, 0, NULL) != 0) {
@@ -165,6 +172,9 @@ status_t MediaPlayer::suspend() {
 	}
 	if(mDecoderVideo != NULL) {
 		mDecoderVideo->stop();
+	}
+	if(mRenderer != NULL) {
+		mRenderer->stop();
 	}
 	
 	if(pthread_join(mPlayerThread, NULL) != 0) {
@@ -191,12 +201,9 @@ status_t MediaPlayer::resume() {
 
 status_t MediaPlayer::setVideoSurface(JNIEnv* env, jobject jsurface)
 { 
-	if(Output::VideoDriver_register(env, jsurface) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(!mRenderer->init(env, jsurface)) {
 		return INVALID_OPERATION;
 	}
-	if(Output::AudioDriver_register() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-		return INVALID_OPERATION;
-	}	
     return NO_ERROR;
 }
 
@@ -228,13 +235,18 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 void MediaPlayer::decodeMovie(void* ptr)
 {
 	AVPacket pPacket;
+	char err[256];
+
+	if(!mRenderer->prepare(err)) {
+		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't prepare renderer: %s", err);
+		return;
+	}
+	mRenderer->startAsync();
 	
-	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
-	mDecoderAudio = new DecoderAudio(stream_audio);
+	mDecoderAudio = new DecoderAudio(mRenderer);
 	mDecoderAudio->startAsync();
 	
-	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
-	mDecoderVideo = new DecoderVideo(stream_video);
+	mDecoderVideo = new DecoderVideo(mRenderer);
 	mDecoderVideo->startAsync();
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
@@ -277,6 +289,13 @@ void MediaPlayer::decodeMovie(void* ptr)
 	if((ret = mDecoderAudio->wait()) != 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
 	}
+
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on renderer");
+	if((ret = mRenderer->wait()) != 0) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel mRenderer: %i", ret);
+	}
+
+	mRenderer->close();
     
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
 		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");

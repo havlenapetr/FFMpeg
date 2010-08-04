@@ -11,10 +11,11 @@ extern "C" {
 
 static uint64_t global_video_pkt_pts = AV_NOPTS_VALUE;
 
-DecoderVideo::DecoderVideo(AVStream* stream) : IDecoder(stream)
+DecoderVideo::DecoderVideo(Renderer* renderer) : IDecoder(renderer)
 {
-	 mStream->codec->get_buffer = getBuffer;
-	 mStream->codec->release_buffer = releaseBuffer;
+	mStream = renderer->getVideoStream();
+	mStream->codec->get_buffer = getBuffer;
+	mStream->codec->release_buffer = releaseBuffer;
 }
 
 DecoderVideo::~DecoderVideo()
@@ -23,50 +24,10 @@ DecoderVideo::~DecoderVideo()
 
 bool DecoderVideo::prepare()
 {
-	void*		pixels;
-	
-	mFrame = avcodec_alloc_frame();
-	if (mFrame == NULL) {
-		//err = "Couldn't allocate mFrame";
-		return false;
-	}
-	
 	mTempFrame = avcodec_alloc_frame();
 	if (mTempFrame == NULL) {
-		//err = "Couldn't allocate mTempFrame";
 		return false;
 	}
-
-	mConvertCtx = sws_getContext(mStream->codec->width,
-								 mStream->codec->height,
-								 mStream->codec->pix_fmt,
-								 mStream->codec->width,
-								 mStream->codec->height,
-								 PIX_FMT_RGB565,
-								 SWS_POINT,
-								 NULL,
-								 NULL,
-								 NULL);
-	if (mConvertCtx == NULL) {
-		//err = "Couldn't allocate mConvertCtx";
-		return false;
-	}
-
-	if(Output::VideoDriver_getPixels(mStream->codec->width,
-									 mStream->codec->height,
-									 &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
-		//err = "Couldn't get pixels from android surface wrapper";
-		return false;
-	}
-	
-	// Assign appropriate parts of buffer to image planes in pFrameRGB
-	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-	// of AVPicture
-	avpicture_fill((AVPicture *) mFrame, 
-				   (uint8_t *)pixels, 
-				   PIX_FMT_RGB565, 
-				   mStream->codec->width,
-				   mStream->codec->height);
 	
 	return true;
 }
@@ -114,16 +75,8 @@ bool DecoderVideo::process(AVPacket *packet)
 
 	if (completed) {
 		pts = synchronize(mTempFrame, pts);
-		// Convert the image from its native format to RGB
-		sws_scale(mConvertCtx,
-			      mTempFrame->data,
-			      mTempFrame->linesize,
-				  0,
-				  mStream->codec->height,
-				  mFrame->data,
-				  mFrame->linesize);
-
-		Output::VideoDriver_updateSurface();
+		Renderer::VideoEvent* e = new Renderer::VideoEvent(mTempFrame, pts);
+		mRenderer->enqueue(e);
 		return true;
 	}
 	return false;
@@ -153,10 +106,6 @@ bool DecoderVideo::decode(void* ptr)
 	
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding video ended");
 	
-    Output::VideoDriver_unregister();
-	
-    // Free the RGB image
-    av_free(mFrame);
     // Free the RGB image
     av_free(mTempFrame);
 

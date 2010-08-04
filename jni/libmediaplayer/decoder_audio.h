@@ -2,11 +2,12 @@
 #define FFMPEG_DECODER_AUDIO_H
 
 #include "decoder.h"
+#include "renderer.h"
 
 class DecoderAudio : public IDecoder
 {
 public:
-    DecoderAudio(AVStream* stream);
+    DecoderAudio(Renderer* renderer);
 
     ~DecoderAudio();
 

@@ -5,8 +5,9 @@
 
 #define TAG "FFMpegAudioDecoder"
 
-DecoderAudio::DecoderAudio(AVStream* stream) : IDecoder(stream)
+DecoderAudio::DecoderAudio(Renderer* renderer)  : IDecoder(renderer)
 {
+	mStream = renderer->getAudioStream();
 }
 
 DecoderAudio::~DecoderAudio()
@@ -20,20 +21,6 @@ bool DecoderAudio::prepare()
     if(mSamples == NULL) {
     	return false;
     }
-
-    if(Output::AudioDriver_set(MUSIC,
-							   mStream->codec->sample_rate,
-							   PCM_16_BIT,
-							   (mStream->codec->channels == 2) ?
-									   CHANNEL_OUT_STEREO : CHANNEL_OUT_MONO) != ANDROID_AUDIOTRACK_RESULT_SUCCESS)
-    {
-       //err = "Couldnt' set audio track";
-       return false;
-    }
-    if(Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
-       //err = "Couldnt' start audio track";
-       return false;
-    }
     return true;
 }
 
@@ -41,9 +28,9 @@ bool DecoderAudio::process(AVPacket *packet)
 {
     int size = mSamplesSize;
     int len = avcodec_decode_audio3(mStream->codec, mSamples, &size, packet);
-    if(Output::AudioDriver_write(mSamples, size) <= 0) {
-        return false;
-    }
+
+    Renderer::AudioEvent* e = new Renderer::AudioEvent(mSamples, size);
+    mRenderer->enqueue(e);
     return true;
 }
 
@@ -70,8 +57,6 @@ bool DecoderAudio::decode(void* ptr)
     }
 
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding audio ended");
-
-    Output::AudioDriver_unregister();
 
     // Free audio samples buffer
     av_free(mSamples);

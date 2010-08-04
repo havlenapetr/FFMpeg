@@ -55,7 +55,10 @@ public:
 	~Renderer();
 	
 	bool						init(JNIEnv *env, jobject jsurface);
+	void 						close();
 	bool 						prepare(const char* err);
+	AVStream*					getVideoStream();
+	AVStream*					getAudioStream();
 
 	void 						enqueue(Event* event);
     void						stop();
@@ -67,6 +70,9 @@ private:
 	
 	AVFrame*					mFrame;
 	struct SwsContext*			mConvertCtx;
+
+	bool						mRendering;
+	pthread_mutex_t     		mLock;
 
 	bool						processAudio(Event* event);
 	bool 						processVideo(Event* event);

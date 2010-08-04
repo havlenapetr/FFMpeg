@@ -3,10 +3,10 @@
 
 #define TAG "FFMpegIDecoder"
 
-IDecoder::IDecoder(AVStream* stream)
+IDecoder::IDecoder(Renderer* renderer)
 {
 	mQueue = new PacketQueue();
-	mStream = stream;
+	mRenderer = renderer;
 }
 
 IDecoder::~IDecoder()

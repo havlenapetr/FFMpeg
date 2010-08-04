@@ -2,11 +2,12 @@
 #define FFMPEG_DECODER_VIDEO_H
 
 #include "decoder.h"
+#include "renderer.h"
 
 class DecoderVideo : public IDecoder
 {
 public:
-    DecoderVideo(AVStream* stream);
+    DecoderVideo(Renderer* renderer);
     ~DecoderVideo();
 
 private:
