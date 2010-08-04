@@ -6,7 +6,7 @@
 #include <jni.h>
 #include <android/Errors.h>
 
-#include "packetqueue.h"
+#include "renderer.h"
 #include "decoder_audio.h"
 #include "decoder_video.h"
 
@@ -152,7 +152,6 @@ private:
 	
 	double 						mTime;
 	pthread_mutex_t             mLock;
-	pthread_t					mVideoThread;
 	pthread_t					mPlayerThread;
 	PacketQueue*				mVideoQueue;
     //Mutex                       mNotifyLock;
@@ -163,6 +162,7 @@ private:
     int 						mVideoStreamIndex;
     DecoderAudio*				mDecoderAudio;
 	DecoderVideo*             	mDecoderVideo;
+	Renderer*					mRenderer;
     void*                       mCookie;
     media_player_states         mCurrentState;
     int                         mDuration;
