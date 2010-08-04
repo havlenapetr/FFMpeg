@@ -17,6 +17,9 @@ bool DecoderAudio::prepare()
 {
     mSamplesSize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
     mSamples = (int16_t *) av_malloc(mSamplesSize);
+    if(mSamples == NULL) {
+    	return false;
+    }
 
     if(Output::AudioDriver_set(MUSIC,
 							   mStream->codec->sample_rate,

@@ -15,7 +15,11 @@ LOCAL_SRC_FILES += \
 	decoder_audio.cpp \
 	decoder_video.cpp \
 	thread.cpp \
-	renderer.cpp
+	renderer.cpp \
+	SharedBuffer.cpp \
+	VectorImpl.cpp \
+	atomic.c \
+	atomic-android-arm.S
 
 LOCAL_LDLIBS := -llog
 

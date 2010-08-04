@@ -36,7 +36,7 @@ static const char* const kClassPathName = "com/media/ffmpeg/FFMpegPlayer";
 class JNIFFmpegMediaPlayerListener: public MediaPlayerListener
 {
 public:
-	JNIFFmpegMediaPlayerListener(JNIEnv* env, jobject thiz, jobject weak_thiz);
+    JNIFFmpegMediaPlayerListener(JNIEnv* env, jobject thiz, jobject weak_thiz);
     ~JNIFFmpegMediaPlayerListener();
     void notify(int msg, int ext1, int ext2);
 private:

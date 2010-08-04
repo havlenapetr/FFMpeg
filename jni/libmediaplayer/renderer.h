@@ -2,29 +2,58 @@
 #define FFMPEG_RENDERER_H
 
 #include <jni.h>
-#include <pthread.h>
 
+#include <utils/Vector.h>
+
+#include "thread.h"
 #include "packetqueue.h"
 
-class Renderer
+using namespace android;
+
+#define	EVENT_TYPE_VIDEO 1;
+#define	EVENT_TYPE_AUDIO 2;
+
+class Renderer : public Thread
 {
 public:
-	Renderer();
+
+	class Event
+	{
+	public:
+		int 	type;
+	};
+
+	class VideoEvent : public Event
+	{
+		VideoEvent()
+		{
+			type = EVENT_TYPE_VIDEO;
+		}
+	};
+
+	class AudioEvent : public Event
+	{
+		AudioEvent()
+		{
+			type = EVENT_TYPE_AUDIO;
+		}
+	};
+
+	Renderer(AVStream* video_stream, AVStream* audio_stream);
 	~Renderer();
 	
 	bool						init(JNIEnv *env, jobject jsurface);
-	PacketQueue*				queue();
-	bool						startAsync(const char* err);
-	int							wait();
+	bool 						prepare(const char* err);
+
+	void 						enqueue(Event* event);
     void						stop();
 	
 private:
-	PacketQueue*                mQueue;
-	pthread_t                   mThread;
-	bool						mRendering;
+	AVStream*					mAudioStream;
+	AVStream*					mVideoStream;
+	Vector<Event*>				mEventBuffer;
 	
-	bool						render(void* ptr);
-	static void*				startRendering(void* ptr);
+	void						handleRun(void* ptr);
 };
 
 #endif //FFMPEG_DECODER_H

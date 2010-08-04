@@ -12,9 +12,10 @@ extern "C" {
 
 #define TAG "FFMpegRenderer"
 
-Renderer::Renderer()
+Renderer::Renderer(AVStream* video_stream, AVStream* audio_stream)
 {
-	mQueue = new PacketQueue();
+	mVideoStream = video_stream;
+	mAudioStream = audio_stream;
 }
 
 Renderer::~Renderer()
@@ -32,54 +33,32 @@ bool Renderer::init(JNIEnv *env, jobject jsurface)
 	return true;
 }
 
-PacketQueue* Renderer::queue()
+bool Renderer::prepare(const char* err)
 {
-	return mQueue;
+	if (Output::AudioDriver_set(MUSIC, mAudioStream->codec->sample_rate, PCM_16_BIT,
+			(mAudioStream->codec->channels == 2) ? CHANNEL_OUT_STEREO
+					: CHANNEL_OUT_MONO) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		err = "Couldnt' set audio track";
+		return false;
+	}
+	if (Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		err = "Couldnt' start audio track";
+		return false;
+	}
+	return true;
 }
 
-bool Renderer::startAsync(const char* err)
-{
-	pthread_create(&mThread, NULL, startRendering, this);
-    return true;
-}
-
-void* Renderer::startRendering(void* ptr)
-{
-	__android_log_print(ANDROID_LOG_INFO, TAG, "starting renderer thread");
-	Renderer* renderer = (Renderer *) ptr;
-	renderer->mRendering = true;
-    renderer->render(ptr);
-	renderer->mRendering = false;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "decoder renderer ended");
-}
-
-bool Renderer::render(void* ptr)
+void Renderer::handleRun(void* ptr)
 {
 	AVPacket        pPacket;
 	
-	while(mRendering)
+	while(true)
     {
-        if(mQueue->get(&pPacket, true) < 0)
-        {
-            mRendering = false;
-            return false;
-        }
-
-        // Free the packet that was allocated by av_read_frame
-        av_free_packet(&pPacket);
     }
-	
-    return true;
-}
-
-int	Renderer::wait()
-{
-	return pthread_join(mThread, NULL);
 }
 
 void Renderer::stop()
 {
-	mQueue->abort();
     __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of renderer thread");
     int ret = -1;
     if((ret = wait()) != 0) {
