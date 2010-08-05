@@ -66,9 +66,10 @@ status_t MediaPlayer::prepareAudio()
 	if (mAudioStreamIndex == -1) {
 		return INVALID_OPERATION;
 	}
-	
+
+	AVStream* stream = mMovieFile->streams[mAudioStreamIndex];
 	// Get a pointer to the codec context for the video stream
-	AVCodecContext* codec_ctx = mMovieFile->streams[mAudioStreamIndex]->codec;
+	AVCodecContext* codec_ctx = stream->codec;
 	AVCodec* codec = avcodec_find_decoder(codec_ctx->codec_id);
 	if (codec == NULL) {
 		return INVALID_OPERATION;
@@ -78,6 +79,20 @@ status_t MediaPlayer::prepareAudio()
 	if (avcodec_open(codec_ctx, codec) < 0) {
 		return INVALID_OPERATION;
 	}
+
+	// prepare os output
+	if (Output::AudioDriver_set(MUSIC,
+								stream->codec->sample_rate,
+								PCM_16_BIT,
+								(stream->codec->channels == 2) ? CHANNEL_OUT_STEREO
+										: CHANNEL_OUT_MONO) != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+
+	if (Output::AudioDriver_start() != ANDROID_AUDIOTRACK_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+
 	return NO_ERROR;
 }
 
@@ -179,6 +194,9 @@ status_t MediaPlayer::suspend() {
 	
 	// Close the video file
 	av_close_input_file(mMovieFile);
+
+	Output::AudioDriver_unregister();
+
     return NO_ERROR;
 }
 
@@ -223,7 +241,36 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
                         frames = 0;
                 }
                 frames++;
-                */
+
+               */
+
+void MediaPlayer::decode(AVFrame* frame, double pts)
+{
+	/*
+	AVFrame* buffFrame = avcodec_alloc_frame();
+	if (frame == NULL) {
+		return false;
+	}
+
+	// Convert the image from its native format to RGB
+	sws_scale(mConvertCtx,
+			  frame->data,
+			  frame->linesize,
+			  0,
+			  mStream->codec->height,
+			  buffFrame->data,
+			  buffFrame->linesize);
+
+	Output::VideoDriver_updateSurface();
+	*/
+}
+
+void MediaPlayer::decode(int16_t* buffer, int buffer_size)
+{
+	if(Output::AudioDriver_write(buffer, buffer_size) <= 0) {
+		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't write samples to audio track");
+	}
+}
 
 void MediaPlayer::decodeMovie(void* ptr)
 {
@@ -231,10 +278,12 @@ void MediaPlayer::decodeMovie(void* ptr)
 	
 	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
 	mDecoderAudio = new DecoderAudio(stream_audio);
+	mDecoderAudio->onDecode = decode;
 	mDecoderAudio->startAsync();
 	
 	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
 	mDecoderVideo = new DecoderVideo(stream_video);
+	mDecoderVideo->onDecode = decode;
 	mDecoderVideo->startAsync();
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;

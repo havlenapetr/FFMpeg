@@ -3,12 +3,16 @@
 
 #include "decoder.h"
 
+typedef void (*AudioDecodingHandler) (int16_t*,int);
+
 class DecoderAudio : public IDecoder
 {
 public:
     DecoderAudio(AVStream* stream);
 
     ~DecoderAudio();
+
+    AudioDecodingHandler		onDecode;
 
 private:
     int16_t*                    mSamples;

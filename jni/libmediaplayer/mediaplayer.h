@@ -147,6 +147,10 @@ private:
 	bool						shouldCancel(PacketQueue* queue);
 	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
 	static void*				startPlayer(void* ptr);
+
+	static void 				decode(AVFrame* frame, double pts);
+	static void 				decode(int16_t* buffer, int buffer_size);
+
 	void						decodeMovie(void* ptr);
 	
 	double 						mTime;

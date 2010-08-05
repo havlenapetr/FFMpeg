@@ -3,11 +3,15 @@
 
 #include "decoder.h"
 
+typedef void (*VideoDecodingHandler) (AVFrame*,double);
+
 class DecoderVideo : public IDecoder
 {
 public:
     DecoderVideo(AVStream* stream);
     ~DecoderVideo();
+
+    VideoDecodingHandler		onDecode;
 
 private:
 	AVFrame*					mFrame;

@@ -94,7 +94,7 @@ bool DecoderVideo::process(AVPacket *packet)
 {
     int	completed;
     int pts = 0;
-	
+
 	// Decode video frame
 	avcodec_decode_video(mStream->codec,
 						 mTempFrame,
@@ -114,6 +114,9 @@ bool DecoderVideo::process(AVPacket *packet)
 
 	if (completed) {
 		pts = synchronize(mTempFrame, pts);
+
+		//onDecode(frame, pts);
+
 		// Convert the image from its native format to RGB
 		sws_scale(mConvertCtx,
 			      mTempFrame->data,
