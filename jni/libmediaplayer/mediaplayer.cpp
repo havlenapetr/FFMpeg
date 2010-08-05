@@ -112,8 +112,9 @@ status_t MediaPlayer::prepareVideo()
 		return INVALID_OPERATION;
 	}
 	
+	AVStream* stream = mMovieFile->streams[mVideoStreamIndex];
 	// Get a pointer to the codec context for the video stream
-	AVCodecContext* codec_ctx = mMovieFile->streams[mVideoStreamIndex]->codec;
+	AVCodecContext* codec_ctx = stream->codec;
 	AVCodec* codec = avcodec_find_decoder(codec_ctx->codec_id);
 	if (codec == NULL) {
 		return INVALID_OPERATION;
@@ -128,6 +129,41 @@ status_t MediaPlayer::prepareVideo()
 	mVideoHeight = codec_ctx->height;
 	mDuration =  mMovieFile->duration;
 	
+	mConvertCtx = sws_getContext(stream->codec->width,
+								 stream->codec->height,
+								 stream->codec->pix_fmt,
+								 stream->codec->width,
+								 stream->codec->height,
+								 PIX_FMT_RGB565,
+								 SWS_POINT,
+								 NULL,
+								 NULL,
+								 NULL);
+
+	if (mConvertCtx == NULL) {
+		return INVALID_OPERATION;
+	}
+
+	void*		pixels;
+	if (Output::VideoDriver_getPixels(stream->codec->width,
+									  stream->codec->height,
+									  &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+		return INVALID_OPERATION;
+	}
+
+	mFrame = avcodec_alloc_frame();
+	if (mFrame == NULL) {
+		return INVALID_OPERATION;
+	}
+	// Assign appropriate parts of buffer to image planes in pFrameRGB
+	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+	// of AVPicture
+	avpicture_fill((AVPicture *) mFrame,
+				   (uint8_t *) pixels,
+				   PIX_FMT_RGB565,
+				   stream->codec->width,
+				   stream->codec->height);
+
 	return NO_ERROR;
 }
 
@@ -248,23 +284,16 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 
 void MediaPlayer::decode(AVFrame* frame, double pts)
 {
-	/*
-	AVFrame* buffFrame = avcodec_alloc_frame();
-	if (frame == NULL) {
-		return false;
-	}
-
 	// Convert the image from its native format to RGB
-	sws_scale(mConvertCtx,
-			  frame->data,
-			  frame->linesize,
+	sws_scale(sPlayer->mConvertCtx,
+		      frame->data,
+		      frame->linesize,
 			  0,
-			  mStream->codec->height,
-			  buffFrame->data,
-			  buffFrame->linesize);
+			  sPlayer->mVideoHeight,
+			  sPlayer->mFrame->data,
+			  sPlayer->mFrame->linesize);
 
 	Output::VideoDriver_updateSurface();
-	*/
 }
 
 void MediaPlayer::decode(int16_t* buffer, int buffer_size)

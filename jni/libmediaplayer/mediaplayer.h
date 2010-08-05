@@ -165,6 +165,8 @@ private:
     int 						mVideoStreamIndex;
     DecoderAudio*				mDecoderAudio;
 	DecoderVideo*             	mDecoderVideo;
+	AVFrame*					mFrame;
+	struct SwsContext*			mConvertCtx;
 
     void*                       mCookie;
     media_player_states         mCurrentState;

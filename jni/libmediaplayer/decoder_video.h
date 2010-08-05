@@ -15,8 +15,6 @@ public:
 
 private:
 	AVFrame*					mFrame;
-	AVFrame*					mTempFrame;
-	struct SwsContext*			mConvertCtx;
 	double						mVideoClock;
 
     bool                        prepare();
