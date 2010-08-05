@@ -1,6 +1,7 @@
 package com.media.ffmpeg;
 
 import android.os.PowerManager;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.media.AudioManager;
@@ -66,6 +67,9 @@ public class FFMpegPlayer
      */
     public static final int MEDIA_INFO_METADATA_UPDATE = 802;
     
+    public static final int MEDIA_INFO_FRAMERATE_VIDEO = 900;
+    public static final int MEDIA_INFO_FRAMERATE_AUDIO = 901;
+    
     private final static String 		TAG = "MediaPlayer";
 
     private int 						mNativeContext; // accessed by native methods
@@ -96,7 +100,15 @@ public class FFMpegPlayer
      */
     private static void postEventFromNative(Object mediaplayer_ref,
                                             int what, int arg1, int arg2, Object obj)
-    {	
+    {
+    	switch(what) {
+    	case MEDIA_INFO_FRAMERATE_VIDEO:
+    		Log.d(TAG, "Video fps:" + arg1);
+    		break;
+    	case MEDIA_INFO_FRAMERATE_AUDIO:
+    		Log.d(TAG, "Audio fps:" + arg1);
+    		break;
+    	}
     }
     
     /**
@@ -334,7 +346,7 @@ public class FFMpegPlayer
 
     
 
-    private static native final void native_init();
+    private static native final void native_init() throws RuntimeException;
     private native final void native_setup(Object mediaplayer_this);
     private native final void native_finalize();
 

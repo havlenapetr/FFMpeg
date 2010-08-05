@@ -25,6 +25,8 @@ extern "C" {
 #include "mediaplayer.h"
 #include "output.h"
 
+#define FPS_DEBUGGING false
+
 static MediaPlayer* sPlayer;
 
 MediaPlayer::MediaPlayer()
@@ -263,27 +265,25 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 			  && queue->size() == 0));
 }
 
-
-/*
-  timeval	    pTime;
-  int				frames = 0;
-    double			t1 = -1;
-    double			t2 = -1;
-
-        gettimeofday(&pTime, NULL);
-                t2=pTime.tv_sec+(pTime.tv_usec/1000000.0);
-                if(t1 == -1 || t2 > t1 + 1)
-                {
-                        __android_log_print(ANDROID_LOG_ERROR, TAG, "Video frame rate: %ifps", frames);
-                        t1=t2;
-                        frames = 0;
-                }
-                frames++;
-
-               */
-
 void MediaPlayer::decode(AVFrame* frame, double pts)
 {
+	if(FPS_DEBUGGING) {
+		timeval pTime;
+		static int frames = 0;
+		static double t1 = -1;
+		static double t2 = -1;
+
+		gettimeofday(&pTime, NULL);
+		t2 = pTime.tv_sec + (pTime.tv_usec / 1000000.0);
+		if (t1 == -1 || t2 > t1 + 1) {
+			__android_log_print(ANDROID_LOG_INFO, TAG, "Video fps:%i", frames);
+			//sPlayer->notify(MEDIA_INFO_FRAMERATE_VIDEO, frames, -1);
+			t1 = t2;
+			frames = 0;
+		}
+		frames++;
+	}
+
 	// Convert the image from its native format to RGB
 	sws_scale(sPlayer->mConvertCtx,
 		      frame->data,
@@ -298,6 +298,23 @@ void MediaPlayer::decode(AVFrame* frame, double pts)
 
 void MediaPlayer::decode(int16_t* buffer, int buffer_size)
 {
+	if(FPS_DEBUGGING) {
+		timeval pTime;
+		static int frames = 0;
+		static double t1 = -1;
+		static double t2 = -1;
+
+		gettimeofday(&pTime, NULL);
+		t2 = pTime.tv_sec + (pTime.tv_usec / 1000000.0);
+		if (t1 == -1 || t2 > t1 + 1) {
+			__android_log_print(ANDROID_LOG_INFO, TAG, "Audio fps:%i", frames);
+			//sPlayer->notify(MEDIA_INFO_FRAMERATE_AUDIO, frames, -1);
+			t1 = t2;
+			frames = 0;
+		}
+		frames++;
+	}
+
 	if(Output::AudioDriver_write(buffer, buffer_size) <= 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't write samples to audio track");
 	}
@@ -505,13 +522,13 @@ void MediaPlayer::ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl
 
 void MediaPlayer::notify(int msg, int ext1, int ext2)
 {
-    __android_log_print(ANDROID_LOG_INFO, TAG, "message received msg=%d, ext1=%d, ext2=%d", msg, ext1, ext2);
+    //__android_log_print(ANDROID_LOG_INFO, TAG, "message received msg=%d, ext1=%d, ext2=%d", msg, ext1, ext2);
     bool send = true;
     bool locked = false;
 
     if ((mListener != 0) && send) {
-       __android_log_print(ANDROID_LOG_INFO, TAG, "callback application");
+       //__android_log_print(ANDROID_LOG_INFO, TAG, "callback application");
        mListener->notify(msg, ext1, ext2);
-       __android_log_print(ANDROID_LOG_INFO, TAG, "back from callback");
+       //__android_log_print(ANDROID_LOG_INFO, TAG, "back from callback");
 	}
 }

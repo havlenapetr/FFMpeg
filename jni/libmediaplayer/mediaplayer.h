@@ -86,6 +86,9 @@ enum media_info_type {
     MEDIA_INFO_NOT_SEEKABLE = 801,
     // New media metadata is available.
     MEDIA_INFO_METADATA_UPDATE = 802,
+
+    MEDIA_INFO_FRAMERATE_VIDEO = 900,
+    MEDIA_INFO_FRAMERATE_AUDIO,
 };
 
 

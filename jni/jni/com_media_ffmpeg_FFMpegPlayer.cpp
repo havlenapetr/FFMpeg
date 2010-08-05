@@ -340,14 +340,13 @@ com_media_ffmpeg_FFMpegPlayer_native_init(JNIEnv *env)
         jniThrowException(env, "java/lang/RuntimeException", "Can't find MediaPlayer.mNativeContext");
         return;
     }
-	/*
+
     fields.post_event = env->GetStaticMethodID(clazz, "postEventFromNative",
                                                    "(Ljava/lang/Object;IIILjava/lang/Object;)V");
     if (fields.post_event == NULL) {
         jniThrowException(env, "java/lang/RuntimeException", "Can't find FFMpegMediaPlayer.postEventFromNative");
         return;
     }
-	*/
 }
 
 static void
