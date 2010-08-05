@@ -26,6 +26,7 @@ bool DecoderAudio::process(AVPacket *packet)
     int size = mSamplesSize;
     int len = avcodec_decode_audio3(mStream->codec, mSamples, &size, packet);
 
+    //call handler for posting buffer to os audio driver
     onDecode(mSamples, size);
 
     return true;

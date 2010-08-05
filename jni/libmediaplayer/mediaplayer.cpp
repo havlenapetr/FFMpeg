@@ -186,8 +186,6 @@ status_t MediaPlayer::suspend() {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel player thread");
 	}
 	
-	__android_log_print(ANDROID_LOG_ERROR, TAG, "suspended");
-	
 	// Close the codec
 	free(mDecoderAudio);
 	free(mDecoderVideo);
@@ -195,7 +193,11 @@ status_t MediaPlayer::suspend() {
 	// Close the video file
 	av_close_input_file(mMovieFile);
 
+	//close OS drivers
 	Output::AudioDriver_unregister();
+	Output::VideoDriver_unregister();
+
+	__android_log_print(ANDROID_LOG_ERROR, TAG, "suspended");
 
     return NO_ERROR;
 }
@@ -483,99 +485,4 @@ void MediaPlayer::notify(int msg, int ext1, int ext2)
        mListener->notify(msg, ext1, ext2);
        __android_log_print(ANDROID_LOG_INFO, TAG, "back from callback");
 	}
-    /*
-    // TODO: In the future, we might be on the same thread if the app is
-    // running in the same process as the media server. In that case,
-    // this will deadlock.
-    //
-    // The threadId hack below works around this for the care of prepare
-    // and seekTo within the same process.
-    // FIXME: Remember, this is a hack, it's not even a hack that is applied
-    // consistently for all use-cases, this needs to be revisited.
-     if (mLockThreadId != getThreadId()) {
-        mLock.lock();
-        locked = true;
-    }
-
-    if (mPlayer == 0) {
-        __android_log_print(ANDROID_LOG_INFO, TAG, "notify(%d, %d, %d) callback on disconnected mediaplayer", msg, ext1, ext2);
-        if (locked) mLock.unlock();   // release the lock when done.
-        return;
-    }
-
-    switch (msg) {
-    case MEDIA_NOP: // interface test message
-        break;
-    case MEDIA_PREPARED:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "prepared");
-        mCurrentState = MEDIA_PLAYER_PREPARED;
-        if (mPrepareSync) {
-            __android_log_print(ANDROID_LOG_INFO, TAG, "signal application thread");
-            mPrepareSync = false;
-            mPrepareStatus = NO_ERROR;
-            mSignal.signal();
-        }
-        break;
-    case MEDIA_PLAYBACK_COMPLETE:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "playback complete");
-        if (!mLoop) {
-            mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
-        }
-        break;
-    case MEDIA_ERROR:
-        // Always log errors.
-        // ext1: Media framework error code.
-        // ext2: Implementation dependant error code.
-        LOGE("error (%d, %d)", ext1, ext2);
-        mCurrentState = MEDIA_PLAYER_STATE_ERROR;
-        if (mPrepareSync)
-        {
-            __android_log_print(ANDROID_LOG_INFO, TAG, "signal application thread");
-            mPrepareSync = false;
-            mPrepareStatus = ext1;
-            mSignal.signal();
-            send = false;
-        }
-        break;
-    case MEDIA_INFO:
-        // ext1: Media framework error code.
-        // ext2: Implementation dependant error code.
-        LOGW("info/warning (%d, %d)", ext1, ext2);
-        break;
-    case MEDIA_SEEK_COMPLETE:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "Received seek complete");
-        if (mSeekPosition != mCurrentPosition) {
-            __android_log_print(ANDROID_LOG_INFO, TAG, "Executing queued seekTo(%d)", mSeekPosition);
-            mSeekPosition = -1;
-            seekTo_l(mCurrentPosition);
-        }
-        else {
-            __android_log_print(ANDROID_LOG_INFO, TAG, "All seeks complete - return to regularly scheduled program");
-            mCurrentPosition = mSeekPosition = -1;
-        }
-        break;
-    case MEDIA_BUFFERING_UPDATE:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "buffering %d", ext1);
-        break;
-    case MEDIA_SET_VIDEO_SIZE:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "New video size %d x %d", ext1, ext2);
-        mVideoWidth = ext1;
-        mVideoHeight = ext2;
-        break;
-    default:
-        __android_log_print(ANDROID_LOG_INFO, TAG, "unrecognized message: (%d, %d, %d)", msg, ext1, ext2);
-        break;
-    }
-
-    sp<MediaPlayerListener> listener = mListener;
-    if (locked) mLock.unlock();
-
-    // this prevents re-entrant calls into client code
-    if ((listener != 0) && send) {
-        Mutex::Autolock _l(mNotifyLock);
-        __android_log_print(ANDROID_LOG_INFO, TAG, "callback application");
-        listener->notify(msg, ext1, ext2);
-        __android_log_print(ANDROID_LOG_INFO, TAG, "back from callback");
-    }
-	*/
 }

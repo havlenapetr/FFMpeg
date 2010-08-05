@@ -156,8 +156,6 @@ bool DecoderVideo::decode(void* ptr)
 	
     __android_log_print(ANDROID_LOG_INFO, TAG, "decoding video ended");
 	
-    Output::VideoDriver_unregister();
-	
     // Free the RGB image
     av_free(mFrame);
     // Free the RGB image
