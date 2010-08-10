@@ -4,6 +4,8 @@
 #include <pthread.h>
 
 #include <jni.h>
+
+#include <android/utils/VectorImpl.h>
 #include <android/Errors.h>
 
 #include "decoder_audio.h"
@@ -159,7 +161,7 @@ private:
 	double 						mTime;
 	pthread_mutex_t             mLock;
 	pthread_t					mPlayerThread;
-	PacketQueue*				mVideoQueue;
+	Vector<AVFrame*>			mVideoQueue;
     //Mutex                       mNotifyLock;
     //Condition                   mSignal;
     MediaPlayerListener*		mListener;
