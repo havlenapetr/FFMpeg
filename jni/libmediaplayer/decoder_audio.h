@@ -3,20 +3,23 @@
 
 #include "decoder.h"
 
-typedef void (*AudioDecodingHandler) (int16_t*,int);
+class DecoderAudioCallback
+{
+public:
+    virtual void onDecode(int16_t* buffer, int buffer_size);
+};
 
 class DecoderAudio : public IDecoder
 {
 public:
-    DecoderAudio(AVStream* stream);
-
+    DecoderAudio(AVStream* stream, DecoderAudioCallback* callback);
     ~DecoderAudio();
 
-    AudioDecodingHandler                                onDecode;
 
 private:
     int16_t*                                            mSamples;
     int                                                 mSamplesSize;
+    DecoderAudioCallback*                               mCallback;
 
     bool                                                prepare();
     bool                                                decode();

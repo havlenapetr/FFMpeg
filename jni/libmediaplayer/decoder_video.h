@@ -3,19 +3,22 @@
 
 #include "decoder.h"
 
-typedef void (*VideoDecodingHandler) (AVFrame*,double);
+class DecoderVideoCallback
+{
+public:
+    virtual void onDecode(AVFrame* frame, double pts);
+};
 
 class DecoderVideo : public IDecoder
 {
 public:
-    DecoderVideo(AVStream* stream);
+    DecoderVideo(AVStream* stream, DecoderVideoCallback* callback);
     ~DecoderVideo();
-
-    VideoDecodingHandler                                onDecode;
 
 private:
     AVFrame*                                            mFrame;
     double                                              mVideoClock;
+    DecoderVideoCallback*                               mCallback;
 
     bool                                                prepare();
     double                                              synchronize(AVFrame *src_frame, double pts);

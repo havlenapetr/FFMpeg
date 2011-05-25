@@ -5,14 +5,16 @@
 
 static uint64_t global_video_pkt_pts = AV_NOPTS_VALUE;
 
-DecoderVideo::DecoderVideo(AVStream* stream) : IDecoder(stream)
+DecoderVideo::DecoderVideo(AVStream* stream, DecoderVideoCallback* callback) : IDecoder(stream)
 {
+    mCallback = callback;
     mStream->codec->get_buffer = getBuffer;
     mStream->codec->release_buffer = releaseBuffer;
 }
 
 DecoderVideo::~DecoderVideo()
 {
+    delete mCallback;
 }
 
 bool DecoderVideo::prepare()
@@ -67,9 +69,7 @@ bool DecoderVideo::process(AVPacket *packet)
 
 	if (completed) {
 		pts = synchronize(mFrame, pts);
-
-		onDecode(mFrame, pts);
-
+		mCallback->onDecode(mFrame, pts);
 		return true;
 	}
 	return false;

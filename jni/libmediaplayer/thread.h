@@ -65,11 +65,11 @@ public:
 
     // Manages the mutex automatically. It'll be locked when Autolock is
     // constructed and released when Autolock goes out of scope.
-    class gAutolock {
+    class AutoLock {
     public:
-        inline gAutolock(Mutex& mutex) : mLock(mutex)  { mLock.lock(); }
-        inline gAutolock(Mutex* mutex) : mLock(*mutex) { mLock.lock(); }
-        inline ~gAutolock() { mLock.unlock(); }
+        inline AutoLock(Mutex& mutex) : mLock(mutex)  { mLock.lock(); }
+        inline AutoLock(Mutex* mutex) : mLock(*mutex) { mLock.lock(); }
+        inline ~AutoLock() { mLock.unlock(); }
     private:
         Mutex& mLock;
     };

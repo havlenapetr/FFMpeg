@@ -3,12 +3,14 @@
 
 #define TAG "FFMpegAudioDecoder"
 
-DecoderAudio::DecoderAudio(AVStream* stream) : IDecoder(stream)
+DecoderAudio::DecoderAudio(AVStream* stream, DecoderAudioCallback* callback) : IDecoder(stream)
 {
+    mCallback = callback;
 }
 
 DecoderAudio::~DecoderAudio()
 {
+    delete mCallback;
 }
 
 bool DecoderAudio::prepare()
@@ -27,7 +29,7 @@ bool DecoderAudio::process(AVPacket *packet)
     int len = avcodec_decode_audio3(mStream->codec, mSamples, &size, packet);
 
     //call handler for posting buffer to os audio driver
-    onDecode(mSamples, size);
+    mCallback->onDecode(mSamples, size);
 
     return true;
 }

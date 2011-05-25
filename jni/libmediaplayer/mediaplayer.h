@@ -1,8 +1,6 @@
 #ifndef FFMPEG_MEDIAPLAYER_H
 #define FFMPEG_MEDIAPLAYER_H
 
-#include <pthread.h>
-
 #include <jni.h>
 #include <android/Errors.h>
 
@@ -106,6 +104,34 @@ enum media_player_states {
     MEDIA_PLAYER_PLAYBACK_COMPLETE  = 1 << 8
 };
 
+class DecodeLoopCallback
+{
+private:
+    virtual void onCompleted();
+
+    friend class DecodeLoop;
+};
+
+class DecodeLoop : public Thread
+{
+private:
+    DecoderAudio*                               mDecoderAudio;
+    int                                         mAudioStreamId;
+    DecoderVideo*                               mDecoderVideo;
+    int                                         mVideoStreamId;
+    AVFormatContext*                            mContext;
+
+    DecodeLoopCallback*                         mCallback;
+    bool                                        mEnding;
+
+public:
+    DecodeLoop(AVFormatContext* context, int audioStreamId, int videoStreamId, DecodeLoopCallback* callback);
+    ~DecodeLoop();
+
+    virtual void                                run();
+    void                                        suspend();
+};
+
 // ----------------------------------------------------------------------------
 // ref-counted object for callbacks
 class MediaPlayerListener
@@ -114,7 +140,7 @@ public:
     virtual void notify(int msg, int ext1, int ext2) = 0;
 };
 
-class MediaPlayer
+class MediaPlayer : private DecodeLoopCallback
 {
 public:
     MediaPlayer();
@@ -149,29 +175,20 @@ private:
     status_t	    prepareVideo();
     bool            shouldCancel(PacketQueue* queue);
     static void	    ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
-    static void*    startPlayer(void* ptr);
-
-    static void	    decode(AVFrame* frame, double pts);
-    static void     decode(int16_t* buffer, int buffer_size);
-
-    void            decodeMovie(void* ptr);
 	
-    double          mTime;
+    double                      mTime;
 
-    pthread_mutex_t         mLock;
-    pthread_t               mPlayerThread;
-    PacketQueue*            mVideoQueue;
+    PacketQueue*                                mVideoQueue;
+    Mutex                                       mLock;
     //Mutex                 mNotifyLock;
     //Condition             mSignal;
 
-    MediaPlayerListener*    mListener;
-    AVFormatContext*        mMovieFile;
-    int                     mAudioStreamIndex;
-    int                     mVideoStreamIndex;
-    DecoderAudio*           mDecoderAudio;
-    DecoderVideo*           mDecoderVideo;
-    AVFrame*                mFrame;
-    struct SwsContext*      mConvertCtx;
+    MediaPlayerListener*                        mListener;
+    AVFormatContext*                            mMovieFile;
+    int                                         mAudioStreamIndex;
+    int                                         mVideoStreamIndex;
+
+    DecodeLoop*             mDecodingLoop;
 
     void*                   mCookie;
     media_player_states     mCurrentState;
@@ -184,8 +201,15 @@ private:
     bool                    mLoop;
     float                   mLeftVolume;
     float                   mRightVolume;
+
+public:
+    struct SwsContext*      mConvertCtx;
+    AVFrame*                mFrame;
     int                     mVideoWidth;
     int                     mVideoHeight;
+
+protected:
+    virtual void                                onCompleted();
 };
 
 #endif // FFMPEG_MEDIAPLAYER_H
