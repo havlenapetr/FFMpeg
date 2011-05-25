@@ -86,9 +86,9 @@ static MediaPlayer* setMediaPlayer(JNIEnv* env, jobject thiz, MediaPlayer* playe
 {
     MediaPlayer* old = (MediaPlayer*)env->GetIntField(thiz, fields.context);
     if (old != NULL) {
-		__android_log_print(ANDROID_LOG_INFO, TAG, "freeing old mediaplayer object");
-		free(old);
-	}
+        __android_log_print(ANDROID_LOG_INFO, TAG, "freeing old mediaplayer object");
+        free(old);
+    }
     env->SetIntField(thiz, fields.context, (int)player);
     return old;
 }
@@ -100,12 +100,12 @@ static MediaPlayer* setMediaPlayer(JNIEnv* env, jobject thiz, MediaPlayer* playe
 static void process_media_player_call(JNIEnv *env, jobject thiz, status_t opStatus, const char* exception, const char *message)
 {
     if (exception == NULL) {  // Don't throw exception. Instead, send an event.
-		/*
+	/*
         if (opStatus != (status_t) OK) {
             sp<MediaPlayer> mp = getMediaPlayer(env, thiz);
             if (mp != 0) mp->notify(MEDIA_ERROR, opStatus, 0);
         }
-		*/
+	*/
     } else {  // Throw exception!
         if ( opStatus == (status_t) INVALID_OPERATION ) {
             jniThrowException(env, "java/lang/IllegalStateException", NULL);
@@ -172,8 +172,8 @@ com_media_ffmpeg_FFMpegPlayer_setVideoSurface(JNIEnv *env, jobject thiz, jobject
         jniThrowException(env, "java/lang/IllegalStateException", NULL);
         return;
     }
-	process_media_player_call( env, thiz, mp->setVideoSurface(env, jsurface), 
-							  "java/io/IOException", "Set video surface failed.");
+    process_media_player_call( env, thiz, mp->setVideoSurface(env, jsurface), 
+        "java/io/IOException", "Set video surface failed.");
 }
 
 static void

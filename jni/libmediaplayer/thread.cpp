@@ -1,65 +1,81 @@
-#include <android/log.h>
+/*
+ * Copyright (c) 2011 Petr Havlena  havlenapetr@gmail.com
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include <stdio.h>
+
 #include "thread.h"
 
-#define TAG "FFMpegThread"
+#define THREAD_NAME_MAX 50
 
-Thread::Thread()
+#define LOG_TAG "Thread"
+
+static int sThreadCounter = 0;
+
+Thread::Thread() :
+    mName(NULL)
 {
-	pthread_mutex_init(&mLock, NULL);
-	pthread_cond_init(&mCondition, NULL);
+    init();
+}
+
+Thread::Thread(const char* name) :
+    mName(name)
+{
+    init();
 }
 
 Thread::~Thread()
 {
 }
 
+void Thread::init()
+{
+    pthread_mutex_init(&mLock, NULL);
+    pthread_cond_init(&mCondition, NULL);
+    sThreadCounter++;
+}
+
 void Thread::start()
 {
-    handleRun(NULL);
+    pthread_create(&mThread, NULL, handleThreadStart, this);
 }
 
-void Thread::startAsync()
+int Thread::join()
 {
-    pthread_create(&mThread, NULL, startThread, this);
-}
-
-int Thread::wait()
-{
-	if(!mRunning)
-	{
-		return 0;
-	}
+    if(!mRunning)
+    {
+        return 0;
+    }
     return pthread_join(mThread, NULL);
 }
 
-void Thread::stop()
+void* Thread::handleThreadStart(void* ptr)
 {
+    Thread* thread = (Thread *) ptr;
+
+    thread->mRunning = true;
+
+    thread->run();
+
+    thread->mRunning = false;
+
+    return 0;
 }
 
-void* Thread::startThread(void* ptr)
-{
-    __android_log_print(ANDROID_LOG_INFO, TAG, "starting thread");
-	Thread* thread = (Thread *) ptr;
-	thread->mRunning = true;
-    thread->handleRun(ptr);
-	thread->mRunning = false;
-	__android_log_print(ANDROID_LOG_INFO, TAG, "thread ended");
-}
-
-void Thread::waitOnNotify()
-{
-	pthread_mutex_lock(&mLock);
-	pthread_cond_wait(&mCondition, &mLock);
-	pthread_mutex_unlock(&mLock);
-}
-
-void Thread::notify()
-{
-	pthread_mutex_lock(&mLock);
-	pthread_cond_signal(&mCondition);
-	pthread_mutex_unlock(&mLock);
-}
-
-void Thread::handleRun(void* ptr)
+void Thread::run()
 {
 }

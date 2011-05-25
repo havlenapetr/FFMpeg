@@ -12,15 +12,15 @@ public:
 
     ~DecoderAudio();
 
-    AudioDecodingHandler		onDecode;
+    AudioDecodingHandler                                onDecode;
 
 private:
-    int16_t*                    mSamples;
-    int                         mSamplesSize;
+    int16_t*                                            mSamples;
+    int                                                 mSamplesSize;
 
-    bool                        prepare();
-    bool                        decode(void* ptr);
-    bool                        process(AVPacket *packet);
+    bool                                                prepare();
+    bool                                                decode();
+    bool                                                process(AVPacket *packet);
 };
 
 #endif //FFMPEG_DECODER_AUDIO_H

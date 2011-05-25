@@ -5,28 +5,28 @@
 
 IDecoder::IDecoder(AVStream* stream)
 {
-	mQueue = new PacketQueue();
-	mStream = stream;
+    mQueue = new PacketQueue();
+    mStream = stream;
 }
 
 IDecoder::~IDecoder()
 {
-	if(mRunning)
+    if(mRunning)
     {
         stop();
     }
-	free(mQueue);
-	avcodec_close(mStream->codec);
+    free(mQueue);
+    avcodec_close(mStream->codec);
 }
 
 void IDecoder::enqueue(AVPacket* packet)
 {
-	mQueue->put(packet);
+    mQueue->put(packet);
 }
 
 int IDecoder::packets()
 {
-	return mQueue->size();
+    return mQueue->size();
 }
 
 void IDecoder::stop()
@@ -34,20 +34,20 @@ void IDecoder::stop()
     mQueue->abort();
     __android_log_print(ANDROID_LOG_INFO, TAG, "waiting on end of decoder thread");
     int ret = -1;
-    if((ret = wait()) != 0) {
+    if((ret = join()) != 0) {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel IDecoder: %i", ret);
         return;
     }
 }
 
-void IDecoder::handleRun(void* ptr)
+void IDecoder::run()
 {
-	if(!prepare())
+    if(!prepare())
     {
-		__android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't prepare decoder");
+        __android_log_print(ANDROID_LOG_INFO, TAG, "Couldn't prepare decoder");
         return;
     }
-	decode(ptr);
+    decode();
 }
 
 bool IDecoder::prepare()
@@ -57,10 +57,10 @@ bool IDecoder::prepare()
 
 bool IDecoder::process(AVPacket *packet)
 {
-	return false;
+    return false;
 }
 
-bool IDecoder::decode(void* ptr)
+bool IDecoder::decode()
 {
     return false;
 }

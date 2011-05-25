@@ -119,71 +119,73 @@ class MediaPlayer
 public:
     MediaPlayer();
     ~MediaPlayer();
-	status_t        setDataSource(const char *url);
-	status_t        setVideoSurface(JNIEnv* env, jobject jsurface);
-	status_t        setListener(MediaPlayerListener *listener);
-	status_t        start();
-	status_t        stop();
-	status_t        pause();
-	bool            isPlaying();
-	status_t        getVideoWidth(int *w);
-	status_t        getVideoHeight(int *h);
-	status_t        seekTo(int msec);
-	status_t        getCurrentPosition(int *msec);
-	status_t        getDuration(int *msec);
-	status_t        reset();
-	status_t        setAudioStreamType(int type);
-	status_t		prepare();
-	void            notify(int msg, int ext1, int ext2);
+    status_t        setDataSource(const char *url);
+    status_t        setVideoSurface(JNIEnv* env, jobject jsurface);
+    status_t        setListener(MediaPlayerListener *listener);
+    status_t        start();
+    status_t        stop();
+    status_t        pause();
+    bool            isPlaying();
+    status_t        getVideoWidth(int *w);
+    status_t        getVideoHeight(int *h);
+    status_t        seekTo(int msec);
+    status_t        getCurrentPosition(int *msec);
+    status_t        getDuration(int *msec);
+    status_t        reset();
+    status_t        setAudioStreamType(int type);
+    status_t	    prepare();
+    void            notify(int msg, int ext1, int ext2);
 //    static  sp<IMemory>     decode(const char* url, uint32_t *pSampleRate, int* pNumChannels, int* pFormat);
 //    static  sp<IMemory>     decode(int fd, int64_t offset, int64_t length, uint32_t *pSampleRate, int* pNumChannels, int* pFormat);
 //    static  int             snoop(short *data, int len, int kind);
 //            status_t        invoke(const Parcel& request, Parcel *reply);
 //            status_t        setMetadataFilter(const Parcel& filter);
 //            status_t        getMetadata(bool update_only, bool apply_filter, Parcel *metadata);
-	status_t        suspend();
-	status_t        resume();
+    status_t        suspend();
+    status_t        resume();
 
 private:
-	status_t					prepareAudio();
-	status_t					prepareVideo();
-	bool						shouldCancel(PacketQueue* queue);
-	static void					ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
-	static void*				startPlayer(void* ptr);
+    status_t	    prepareAudio();
+    status_t	    prepareVideo();
+    bool            shouldCancel(PacketQueue* queue);
+    static void	    ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
+    static void*    startPlayer(void* ptr);
 
-	static void 				decode(AVFrame* frame, double pts);
-	static void 				decode(int16_t* buffer, int buffer_size);
+    static void	    decode(AVFrame* frame, double pts);
+    static void     decode(int16_t* buffer, int buffer_size);
 
-	void						decodeMovie(void* ptr);
+    void            decodeMovie(void* ptr);
 	
-	double 						mTime;
-	pthread_mutex_t             mLock;
-	pthread_t					mPlayerThread;
-	PacketQueue*				mVideoQueue;
-    //Mutex                       mNotifyLock;
-    //Condition                   mSignal;
-    MediaPlayerListener*		mListener;
-    AVFormatContext*			mMovieFile;
-    int 						mAudioStreamIndex;
-    int 						mVideoStreamIndex;
-    DecoderAudio*				mDecoderAudio;
-	DecoderVideo*             	mDecoderVideo;
-	AVFrame*					mFrame;
-	struct SwsContext*			mConvertCtx;
+    double          mTime;
 
-    void*                       mCookie;
-    media_player_states         mCurrentState;
-    int                         mDuration;
-    int                         mCurrentPosition;
-    int                         mSeekPosition;
-    bool                        mPrepareSync;
-    status_t                    mPrepareStatus;
-    int                         mStreamType;
-    bool                        mLoop;
-    float                       mLeftVolume;
-    float                       mRightVolume;
-    int                         mVideoWidth;
-    int                         mVideoHeight;
+    pthread_mutex_t         mLock;
+    pthread_t               mPlayerThread;
+    PacketQueue*            mVideoQueue;
+    //Mutex                 mNotifyLock;
+    //Condition             mSignal;
+
+    MediaPlayerListener*    mListener;
+    AVFormatContext*        mMovieFile;
+    int                     mAudioStreamIndex;
+    int                     mVideoStreamIndex;
+    DecoderAudio*           mDecoderAudio;
+    DecoderVideo*           mDecoderVideo;
+    AVFrame*                mFrame;
+    struct SwsContext*      mConvertCtx;
+
+    void*                   mCookie;
+    media_player_states     mCurrentState;
+    int                     mDuration;
+    int                     mCurrentPosition;
+    int                     mSeekPosition;
+    bool                    mPrepareSync;
+    status_t                mPrepareStatus;
+    int                     mStreamType;
+    bool                    mLoop;
+    float                   mLeftVolume;
+    float                   mRightVolume;
+    int                     mVideoWidth;
+    int                     mVideoHeight;
 };
 
 #endif // FFMPEG_MEDIAPLAYER_H

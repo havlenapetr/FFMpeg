@@ -7,8 +7,8 @@ static uint64_t global_video_pkt_pts = AV_NOPTS_VALUE;
 
 DecoderVideo::DecoderVideo(AVStream* stream) : IDecoder(stream)
 {
-	 mStream->codec->get_buffer = getBuffer;
-	 mStream->codec->release_buffer = releaseBuffer;
+    mStream->codec->get_buffer = getBuffer;
+    mStream->codec->release_buffer = releaseBuffer;
 }
 
 DecoderVideo::~DecoderVideo()
@@ -17,11 +17,11 @@ DecoderVideo::~DecoderVideo()
 
 bool DecoderVideo::prepare()
 {
-	mFrame = avcodec_alloc_frame();
-	if (mFrame == NULL) {
-		return false;
-	}
-	return true;
+    mFrame = avcodec_alloc_frame();
+    if (mFrame == NULL) {
+        return false;
+    }
+    return true;
 }
 
 double DecoderVideo::synchronize(AVFrame *src_frame, double pts) {
@@ -75,11 +75,11 @@ bool DecoderVideo::process(AVPacket *packet)
 	return false;
 }
 
-bool DecoderVideo::decode(void* ptr)
+bool DecoderVideo::decode()
 {
-	AVPacket        pPacket;
+    AVPacket        pPacket;
 	
-	__android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
+    __android_log_print(ANDROID_LOG_INFO, TAG, "decoding video");
 	
     while(mRunning)
     {

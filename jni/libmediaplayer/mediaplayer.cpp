@@ -327,12 +327,12 @@ void MediaPlayer::decodeMovie(void* ptr)
 	AVStream* stream_audio = mMovieFile->streams[mAudioStreamIndex];
 	mDecoderAudio = new DecoderAudio(stream_audio);
 	mDecoderAudio->onDecode = decode;
-	mDecoderAudio->startAsync();
+	mDecoderAudio->start();
 	
 	AVStream* stream_video = mMovieFile->streams[mVideoStreamIndex];
 	mDecoderVideo = new DecoderVideo(stream_video);
 	mDecoderVideo->onDecode = decode;
-	mDecoderVideo->startAsync();
+	mDecoderVideo->start();
 	
 	mCurrentState = MEDIA_PLAYER_STARTED;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "playing %ix%i", mVideoWidth, mVideoHeight);
@@ -366,17 +366,17 @@ void MediaPlayer::decodeMovie(void* ptr)
 	//waits on end of video thread
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on video thread");
 	int ret = -1;
-	if((ret = mDecoderVideo->wait()) != 0) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
+	if((ret = mDecoderVideo->join()) != 0) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel video thread: %i", ret);
 	}
 	
 	__android_log_print(ANDROID_LOG_ERROR, TAG, "waiting on audio thread");
-	if((ret = mDecoderAudio->wait()) != 0) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
+	if((ret = mDecoderAudio->join()) != 0) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel audio thread: %i", ret);
 	}
     
 	if(mCurrentState == MEDIA_PLAYER_STATE_ERROR) {
-		__android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
+            __android_log_print(ANDROID_LOG_INFO, TAG, "playing err");
 	}
 	mCurrentState = MEDIA_PLAYER_PLAYBACK_COMPLETE;
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");

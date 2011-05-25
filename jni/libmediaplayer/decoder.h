@@ -14,21 +14,22 @@ extern "C" {
 class IDecoder : public Thread
 {
 public:
-	IDecoder(AVStream* stream);
-	~IDecoder();
+    IDecoder(AVStream* stream);
+    ~IDecoder();
 	
-    void						stop();
-	void						enqueue(AVPacket* packet);
-	int							packets();
+    void                                                stop();
+    void                                                enqueue(AVPacket* packet);
+    int                                                 packets();
 
 protected:
-    PacketQueue*                mQueue;
-    AVStream*             		mStream;
+    PacketQueue*                                        mQueue;
+    AVStream*                                           mStream;
 
-    virtual bool                prepare();
-    virtual bool                decode(void* ptr);
-    virtual bool                process(AVPacket *packet);
-	void						handleRun(void* ptr);
+    virtual bool                                        prepare();
+    virtual bool                                        decode();
+    virtual bool                                        process(AVPacket *packet);
+
+    virtual void                                        run();
 };
 
 #endif //FFMPEG_DECODER_H

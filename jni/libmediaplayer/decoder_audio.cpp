@@ -32,7 +32,7 @@ bool DecoderAudio::process(AVPacket *packet)
     return true;
 }
 
-bool DecoderAudio::decode(void* ptr)
+bool DecoderAudio::decode()
 {
     AVPacket        pPacket;
 
