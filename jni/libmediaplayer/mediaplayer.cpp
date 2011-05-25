@@ -220,9 +220,6 @@ status_t MediaPlayer::suspend() {
 		mDecoderVideo->stop();
 	}
 	
-	/*if(pthread_join(mRenderThread, NULL) != 0) {
-		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel render thread");
-	}*/
 	if(pthread_join(mPlayerThread, NULL) != 0) {
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "Couldn't cancel player thread");
 	}
@@ -268,9 +265,6 @@ bool MediaPlayer::shouldCancel(PacketQueue* queue)
 			  && queue->size() == 0));
 }
 
-/**
- * handler for receiving decoded video frames
- */
 void MediaPlayer::decode(AVFrame* frame, double pts)
 {
 	if(FPS_DEBUGGING) {
@@ -290,35 +284,6 @@ void MediaPlayer::decode(AVFrame* frame, double pts)
 		frames++;
 	}
 
-	/*
-	AVFrame* f = avcodec_alloc_frame();
-	if (f == NULL) {
-		return;
-	}
-	// Assign appropriate parts of buffer to image planes in pFrameRGB
-	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-	// of AVPicture
-	uint8_t *pixels = (uint8_t *) malloc(sizeof(uint8_t *) * sPlayer->mVideoWidth * sPlayer->mVideoHeight * 2);
-	avpicture_fill((AVPicture *) f,
-				   (uint8_t *) pixels,
-				   PIX_FMT_RGB565,
-				   sPlayer->mVideoWidth,
-				   sPlayer->mVideoHeight);
-
-	memcpy(f->data, frame->data, sPlayer->mVideoWidth * sPlayer->mVideoHeight * 2);
-
-	__android_log_print(ANDROID_LOG_INFO, TAG, "1");
-
-	f->linesize[0] = frame->linesize[0];
-	f->linesize[1] = frame->linesize[1];
-	f->linesize[2] = frame->linesize[2];
-	f->linesize[3] = frame->linesize[3];
-
-	sPlayer->mVideoQueue.push(f);
-
-	__android_log_print(ANDROID_LOG_INFO, TAG, "2");
-	*/
-
 	// Convert the image from its native format to RGB
 	sws_scale(sPlayer->mConvertCtx,
 		      frame->data,
@@ -331,9 +296,6 @@ void MediaPlayer::decode(AVFrame* frame, double pts)
 	Output::VideoDriver_updateSurface();
 }
 
-/**
- * handler for receiving decoded audio buffers
- */
 void MediaPlayer::decode(int16_t* buffer, int buffer_size)
 {
 	if(FPS_DEBUGGING) {
@@ -420,49 +382,10 @@ void MediaPlayer::decodeMovie(void* ptr)
 	__android_log_print(ANDROID_LOG_INFO, TAG, "end of playing");
 }
 
-void MediaPlayer::render(void* ptr)
-{
-	while (mCurrentState != MEDIA_PLAYER_DECODED && mCurrentState != MEDIA_PLAYER_STOPPED &&
-			   mCurrentState != MEDIA_PLAYER_STATE_ERROR)
-	{
-		int length = mVideoQueue.size();
-		if(length > 0) {
-		    AVFrame** frames = mVideoQueue.editArray();
-		    mVideoQueue.clear();
-		    for(int i=0;i<length;i++) {
-		    	AVFrame* frame = frames[i];
-
-		    	__android_log_print(ANDROID_LOG_INFO, TAG, "3");
-
-		    	// Convert the image from its native format to RGB
-		    	sws_scale(sPlayer->mConvertCtx,
-		    		      frame->data,
-		    		      frame->linesize,
-		    			  0,
-		    			  mVideoHeight,
-		    			  mFrame->data,
-		    			  mFrame->linesize);
-
-		    	Output::VideoDriver_updateSurface();
-		    	av_free(frame);
-
-		    	__android_log_print(ANDROID_LOG_INFO, TAG, "4");
-		    }
-		}
-		usleep(20);
-	}
-}
-
 void* MediaPlayer::startPlayer(void* ptr)
 {
     __android_log_print(ANDROID_LOG_INFO, TAG, "starting main player thread");
     sPlayer->decodeMovie(ptr);
-}
-
-void* MediaPlayer::startRendering(void* ptr)
-{
-	__android_log_print(ANDROID_LOG_INFO, TAG, "starting rendering thread");
-	sPlayer->render(ptr);
 }
 
 status_t MediaPlayer::start()
@@ -471,7 +394,6 @@ status_t MediaPlayer::start()
 		return INVALID_OPERATION;
 	}
 	pthread_create(&mPlayerThread, NULL, startPlayer, NULL);
-	//pthread_create(&mRenderThread, NULL, startRendering, NULL);
 	return NO_ERROR;
 }
 
