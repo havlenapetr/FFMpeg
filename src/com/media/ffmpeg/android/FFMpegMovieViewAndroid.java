@@ -16,34 +16,33 @@ import android.widget.MediaController.MediaPlayerControl;
 public class FFMpegMovieViewAndroid extends SurfaceView {
 	private static final String 	TAG = "FFMpegMovieViewAndroid"; 
 	
-	private Context					mContext;
 	private FFMpegPlayer			mPlayer;
-	private SurfaceHolder			mSurfaceHolder;
 	private MediaController			mMediaController;
 	
 	public FFMpegMovieViewAndroid(Context context) {
         super(context);
-        initVideoView(context);
+        initVideoView();
     }
     
     public FFMpegMovieViewAndroid(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
-        initVideoView(context);
+        initVideoView();
     }
     
     public FFMpegMovieViewAndroid(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        initVideoView(context);
+        initVideoView();
     }
     
-    private void initVideoView(Context context) {
-    	mContext = context;
+    private void initVideoView() {
     	mPlayer = new FFMpegPlayer();
-    	getHolder().addCallback(mSHCallback);
+    	
+    	SurfaceHolder surfHolder = getHolder();
+    	surfHolder.addCallback(mSHCallback);
     }
     
     private void attachMediaController() {
-    	mMediaController = new MediaController(mContext);
+    	mMediaController = new MediaController(getContext());
         View anchorView = this.getParent() instanceof View ?
                     (View)this.getParent() : this;
         mMediaController.setMediaPlayer(mMediaPlayerControl);
@@ -58,9 +57,9 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     /**
      * initzialize player
      */
-    private void openVideo() {
+    private void openVideo(SurfaceHolder surfHolder) {
     	try {
-    		mPlayer.setDisplay(mSurfaceHolder);
+    		mPlayer.setDisplay(surfHolder);
 			mPlayer.prepare();
 		} catch (IllegalStateException e) {
 			Log.e(TAG, "Couldn't prepare player: " + e.getMessage());
@@ -95,8 +94,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
-            mSurfaceHolder = holder;
-            openVideo();
+            openVideo(holder);
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
@@ -104,8 +102,6 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 			if(mMediaController.isShowing()) {
 				mMediaController.hide();
 			}
-			// after we return from this we can't use the surface any more
-            mSurfaceHolder = null;
         }
     };
     
