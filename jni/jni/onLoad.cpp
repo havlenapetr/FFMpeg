@@ -52,10 +52,10 @@ int jniThrowException(JNIEnv* env, const char* className, const char* msg) {
 JNIEnv* getJNIEnv() {
     JNIEnv* env = NULL;
     if (sVm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) {
-	__android_log_print(ANDROID_LOG_ERROR,
-			    TAG,
-			    "Failed to obtain JNIEnv");
-        return NULL;
+    	__android_log_print(ANDROID_LOG_ERROR,
+							TAG,
+							"Failed to obtain JNIEnv");
+    	return NULL;
     }
     return env;
 }

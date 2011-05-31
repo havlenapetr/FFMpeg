@@ -1,4 +1,4 @@
-LOCAL_PATH:= $(TOP_LOCAL_PATH)
+LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
@@ -12,6 +12,6 @@ include $(BUILD_PACKAGE)
 # ============================================================
 
 # Also build all of the sub-targets under this one: the shared library.
-IN_NDK := false
+IN_NDK := true
 WITH_PLAYER := true
 include $(call all-makefiles-under,$(LOCAL_PATH))

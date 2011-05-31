@@ -1,4 +1,0 @@
-#define HAVE_SYS_TYPES_H
-#define HAVE_INTTYPES_H
-#define HAVE_STDINT_H
-#define HAVE_INT32_T

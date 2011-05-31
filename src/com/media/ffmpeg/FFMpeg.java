@@ -7,7 +7,7 @@ import java.io.IOException;
 import android.content.Context;
 import android.util.Log;
 
-import com.media.ffmpeg.android.FFMpegPlayerAndroid;
+import com.media.ffmpeg.android.FFMpegMovieViewAndroid;
 import com.media.ffmpeg.config.FFMpegConfig;
 
 
@@ -106,8 +106,8 @@ public class FFMpeg {
 		native_av_parse_options(new String[] {"ffmpeg", mOutputFile.getFile().getAbsolutePath()});
     }
     
-    public FFMpegPlayerAndroid getPlayer(Context context) {
-    	return new FFMpegPlayerAndroid(context);
+    public FFMpegMovieViewAndroid getMovieView(Context context) {
+    	return new FFMpegMovieViewAndroid(context);
     }
     
     public void setBitrate(String bitrate) {

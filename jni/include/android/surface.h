@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2011 Petr Havlena  havlenapetr@gmail.com
  * Copyright (C) 2009 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +21,13 @@
 #include <stdint.h>
 #include <jni.h>
 
-#define ANDROID_SURFACE_RESULT_SUCCESS						 0
-#define ANDROID_SURFACE_RESULT_NOT_VALID					-1
-#define ANDROID_SURFACE_RESULT_COULDNT_LOCK					-2
-#define ANDROID_SURFACE_RESULT_COULDNT_UNLOCK_AND_POST		-3
-#define ANDROID_SURFACE_RESULT_COULDNT_INIT_BITMAP_SURFACE	-4
-#define ANDROID_SURFACE_RESULT_COULDNT_INIT_BITMAP_CLIENT	-5
-#define ANDROID_SURFACE_RESULT_JNI_EXCEPTION				-6
+#define ANDROID_SURFACE_RESULT_SUCCESS                          0
+#define ANDROID_SURFACE_RESULT_NOT_VALID                        -1
+#define ANDROID_SURFACE_RESULT_COULDNT_LOCK                     -2
+#define ANDROID_SURFACE_RESULT_COULDNT_UNLOCK_AND_POST          -3
+#define ANDROID_SURFACE_RESULT_COULDNT_INIT_BITMAP_SURFACE      -4
+#define ANDROID_SURFACE_RESULT_COULDNT_INIT_BITMAP_CLIENT       -5
+#define ANDROID_SURFACE_RESULT_JNI_EXCEPTION                    -6
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +37,7 @@ int AndroidSurface_register(JNIEnv* env, jobject jsurface);
 
 int AndroidSurface_getPixels(int width, int height, void** pixels);
 	
-int AndroidSurface_updateSurface();
+int AndroidSurface_updateSurface(bool autoscale = true);
 	
 int AndroidSurface_unregister();
 	

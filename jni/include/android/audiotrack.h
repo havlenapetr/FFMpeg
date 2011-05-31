@@ -93,8 +93,7 @@ int AndroidAudioTrack_register();
 int AndroidAudioTrack_set(int streamType,
 						  uint32_t sampleRate,
 						  int format,
-						  int channels,
-						  int buffSizeInBytes);
+						  int channels);
 	
 int AndroidAudioTrack_start();
 
