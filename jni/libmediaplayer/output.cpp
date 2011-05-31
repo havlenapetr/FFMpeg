@@ -68,7 +68,7 @@ int Output::VideoDriver_getPixels(int width, int height, void** pixels)
 	return AndroidSurface_getPixels(width, height, pixels);
 }
 
-int Output::VideoDriver_updateSurface()
+int Output::VideoDriver_updateSurface(bool autoscale)
 {
-	return AndroidSurface_updateSurface();
+	return AndroidSurface_updateSurface(autoscale);
 }

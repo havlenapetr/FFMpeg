@@ -123,6 +123,7 @@ private:
 
     DecodeLoopCallback*                         mCallback;
     bool                                        mEnding;
+    bool										mPaused;
 
 public:
     DecodeLoop(AVFormatContext* context, int audioStreamId, int videoStreamId, DecodeLoopCallback* callback);
@@ -130,6 +131,9 @@ public:
 
     virtual void                                run();
     void                                        suspend();
+    void										resume() { mPaused = false; };
+    void										pause() { mPaused = true; };
+    bool										isPlaying() { return !mPaused; };
 };
 
 // ----------------------------------------------------------------------------
@@ -145,6 +149,8 @@ class MediaPlayer : private DecodeLoopCallback
 public:
     MediaPlayer();
     ~MediaPlayer();
+    status_t        setAutoscale(bool value);
+    status_t        setResolution(int width, int height);
     status_t        setDataSource(const char *url);
     status_t        setVideoSurface(JNIEnv* env, jobject jsurface);
     status_t        setListener(MediaPlayerListener *listener);
@@ -171,45 +177,46 @@ public:
     status_t        resume();
 
 private:
+    bool            createVideoSurface(int width, int height);
     status_t	    prepareAudio();
     status_t	    prepareVideo();
     bool            shouldCancel(PacketQueue* queue);
     static void	    ffmpegNotify(void* ptr, int level, const char* fmt, va_list vl);
 	
-    double                      mTime;
+    double                                      mTime;
 
-    PacketQueue*                                mVideoQueue;
     Mutex                                       mLock;
-    //Mutex                 mNotifyLock;
-    //Condition             mSignal;
 
     MediaPlayerListener*                        mListener;
     AVFormatContext*                            mMovieFile;
     int                                         mAudioStreamIndex;
     int                                         mVideoStreamIndex;
 
-    DecodeLoop*             mDecodingLoop;
+    DecodeLoop*                                 mDecodingLoop;
 
-    void*                   mCookie;
-    media_player_states     mCurrentState;
-    int                     mDuration;
-    int                     mCurrentPosition;
-    int                     mSeekPosition;
-    bool                    mPrepareSync;
-    status_t                mPrepareStatus;
-    int                     mStreamType;
-    bool                    mLoop;
-    float                   mLeftVolume;
-    float                   mRightVolume;
+    void*                                       mCookie;
+    media_player_states                         mCurrentState;
+    int                                         mDuration;
+    int                                         mCurrentPosition;
+    int                                         mSeekPosition;
+    bool                                        mPrepareSync;
+    status_t                                    mPrepareStatus;
+    int                                         mStreamType;
+    bool                                        mLoop;
+    float                                       mLeftVolume;
+    float                                       mRightVolume;
 
 public:
-    struct SwsContext*      mConvertCtx;
-    AVFrame*                mFrame;
-    int                     mVideoWidth;
-    int                     mVideoHeight;
+    bool                                        mAutoscale;
+    struct SwsContext*                          mConvertCtx;
+    AVFrame*                                    mFrame;
+    int                                         mVideoWidth;
+    int                                         mVideoHeight;
 
 protected:
     virtual void                                onCompleted();
+
+    friend class DecodeLoop;
 };
 
 #endif // FFMPEG_MEDIAPLAYER_H

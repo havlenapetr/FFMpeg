@@ -23,7 +23,7 @@ public:
 	
 	static int					VideoDriver_register(JNIEnv* env, jobject jsurface);
     static int					VideoDriver_getPixels(int width, int height, void** pixels);
-    static int					VideoDriver_updateSurface();
+    static int					VideoDriver_updateSurface(bool autoscale = true);
     static int					VideoDriver_unregister();
 };
 

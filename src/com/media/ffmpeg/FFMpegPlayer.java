@@ -166,6 +166,14 @@ public class FFMpegPlayer
         _pause();
     }
 
+    public void setResolution(int width, int height) throws IllegalStateException {
+        _setResolution(width, height);
+    }
+
+    public void setAutoscale(boolean value)throws IllegalStateException {
+        _setAutoscale(value);
+    }
+
     /**
      * Set the low-level power management behavior for this MediaPlayer.  This
      * can be used when the MediaPlayer is not playing through a SurfaceHolder
@@ -271,7 +279,11 @@ public class FFMpegPlayer
     private native void _stop() throws IllegalStateException;
     
     private native void _pause() throws IllegalStateException;
-    
+
+    private native void _setResolution(int width, int height) throws IllegalStateException;
+
+    private native void _setAutoscale(boolean value) throws IllegalStateException;
+
     /**
      * Returns the width of the video.
      *

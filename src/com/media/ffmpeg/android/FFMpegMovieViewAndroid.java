@@ -53,7 +53,11 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     public void setVideoPath(String filePath) throws IllegalArgumentException, IllegalStateException, IOException {
 		mPlayer.setDataSource(filePath);
 	}
-    
+
+    public void setAutoscale(boolean value) {
+        mPlayer.setAutoscale(value);
+    }
+
     /**
      * initzialize player
      */
@@ -68,7 +72,8 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
 		}
     }
     
-    private void startVideo() {
+    private void startVideo(int format, int w, int h) {
+        //Log.d(TAG, "screen format: " + format + ", res: " + w + "x" + h);
     	attachMediaController();
     	mPlayer.start();
     }
@@ -90,7 +95,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
     
     SurfaceHolder.Callback mSHCallback = new SurfaceHolder.Callback() {
         public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-            startVideo();
+            startVideo(format, w, h);
         }
 
         public void surfaceCreated(SurfaceHolder holder) {
@@ -105,7 +110,7 @@ public class FFMpegMovieViewAndroid extends SurfaceView {
         }
     };
     
-    MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
+    private MediaPlayerControl mMediaPlayerControl = new MediaPlayerControl() {
 		
 		public void start() {
 			mPlayer.resume();

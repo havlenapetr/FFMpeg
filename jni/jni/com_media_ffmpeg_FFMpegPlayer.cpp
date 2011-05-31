@@ -220,6 +220,28 @@ com_media_ffmpeg_FFMpegPlayer_pause(JNIEnv *env, jobject thiz)
     process_media_player_call( env, thiz, mp->pause(), NULL, NULL );
 }
 
+static void
+com_media_ffmpeg_FFMpegPlayer_setResolution(JNIEnv *env, jobject thiz, jint width, jint height)
+{
+    MediaPlayer* mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+    process_media_player_call( env, thiz, mp->setResolution(width, height), NULL, NULL );
+}
+
+static void
+com_media_ffmpeg_FFMpegPlayer_setAutoscale(JNIEnv *env, jobject thiz, jboolean value)
+{
+    MediaPlayer* mp = getMediaPlayer(env, thiz);
+    if (mp == NULL ) {
+        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return;
+    }
+    process_media_player_call( env, thiz, mp->setAutoscale(value), NULL, NULL );
+}
+
 static jboolean
 com_media_ffmpeg_FFMpegPlayer_isPlaying(JNIEnv *env, jobject thiz)
 {
@@ -406,6 +428,8 @@ static JNINativeMethod gMethods[] = {
     {"prepare",             "()V",                              (void *)com_media_ffmpeg_FFMpegPlayer_prepare},
     {"_start",              "()V",                              (void *)com_media_ffmpeg_FFMpegPlayer_start},
     {"_stop",               "()V",                              (void *)com_media_ffmpeg_FFMpegPlayer_stop},
+    {"_setResolution",      "(II)V",                            (void *)com_media_ffmpeg_FFMpegPlayer_setResolution},
+    {"_setAutoscale",       "(Z)V",                             (void *)com_media_ffmpeg_FFMpegPlayer_setAutoscale},
     {"getVideoWidth",       "()I",                              (void *)com_media_ffmpeg_FFMpegPlayer_getVideoWidth},
     {"getVideoHeight",      "()I",                              (void *)com_media_ffmpeg_FFMpegPlayer_getVideoHeight},
     {"seekTo",              "(I)V",                             (void *)com_media_ffmpeg_FFMpegPlayer_seekTo},

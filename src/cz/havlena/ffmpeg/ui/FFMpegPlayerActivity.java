@@ -10,13 +10,18 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 public class FFMpegPlayerActivity extends Activity {
 	private static final String 	TAG = "FFMpegPlayerActivity";
 	//private static final String 	LICENSE = "This software uses libraries from the FFmpeg project under the LGPLv2.1";
 	
 	private FFMpegMovieViewAndroid 	mMovieView;
+	private boolean 				mAutoscale;
 	//private WakeLock				mWakeLock;
+	
+	private static final int MENU_AUTOSCALE = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,5 +58,25 @@ public class FFMpegPlayerActivity extends Activity {
 				finish();
 			}
 		}
+		
+		mAutoscale = true;
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.add(0, MENU_AUTOSCALE, 1, "Autoscale");
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId())
+		{
+		case MENU_AUTOSCALE:
+			mAutoscale = !mAutoscale;
+			mMovieView.setAutoscale(mAutoscale);
+			return true;
+		}
+		return false;
 	}
 }

@@ -25,8 +25,6 @@ extern "C" {
 #include "mediaplayer.h"
 #include "output.h"
 
-#define FPS_DEBUGGING false
-
 #define LOG_TAG "FFMpegMediaPlayer"
 
 static MediaPlayer* sPlayer;
@@ -39,34 +37,16 @@ public:
 
 void VideoCallback::onDecode(AVFrame* frame, double pts)
 {
-    if(FPS_DEBUGGING)
-    {
-        timeval pTime;
-        static int frames = 0;
-        static double t1 = -1;
-        static double t2 = -1;
-
-        gettimeofday(&pTime, NULL);
-        t2 = pTime.tv_sec + (pTime.tv_usec / 1000000.0);
-        if (t1 == -1 || t2 > t1 + 1) {
-            LOGI("Video fps:%i", frames);
-	    //sPlayer->notify(MEDIA_INFO_FRAMERATE_VIDEO, frames, -1);
-	    t1 = t2;
-	    frames = 0;
-	}
-	frames++;
-    }
-
     // Convert the image from its native format to RGB
     sws_scale(sPlayer->mConvertCtx,
 	      frame->data,
 	      frame->linesize,
-              0,
+          0,
 	      sPlayer->mVideoHeight,
 	      sPlayer->mFrame->data,
-              sPlayer->mFrame->linesize);
+          sPlayer->mFrame->linesize);
 
-    Output::VideoDriver_updateSurface();
+    Output::VideoDriver_updateSurface(sPlayer->mAutoscale);
 }
 
 class AudioCallback : public DecoderAudioCallback
@@ -77,24 +57,6 @@ public:
 
 void AudioCallback::onDecode(int16_t* buffer, int buffer_size)
 {
-    if(FPS_DEBUGGING)
-    {
-        timeval pTime;
-        static int frames = 0;
-        static double t1 = -1;
-        static double t2 = -1;
-
-        gettimeofday(&pTime, NULL);
-        t2 = pTime.tv_sec + (pTime.tv_usec / 1000000.0);
-        if (t1 == -1 || t2 > t1 + 1) {
-            LOGI("Video fps:%i", frames);
-	    //sPlayer->notify(MEDIA_INFO_FRAMERATE_VIDEO, frames, -1);
-	    t1 = t2;
-	    frames = 0;
-	}
-	frames++;
-    }
-
     if(Output::AudioDriver_write(buffer, buffer_size) <= 0) {
         LOGE("Couldn't write samples to audio track");
     }
@@ -152,8 +114,14 @@ void DecodeLoop::run()
             usleep(200);
             continue;
         }
+
+        if(mPaused) {
+        	usleep(200);
+        	continue;
+        }
 		
-	
+        sPlayer->mLock.lock();
+
         if(av_read_frame(mContext, &pPacket) < 0) {
             mEnding = true;
             continue;
@@ -170,6 +138,8 @@ void DecodeLoop::run()
             // Free the packet that was allocated by av_read_frame
             av_free_packet(&pPacket);
         }
+
+        sPlayer->mLock.unlock();
     }
 
     //waits on end of video thread
@@ -201,6 +171,7 @@ MediaPlayer::MediaPlayer()
     mPrepareSync = false;
     mPrepareStatus = NO_ERROR;
     mLoop = false;
+    mAutoscale = true;
     mLeftVolume = mRightVolume = 1.0;
     mVideoWidth = mVideoHeight = 0;
     sPlayer = this;
@@ -290,11 +261,11 @@ status_t MediaPlayer::prepareVideo()
 	mVideoHeight = codec_ctx->height;
 	mDuration =  mMovieFile->duration;
 	
-	mConvertCtx = sws_getContext(stream->codec->width,
-								 stream->codec->height,
+	mConvertCtx = sws_getContext(mVideoWidth,
+								 mVideoHeight,
 								 stream->codec->pix_fmt,
-								 stream->codec->width,
-								 stream->codec->height,
+								 mVideoWidth,
+								 mVideoHeight,
 								 PIX_FMT_RGB565,
 								 SWS_POINT,
 								 NULL,
@@ -305,27 +276,37 @@ status_t MediaPlayer::prepareVideo()
 		return INVALID_OPERATION;
 	}
 
-	void*		pixels;
-	if (Output::VideoDriver_getPixels(stream->codec->width,
-									  stream->codec->height,
-									  &pixels) != ANDROID_SURFACE_RESULT_SUCCESS) {
+	if(!createVideoSurface(mVideoWidth, mVideoHeight)) {
 		return INVALID_OPERATION;
 	}
-
-	mFrame = avcodec_alloc_frame();
-	if (mFrame == NULL) {
-		return INVALID_OPERATION;
-	}
-	// Assign appropriate parts of buffer to image planes in pFrameRGB
-	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-	// of AVPicture
-	avpicture_fill((AVPicture *) mFrame,
-				   (uint8_t *) pixels,
-				   PIX_FMT_RGB565,
-				   stream->codec->width,
-				   stream->codec->height);
 
 	return NO_ERROR;
+}
+
+bool MediaPlayer::createVideoSurface(int width, int height)
+{
+	void* pixels;
+	if (Output::VideoDriver_getPixels(width, height, &pixels)
+            != ANDROID_SURFACE_RESULT_SUCCESS)
+    {
+        return false;
+	}
+
+    mFrame = avcodec_alloc_frame();
+    if (mFrame == NULL) {
+        return false;
+    }
+
+    // Assign appropriate parts of buffer to image planes in pFrameRGB
+    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+    // of AVPicture
+    avpicture_fill((AVPicture *) mFrame,
+	               (uint8_t *) pixels,
+                    PIX_FMT_RGB565,
+                    width,
+                    height);
+
+    return true;
 }
 
 status_t MediaPlayer::prepare()
@@ -448,15 +429,35 @@ status_t MediaPlayer::pause()
 {
     Mutex::AutoLock _l(&mLock);
 
-    mCurrentState = MEDIA_PLAYER_PAUSED;
+    mDecodingLoop->pause();
+
     return NO_ERROR;
 }
 
 bool MediaPlayer::isPlaying()
 {
     Mutex::AutoLock _l(&mLock);
-    return mCurrentState == MEDIA_PLAYER_STARTED || 
-		mCurrentState == MEDIA_PLAYER_DECODED;
+    return mDecodingLoop->isPlaying();
+}
+
+status_t MediaPlayer::setAutoscale(bool value)
+{
+    if (mCurrentState < MEDIA_PLAYER_PREPARED) {
+        return INVALID_OPERATION;
+    }
+
+    mAutoscale = value;
+
+    return NO_ERROR;
+}
+
+status_t MediaPlayer::setResolution(int width, int height)
+{
+    if (mCurrentState < MEDIA_PLAYER_PREPARED) {
+        return INVALID_OPERATION;
+    }
+
+    return NO_ERROR;
 }
 
 status_t MediaPlayer::getVideoWidth(int *w)
